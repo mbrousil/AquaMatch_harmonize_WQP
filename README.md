@@ -8,9 +8,21 @@ This repository is one part of an expansion and update of the original [AquaSat]
 
 ### Technical details
 
+#### Workflow
+
 AquaSat v2 uses the {targets} workflow management R package to reimagine the [original AquaSat codebase](https://github.com/GlobalHydrologyLab/AquaSat). The framework for this workflow is based on code adapted from [this USGS pipeline](https://github.com/USGS-R/ds-pipelines-targets-example-wqp) and has been further developed by members of the [ROSSyndicate](https://github.com/rossyndicate).
 
-Technical details on {targets} workflows are available in the  [{targets} User Manual](https://books.ropensci.org/targets/). {targets} workflows are built upon lists of "targets", which can be thought of as analytical steps written out in code. This workflow uses a targets list spread across multiple scripts in an effort to facilitate organization of the code. `_targets.R` serves as the main list of targets and references the other lists of targets, which are defined inside `3_harmonize.R`, and `create_bookdown.R`. Note that the prefix `3_` is in reference to scripts `1_inventory.R` and `2_download.R` from [AquaMatch_download_WQP](https://github.com/AquaSat/AquaMatch_download_WQP).
+Technical details on {targets} workflows are available in the [{targets} User Manual](https://books.ropensci.org/targets/). {targets} workflows are built upon lists of "targets", which can be thought of as analytical steps written out in code. This workflow uses a targets list spread across multiple scripts in an effort to facilitate organization of the code. `_targets.R` serves as the main list of targets and references the other lists of targets, which are defined inside `3_harmonize.R`, and `create_bookdown.R`. Note that the prefix `3_` is in reference to scripts `1_inventory.R` and `2_download.R` from [AquaMatch_download_WQP](https://github.com/AquaSat/AquaMatch_download_WQP).
+
+#### Setup
+
+There are a couple aspects of the workflow that users will need to edit for their use case:
+
+1.  The authorization of the [{googledrive}](https://googledrive.tidyverse.org/index.html) R package. This workflow requires {googledrive} in order to store WQP downloads. Be sure to authorize a Google account to use for online storage when running this workflow. Information on authorization can be found [here](https://googledrive.tidyverse.org/reference/drive_auth.html). The `run.R` script is set up to assume that an account has already been authorized on the user's computer.
+
+2.  The path specified in the `p0_AquaMatch_download_WQP_directory` target. Users will need to have the [AquaMatch_download_WQP](https://github.com/AquaSat/AquaMatch_download_WQP) repository downloaded on their computer when using this workflow, as it references files inside AquaMatch_download_WQP. The `p0_AquaMatch_download_WQP_directory` target should be the path to the "download" repository on your computer. The version stored on the AquaSat GitHub will contain files that link to versions of the data that the AquaSat team has downloaded, but if you are running your own version of the pipeline you will want to run the full AquaMatch_download_WQP pipeline from scratch on your computer before proceeding with the workflow in this repository.
+
+#### Organization and documentation
 
 In general, `src/` folders in this repository contain source code for customized functions used by the {targets} pipeline. The numbered R scripts have functions defined in their respective folders (e.g., `3_harmonize/src/`, etc.).
 

@@ -95,26 +95,7 @@ config_targets <- list(
              retrieve_param_data(link_table = p2_wqp_data_aoi_out_links,
                                  parameter_string = "chlorophyll"),
              format = "feather",
-             packages = c("tidyverse", "googledrive", "feather")),
-  
-  tar_target(p2_wqp_data_aoi_doc,
-             retrieve_param_data(link_table = p2_wqp_data_aoi_out_links,
-                                 parameter_string = "doc"),
-             format = "feather",
-             packages = c("tidyverse", "googledrive", "feather")),
-  
-  tar_target(p2_wqp_data_aoi_sdd,
-             retrieve_param_data(link_table = p2_wqp_data_aoi_out_links,
-                                 parameter_string = "sdd"),
-             format = "feather",
-             packages = c("tidyverse", "googledrive", "feather")),
-  
-  tar_target(p2_wqp_data_aoi_tss,
-             retrieve_param_data(link_table = p2_wqp_data_aoi_out_links,
-                                 parameter_string = "tss"),
-             format = "feather",
              packages = c("tidyverse", "googledrive", "feather"))
-  
 )
 
 

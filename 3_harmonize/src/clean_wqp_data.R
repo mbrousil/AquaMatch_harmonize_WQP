@@ -868,7 +868,7 @@ fill_date_time <- function(dataset, site_data){
   
   # Return the final product without the temporary cols
   output_dataset <- dataset_w_times %>%
-    select(-c(fetched_tz, new_tz))
+    select(-any_of(c("fetched_tz", "new_tz")))
   
   output_dataset
 }

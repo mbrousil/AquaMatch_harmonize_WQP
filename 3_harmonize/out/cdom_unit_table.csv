@@ -1,0 +1,6 @@
+ResultMeasure.MeasureUnitCode,conversion
+mg/l,1
+mg/L,1
+ug/l,0.001
+ug/L,0.001
+ug/l QSE,0.001

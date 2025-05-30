@@ -353,29 +353,35 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Harmonize value units ---------------------------------------------------
   
+  # Split up the dataset into separate tables for values that are in RFUs vs
+  # other units. Note that RFU will be harmonized separately from here on out
+  cdom_rfu <- cdom_no_na %>%
+    filter(grepl(pattern = "RFU", x = ResultMeasure.MeasureUnitCode, ignore.case = TRUE)) %>%
+    mutate(harmonized_units = "RFU")
+  
+  cdom_non_rfu <- cdom_no_na %>%
+    filter(!grepl(pattern = "RFU", x = ResultMeasure.MeasureUnitCode, ignore.case = TRUE))
+  
   # Matchup table for expected cdom units in the dataset
   unit_conversion_table <- tibble(
-    ResultMeasure.MeasureUnitCode = c("mg/l", "mg/L", "ppm", "ug/l", "ug/L",
-                                      "mg/m3", "ppb", "mg/cm3", "ug/ml",
-                                      "mg/ml", "ppt", "ug/mL", "mg/mL",
-                                      "g/L"),
-    conversion = c(1, 1, 1, .001, .001, .001, .001, 1000, 1,
-                   1000, 1000, 1, 1000, 1000))
+    ResultMeasure.MeasureUnitCode = c("mg/l", "mg/L", "ug/l", "ug/L", "ug/l QSE"),
+    conversion = c(1, 1, .001, .001, .001)
+  )
   
   unit_table_out_path <- "3_harmonize/out/cdom_unit_table.csv"
   
   write_csv(x = unit_conversion_table,
             file = unit_table_out_path)
   
-  converted_units_cdom <- cdom_no_na %>%
+  converted_units_cdom <- cdom_non_rfu %>%
     inner_join(x = .,
                y = unit_conversion_table,
                by = "ResultMeasure.MeasureUnitCode") %>%
     mutate(harmonized_value = harmonized_value * conversion,
            harmonized_units = "mg/L")
   
-  # Plot and export unit codes that didn't make through joining
-  cdom_no_na %>%
+  # Plot and export unit codes that didn't make it through joining
+  cdom_non_rfu %>%
     anti_join(x = .,
               y = unit_conversion_table,
               by = "ResultMeasure.MeasureUnitCode")  %>%
@@ -389,34 +395,39 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   print(
     paste0(
       "Rows removed while harmonizing units: ",
-      nrow(cdom_no_na) - nrow(converted_units_cdom)
-    )
+      nrow(cdom_no_na) - ( nrow(converted_units_cdom) + nrow(cdom_rfu) ))
   )
   
   dropped_harmonization <- tibble(
     step = "cdom harmonization",
     reason = "Dropped rows while harmonizing units",
     short_reason = "Harmonize units",
-    number_dropped = nrow(cdom_no_na) - nrow(converted_units_cdom),
-    n_rows = nrow(converted_units_cdom),
+    number_dropped =  nrow(cdom_no_na) - ( nrow(converted_units_cdom) + nrow(cdom_rfu) ),
+    n_rows = ( nrow(converted_units_cdom) + nrow(cdom_rfu) ),
     order = 7
   )
+  
+  # Make a list of CDOM tables
+  converted_units_cdom_list <- list(rfu = cdom_rfu, mgl = converted_units_cdom)
   
   
   # Clean and flag depth data -----------------------------------------------
   
   # Recode any error-related character values to NAs
-  recode_depth_na_cdom <- converted_units_cdom %>%
-    mutate(
-      across(.cols = c(ActivityDepthHeightMeasure.MeasureValue,
-                       ResultDepthHeightMeasure.MeasureValue,
-                       ActivityTopDepthHeightMeasure.MeasureValue,
-                       ActivityBottomDepthHeightMeasure.MeasureValue),
-             .fns = ~if_else(condition = .x %in% c("NA", "999", "-999",
-                                                   "9999", "-9999", "-99",
-                                                   "99", "NaN"),
-                             true = NA_character_,
-                             false = .x))
+  recode_depth_na_cdom <- converted_units_cdom_list %>%
+    map(
+      .f = ~.x %>%
+        mutate(
+          across(.cols = c(ActivityDepthHeightMeasure.MeasureValue,
+                           ResultDepthHeightMeasure.MeasureValue,
+                           ActivityTopDepthHeightMeasure.MeasureValue,
+                           ActivityBottomDepthHeightMeasure.MeasureValue),
+                 .fns = ~if_else(condition = .x %in% c("NA", "999", "-999",
+                                                       "9999", "-9999", "-99",
+                                                       "99", "NaN"),
+                                 true = NA_character_,
+                                 false = .x))
+        )
     )
   
   # Reference table for unit conversion
@@ -428,155 +439,169 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   # There are four columns with potential depth data that we need to convert
   # into meters:
   converted_depth_units_cdom <- recode_depth_na_cdom %>%
-    # 1. Activity depth col
-    left_join(x = .,
-              y = depth_unit_conversion_table,
-              by = c("ActivityDepthHeightMeasure.MeasureUnitCode" = "depth_units")) %>%
-    mutate(
-      harmonized_activity_depth_value = as.numeric(ActivityDepthHeightMeasure.MeasureValue) * depth_conversion
-    ) %>%
-    # Drop conversion col to avoid interfering with next join
-    select(-depth_conversion) %>%
-    # 2. Result depth col
-    left_join(x = .,
-              y = depth_unit_conversion_table,
-              by = c("ResultDepthHeightMeasure.MeasureUnitCode" = "depth_units")) %>%
-    mutate(
-      harmonized_result_depth_value = as.numeric(ResultDepthHeightMeasure.MeasureValue) * depth_conversion
-    ) %>%
-    select(-depth_conversion) %>%
-    # 3. Activity top depth col
-    left_join(x = .,
-              y = depth_unit_conversion_table,
-              by = c("ActivityTopDepthHeightMeasure.MeasureUnitCode" = "depth_units")) %>%
-    mutate(
-      harmonized_top_depth_value = as.numeric(ActivityTopDepthHeightMeasure.MeasureValue) * depth_conversion,
-      harmonized_top_depth_unit = "m"
-    ) %>%
-    select(-depth_conversion) %>%
-    # 4. Activity bottom depth col
-    left_join(x = .,
-              y = depth_unit_conversion_table,
-              by = c("ActivityBottomDepthHeightMeasure.MeasureUnitCode" = "depth_units")) %>%
-    mutate(
-      harmonized_bottom_depth_value = as.numeric(ActivityBottomDepthHeightMeasure.MeasureValue) * depth_conversion,
-      harmonized_bottom_depth_unit = "m"
+    map(.f = ~.x %>%
+          # 1. Activity depth col
+          left_join(x = .,
+                    y = depth_unit_conversion_table,
+                    by = c("ActivityDepthHeightMeasure.MeasureUnitCode" = "depth_units")) %>%
+          mutate(
+            harmonized_activity_depth_value = as.numeric(ActivityDepthHeightMeasure.MeasureValue) * depth_conversion
+          ) %>%
+          # Drop conversion col to avoid interfering with next join
+          select(-depth_conversion) %>%
+          # 2. Result depth col
+          left_join(x = .,
+                    y = depth_unit_conversion_table,
+                    by = c("ResultDepthHeightMeasure.MeasureUnitCode" = "depth_units")) %>%
+          mutate(
+            harmonized_result_depth_value = as.numeric(ResultDepthHeightMeasure.MeasureValue) * depth_conversion
+          ) %>%
+          select(-depth_conversion) %>%
+          # 3. Activity top depth col
+          left_join(x = .,
+                    y = depth_unit_conversion_table,
+                    by = c("ActivityTopDepthHeightMeasure.MeasureUnitCode" = "depth_units")) %>%
+          mutate(
+            harmonized_top_depth_value = as.numeric(ActivityTopDepthHeightMeasure.MeasureValue) * depth_conversion,
+            harmonized_top_depth_unit = "m"
+          ) %>%
+          select(-depth_conversion) %>%
+          # 4. Activity bottom depth col
+          left_join(x = .,
+                    y = depth_unit_conversion_table,
+                    by = c("ActivityBottomDepthHeightMeasure.MeasureUnitCode" = "depth_units")) %>%
+          mutate(
+            harmonized_bottom_depth_value = as.numeric(ActivityBottomDepthHeightMeasure.MeasureValue) * depth_conversion,
+            harmonized_bottom_depth_unit = "m"
+          )
     )
   
   # Now combine the two columns with single point depth data into one and clean
   # up values generally:
   harmonized_depth_cdom <- converted_depth_units_cdom %>%
-    rowwise() %>%
-    mutate(
-      # New harmonized discrete column:
-      harmonized_discrete_depth_value = case_when(
-        # Use activity depth mainly
-        !is.na(harmonized_activity_depth_value) &
-          is.na(harmonized_result_depth_value) ~ harmonized_activity_depth_value,
-        # Missing activity depth but not result depth
-        is.na(harmonized_activity_depth_value) &
-          !is.na(harmonized_result_depth_value) ~ harmonized_result_depth_value,
-        # Disagreeing activity and result depths
-        (!is.na(harmonized_activity_depth_value) &
-           !is.na(harmonized_result_depth_value)) &
-          harmonized_activity_depth_value != harmonized_result_depth_value ~ mean(
-            c(harmonized_activity_depth_value, harmonized_result_depth_value)),
-        # Both agree
-        harmonized_activity_depth_value == harmonized_result_depth_value ~ harmonized_activity_depth_value,
-        # Defaults to NA otherwise
-        .default = NA_real_
-      ),
-      # Indicate depth unit going along with this column
-      harmonized_discrete_depth_unit = "m"
-    ) %>%
-    ungroup()
+    map(
+      .f = ~.x %>%
+        rowwise() %>%
+        mutate(
+          # New harmonized discrete column:
+          harmonized_discrete_depth_value = case_when(
+            # Use activity depth mainly
+            !is.na(harmonized_activity_depth_value) &
+              is.na(harmonized_result_depth_value) ~ harmonized_activity_depth_value,
+            # Missing activity depth but not result depth
+            is.na(harmonized_activity_depth_value) &
+              !is.na(harmonized_result_depth_value) ~ harmonized_result_depth_value,
+            # Disagreeing activity and result depths
+            (!is.na(harmonized_activity_depth_value) &
+               !is.na(harmonized_result_depth_value)) &
+              harmonized_activity_depth_value != harmonized_result_depth_value ~ mean(
+                c(harmonized_activity_depth_value, harmonized_result_depth_value)),
+            # Both agree
+            harmonized_activity_depth_value == harmonized_result_depth_value ~ harmonized_activity_depth_value,
+            # Defaults to NA otherwise
+            .default = NA_real_
+          ),
+          # Indicate depth unit going along with this column
+          harmonized_discrete_depth_unit = "m"
+        ) %>%
+        ungroup()
+    )
   
   # Create a flag system based on depth data presence/completion
   flagged_depth_cdom <- harmonized_depth_cdom %>%
-    mutate(
-      depth_flag = case_when(
-        # No depths (including because of recoding above)
-        is.na(harmonized_discrete_depth_value) &
-          is.na(harmonized_top_depth_value) &
-          is.na(harmonized_bottom_depth_value) ~ 0,
-        # All columns present
-        !is.na(harmonized_discrete_depth_value) &
-          !is.na(harmonized_top_depth_value) &
-          !is.na(harmonized_bottom_depth_value) ~ 3,
-        # Integrated depths
-        (!is.na(harmonized_top_depth_value) |
-           !is.na(harmonized_bottom_depth_value)) &
-          is.na(harmonized_discrete_depth_value) ~ 2,
-        # Discrete depths
-        !is.na(harmonized_discrete_depth_value) &
-          is.na(harmonized_top_depth_value) &
-          is.na(harmonized_bottom_depth_value) ~ 1,
-        # Discrete and integrated present
-        # Note that here using the non-combined discrete col since part of
-        # the combination process above was to create NAs when the discrete
-        # values disagree
-        ((!is.na(harmonized_activity_depth_value) | !is.na(harmonized_result_depth_value)) &
-           !is.na(harmonized_top_depth_value)) |
-          ((!is.na(harmonized_activity_depth_value) | !is.na(harmonized_result_depth_value)) &
-             !is.na(harmonized_bottom_depth_value)) ~ 3,
-        .default = NA_real_
-      )) %>%
-    # These columns are no longer necessary since the harmonization is done
-    select(-c(harmonized_activity_depth_value, harmonized_result_depth_value,
-              depth_conversion))
+    map(
+      .f = ~.x %>%
+        mutate(
+          depth_flag = case_when(
+            # No depths (including because of recoding above)
+            is.na(harmonized_discrete_depth_value) &
+              is.na(harmonized_top_depth_value) &
+              is.na(harmonized_bottom_depth_value) ~ 0,
+            # All columns present
+            !is.na(harmonized_discrete_depth_value) &
+              !is.na(harmonized_top_depth_value) &
+              !is.na(harmonized_bottom_depth_value) ~ 3,
+            # Integrated depths
+            (!is.na(harmonized_top_depth_value) |
+               !is.na(harmonized_bottom_depth_value)) &
+              is.na(harmonized_discrete_depth_value) ~ 2,
+            # Discrete depths
+            !is.na(harmonized_discrete_depth_value) &
+              is.na(harmonized_top_depth_value) &
+              is.na(harmonized_bottom_depth_value) ~ 1,
+            # Discrete and integrated present
+            # Note that here using the non-combined discrete col since part of
+            # the combination process above was to create NAs when the discrete
+            # values disagree
+            ((!is.na(harmonized_activity_depth_value) | !is.na(harmonized_result_depth_value)) &
+               !is.na(harmonized_top_depth_value)) |
+              ((!is.na(harmonized_activity_depth_value) | !is.na(harmonized_result_depth_value)) &
+                 !is.na(harmonized_bottom_depth_value)) ~ 3,
+            .default = NA_real_
+          )) %>%
+        # These columns are no longer necessary since the harmonization is done
+        select(-c(harmonized_activity_depth_value, harmonized_result_depth_value,
+                  depth_conversion))
+    )
   
   # Sanity check that flags are matching up with their intended qualities:
   depth_check_table <- flagged_depth_cdom %>%
-    mutate(
-      # Everything present
-      three_cols_present = if_else(
-        !is.na(harmonized_discrete_depth_value) &
-          !is.na(harmonized_top_depth_value) &
-          !is.na(harmonized_bottom_depth_value),
-        true = 1, false = 0),
-      # Only discrete present
-      only_discrete = if_else(
-        !is.na(harmonized_discrete_depth_value) &
-          is.na(harmonized_top_depth_value) &
-          is.na(harmonized_bottom_depth_value),
-        true = 1, false = 0),
-      # Only top present
-      only_top = if_else(
-        is.na(harmonized_discrete_depth_value) &
-          !is.na(harmonized_top_depth_value) &
-          is.na(harmonized_bottom_depth_value),
-        true = 1, false = 0),
-      # Only bottom present
-      only_bottom = if_else(
-        is.na(harmonized_discrete_depth_value) &
-          is.na(harmonized_top_depth_value) &
-          !is.na(harmonized_bottom_depth_value),
-        true = 1, false = 0),
-      # Full integrated present
-      fully_integrated = if_else(
-        is.na(harmonized_discrete_depth_value) &
-          !is.na(harmonized_top_depth_value) &
-          !is.na(harmonized_bottom_depth_value),
-        true = 1, false = 0),
-      # No depths present
-      no_depths = if_else(
-        is.na(harmonized_discrete_depth_value) &
-          is.na(harmonized_top_depth_value) &
-          is.na(harmonized_bottom_depth_value),
-        true = 1, false = 0),
-      # Discrete and one of the integrated
-      discrete_partial_integ = if_else(
-        (!is.na(harmonized_discrete_depth_value) &
-           !is.na(harmonized_top_depth_value) &
-           is.na(harmonized_bottom_depth_value)) |
-          (!is.na(harmonized_discrete_depth_value) &
-             is.na(harmonized_top_depth_value) &
-             !is.na(harmonized_bottom_depth_value)),
-        true = 1, false = 0)
+    map(
+      .f = ~.x %>%
+        mutate(
+          # Everything present
+          three_cols_present = if_else(
+            !is.na(harmonized_discrete_depth_value) &
+              !is.na(harmonized_top_depth_value) &
+              !is.na(harmonized_bottom_depth_value),
+            true = 1, false = 0),
+          # Only discrete present
+          only_discrete = if_else(
+            !is.na(harmonized_discrete_depth_value) &
+              is.na(harmonized_top_depth_value) &
+              is.na(harmonized_bottom_depth_value),
+            true = 1, false = 0),
+          # Only top present
+          only_top = if_else(
+            is.na(harmonized_discrete_depth_value) &
+              !is.na(harmonized_top_depth_value) &
+              is.na(harmonized_bottom_depth_value),
+            true = 1, false = 0),
+          # Only bottom present
+          only_bottom = if_else(
+            is.na(harmonized_discrete_depth_value) &
+              is.na(harmonized_top_depth_value) &
+              !is.na(harmonized_bottom_depth_value),
+            true = 1, false = 0),
+          # Full integrated present
+          fully_integrated = if_else(
+            is.na(harmonized_discrete_depth_value) &
+              !is.na(harmonized_top_depth_value) &
+              !is.na(harmonized_bottom_depth_value),
+            true = 1, false = 0),
+          # No depths present
+          no_depths = if_else(
+            is.na(harmonized_discrete_depth_value) &
+              is.na(harmonized_top_depth_value) &
+              is.na(harmonized_bottom_depth_value),
+            true = 1, false = 0),
+          # Discrete and one of the integrated
+          discrete_partial_integ = if_else(
+            (!is.na(harmonized_discrete_depth_value) &
+               !is.na(harmonized_top_depth_value) &
+               is.na(harmonized_bottom_depth_value)) |
+              (!is.na(harmonized_discrete_depth_value) &
+                 is.na(harmonized_top_depth_value) &
+                 !is.na(harmonized_bottom_depth_value)),
+            true = 1, false = 0)
+        )
     ) %>%
+    bind_rows() %>%
     count(three_cols_present, only_discrete, discrete_partial_integ,
-          only_top, only_bottom, fully_integrated, no_depths, depth_flag) %>%
-    arrange(depth_flag)
+          only_top, only_bottom, fully_integrated, no_depths, depth_flag,
+          harmonized_units) %>%
+    arrange(depth_flag, harmonized_units)
+  
   
   depth_check_out_path <- "3_harmonize/out/cdom_depth_check_table.csv"
   
@@ -585,23 +610,26 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Depth category counts:
   depth_counts <- flagged_depth_cdom %>%
-    # Using a temporary flag to aggregate depth values for count output
-    mutate(depth_agg_flag = case_when(
-      depth_flag == 1 &
-        harmonized_discrete_depth_value <= 1 ~ "<=1m",
-      depth_flag == 1 &
-        harmonized_discrete_depth_value <= 5 ~ "<=5m",
-      depth_flag == 1 &
-        harmonized_discrete_depth_value > 5 ~ ">5m",
-      depth_flag == 2 &
-        harmonized_bottom_depth_value <= 1 ~ "<=1m",
-      depth_flag == 2 &
-        harmonized_bottom_depth_value <= 5 ~ "<=5m",
-      depth_flag == 2 &
-        harmonized_bottom_depth_value > 5 ~ ">5m",
-      .default = "No or inconsistent depth"
-    )) %>%
-    count(depth_agg_flag)
+    map(.f = ~.x %>%
+          # Using a temporary flag to aggregate depth values for count output
+          mutate(depth_agg_flag = case_when(
+            depth_flag == 1 &
+              harmonized_discrete_depth_value <= 1 ~ "<=1m",
+            depth_flag == 1 &
+              harmonized_discrete_depth_value <= 5 ~ "<=5m",
+            depth_flag == 1 &
+              harmonized_discrete_depth_value > 5 ~ ">5m",
+            depth_flag == 2 &
+              harmonized_bottom_depth_value <= 1 ~ "<=1m",
+            depth_flag == 2 &
+              harmonized_bottom_depth_value <= 5 ~ "<=5m",
+            depth_flag == 2 &
+              harmonized_bottom_depth_value > 5 ~ ">5m",
+            .default = "No or inconsistent depth"
+          ))
+    ) %>%
+    bind_rows() %>%
+    count(depth_agg_flag, harmonized_units)
   
   depth_counts_out_path <- "3_harmonize/out/cdom_depth_counts.csv"
   
@@ -611,7 +639,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   print(
     paste0(
       "Rows removed due to non-target depths: ",
-      nrow(converted_units_cdom) - nrow(flagged_depth_cdom)
+      sum(map_int(converted_units_cdom_list, nrow)) - sum(map_int(flagged_depth_cdom, nrow))
     )
   )
   
@@ -619,8 +647,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     step = "cdom harmonization",
     reason = "Dropped rows while cleaning depths",
     short_reason = "Clean depths",
-    number_dropped = nrow(converted_units_cdom) - nrow(flagged_depth_cdom),
-    n_rows = nrow(flagged_depth_cdom),
+    number_dropped = sum(map_int(converted_units_cdom_list, nrow)) - sum(map_int(flagged_depth_cdom, nrow)),
+    n_rows = sum(map_int(flagged_depth_cdom, nrow)),
     order = 8
   )
   

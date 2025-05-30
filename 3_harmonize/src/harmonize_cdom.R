@@ -762,6 +762,45 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Flag field methods ------------------------------------------------------
   
+  
+  field_flagged_cdom <- tiered_methods_cdom %>%
+    mutate(
+      field_flag = case_when(
+        # Discrete sampling methods are given a field_flag of 0
+        grepl(
+          pattern = paste0(
+            c("grab", "bucket", "point", "kemmerer", "van dorn", "bailer", "bottle"),
+            collapse = "|"),
+          x = SampleCollectionEquipmentName,
+          ignore.case = TRUE
+        ) ~ 0,
+        
+        # Integrated sample are given a field_flag of 1
+      )
+    )
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   # Field flag 1 = cdom was taken at depth, van dorn, etc. and SSC was NOT
   # taken at depth
   field_flagged_cdom <- tiered_methods_cdom %>%

@@ -135,7 +135,6 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Clean up MDLs -----------------------------------------------------------
   
-  # non_detect_text <- "non-detect|not detect|non detect|undetect|below"
   non_detect_text <- "non-detect|not detect|non detect|undetect|below|Present <QL"
   
   # Find MDLs and make them usable as numeric data
@@ -658,42 +657,65 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   # Get an idea of how many analytical methods exist:
   print(
     paste0(
-      "Number of cdom analytical methods present: ",
-      length(unique(flagged_depth_cdom$ResultAnalyticalMethod.MethodName))
+      "Number of CDOM analytical methods present: ",
+      flagged_depth_cdom %>%
+        bind_rows() %>%
+        pull(ResultAnalyticalMethod.MethodName) %>%
+        unique() %>%
+        length()
     )
   )
   
   # Before creating tiers remove records that have clearly unrelated or unreliable
-  # data based on their method:
-  unrelated_text <- paste0(
-    c("10200", "150.1", "2340", "2550", "4500", "9222", "9223", "Alkalinity", 
-      "Chlorophyll", "DO NOT USE", "Mercury", "Nitrate", "Nitrogen", 
-      "Oxygen", "Phosphorus", "Temperature", "Silica"),
-    collapse = "|")
+  # data based on their method. (Small dataset, so only one at time of publication)
+  unrelated_text <- "9222"
   
   cdom_relevant <- flagged_depth_cdom %>%
-    filter(!grepl(pattern = unrelated_text,
-                  x = ResultAnalyticalMethod.MethodName,
-                  ignore.case = TRUE))
-  
-  # Also remove instances where there's no flow in a stream or river
-  cdom_flow <- cdom_relevant %>%
-    filter(
-      !(
-        # No flow
-        grepl(pattern = "no flow|not flow|zero flow", x = ActivityCommentText, ignore.case = TRUE) &
-          # River or stream
-          grepl(pattern = "river|stream|canal", x = MonitoringLocationTypeName, ignore.case = TRUE)
-      )
+    map(
+      ~.x %>%
+        filter(!grepl(pattern = unrelated_text,
+                      x = ResultAnalyticalMethod.MethodName,
+                      ignore.case = TRUE))
     )
   
-  # How many records removed due to irrelevant analytical methods / no flow?
+  # How many records removed due to irrelevant analytical methods?
   print(
     paste0(
-      "Rows removed due to unrelated analytical methods or no flow: ",
-      nrow(flagged_depth_cdom) - nrow(cdom_flow)
+      "Rows removed due to unrelated analytical methods: ",
+      sum(map_int(flagged_depth_cdom, nrow)) - sum(map_int(cdom_relevant, nrow))
     )
   )
+  
+  
+  
+  
+  
+  # Tier 0:
+  # - Wavelength mentioned or implied by method
+  # - Dissolved fraction
+  
+  cdom_relevant %>%
+    map(
+      .f = ~.x %>%
+        mutate(
+          tier = case_when(
+            # Tier 0: Restrictive
+            # Wavelength mentioned AND
+            grepl(pattern = "nm", x = ResultAnalyticalMethod.MethodName, ignore.case = TRUE) &
+              # CDOM-specific method AND
+              USGSPCode %in% c(32289, 32314) &
+              # Dissolved fraction
+              ResultSampleFractionText == "Dissolved" ~ 0,
+            
+            # Tier 1: Narrowed
+            # 
+          )
+        )
+    )
+  
+  
+  
+  
   
   # Flag relevant conditions for tiering:
   

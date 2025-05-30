@@ -1,0 +1,14 @@
+parameter,CharacteristicName,ResultAnalyticalMethod.MethodName,USGSPCode,ResultSampleFractionText,tier,n
+CDOM,Colored dissolved organic matter (CDOM),Colorized Dissolved Organic Matter,NA,NA,2,1683
+CDOM,Colored dissolved organic matter (CDOM),Turner Designs Trilogy Fluorometer with CDOM specific excitation/emission filters for monitoring CDOM in natural waters,NA,Dissolved,1,1534
+fDOM,Colored dissolved organic matter (CDOM),NA,32295,Dissolved,1,1464
+fDOM,Colored dissolved organic matter (CDOM),NA,32322,Total,1,1360
+fDOM,Colored dissolved organic matter (CDOM),"YSI EXO fluorometer, 365/480 nm",32295,Dissolved,0,631
+CDOM,Colored dissolved organic matter (CDOM),NA,32289,Dissolved,0,385
+fDOM,Colored dissolved organic matter (CDOM),"Turner Designs fluoro.,365/470nm",32295,Dissolved,0,208
+fDOM,Colored dissolved organic matter (CDOM),NA,32330,Total,1,154
+CDOM,Colored dissolved organic matter (CDOM),NA,NA,NA,2,130
+fDOM,Colored dissolved organic matter (CDOM),"YSI EXO, 365/480/80 nm",32295,Dissolved,0,54
+fDOM,Colored dissolved organic matter (CDOM),"YSI EXO, 365/480/80 nm",32322,Total,1,48
+fDOM,Colored dissolved organic matter (CDOM),"YSI EXO fluorometer, 365/480 nm",32322,Total,1,5
+CDOM,Colored dissolved organic matter (CDOM),NA,32314,Dissolved,1,3

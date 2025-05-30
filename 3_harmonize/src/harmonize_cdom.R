@@ -667,7 +667,9 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   )
   
   # Before creating tiers remove records that have clearly unrelated or unreliable
-  # data based on their method. (Small dataset, so only one at time of publication)
+  # data based on their method. (Small dataset, so only one at time of publication).
+  # Note that from this point onward the parameter column will also differentiate
+  # fDOM from CDOM based on USGSPCode
   unrelated_text <- "9222"
   
   cdom_relevant <- flagged_depth_cdom %>%
@@ -676,183 +678,67 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         filter(!grepl(pattern = unrelated_text,
                       x = ResultAnalyticalMethod.MethodName,
                       ignore.case = TRUE))
+    ) %>%
+    bind_rows() %>%
+    # Classify based on methods for fDOM/CDOM
+    # USGSPCode defs: https://help.waterdata.usgs.gov/parameter_cd?group_cd=%
+    mutate(
+      parameter = if_else(
+        condition = USGSPCode %in% c(32295, 32322, 32330),
+        true = "fDOM",
+        false = "CDOM"
+      )
     )
   
   # How many records removed due to irrelevant analytical methods?
   print(
     paste0(
       "Rows removed due to unrelated analytical methods: ",
-      sum(map_int(flagged_depth_cdom, nrow)) - sum(map_int(cdom_relevant, nrow))
+      sum(map_int(flagged_depth_cdom, nrow)) - nrow(cdom_relevant)
     )
   )
   
   
-  
-  
-  
-  # Tier 0:
-  # - Wavelength mentioned or implied by method
-  # - Dissolved fraction
-  
-  cdom_relevant %>%
-    map(
-      .f = ~.x %>%
-        mutate(
-          tier = case_when(
-            # Tier 0: Restrictive
-            # Wavelength mentioned AND
-            grepl(pattern = "nm", x = ResultAnalyticalMethod.MethodName, ignore.case = TRUE) &
-              # CDOM-specific method AND
-              USGSPCode %in% c(32289, 32314) &
-              # Dissolved fraction
-              ResultSampleFractionText == "Dissolved" ~ 0,
-            
-            # Tier 1: Narrowed
-            # 
-          )
-        )
-    )
-  
-  
-  
-  
-  
-  # Flag relevant conditions for tiering:
-  
-  # Comment mentions deep depth
-  deep_text <- paste0(
-    c("Activity Relative Depth: Bottom", "Activity Relative Depth: Near Bottom",
-      "Activity Relative Depth: Midwater", "Relative Depth = Below Thermocline",
-      "hypolimnion"),
-    collapse = "|"
-  )
-  
-  # Low flow flag
-  low_flow_text <- paste0(
-    c("low flow", "no flow", "no visible flow", "low stream flow", "Flow: Low",
-      "Not flowing", "low visible flow", "slow flow", "BELOW NORMAL", "Gentle flow",
-      "NO DISCERNIBLE FLOW", "Low base flow"),
-    collapse = "|"
-  )
-  
-  # ~NA methods or equipment flag
-  na_text <- paste0(
-    c("Not Available", "Unkn", "UNKOWN", "Historic",
-      "not specified", "N/A Calculation", "LEGACY", "CALCULATION", "Unspecified",
-      "Calculated", "Lab Method", "See Comments", "Field Office procedures"),
-    collapse = "|"
-  )
-  
-  # Methods expected for cdom
-  correct_text <- paste0(
-    c("2540", "160", "ASTM", "14B", "8006", "108"),
-    collapse = "|")
-  
-  # USGS P codes expected for cdom/SSC
-  correct_pcodes <- paste0(
-    c("00530", "80154", "70299", "70293", "69613", "69586", "69587", 
-      "69588", "69584", "69581", "69582", "69585", "69583", "69580", 
-      "69579", "70292"),
-    collapse = "|")
-  
-  # Less reliable methods
-  lower_reliability <- paste0(
-    c("GCLAS", "I-3765-85", "Nephelometry"),
-    collapse = "|")
-  
-  # Add tags
-  cdom_flow_tagged <- cdom_flow %>%
+  # There's a very small number of combinations of fields that we want to tier by,
+  # so we can afford to manually tier most permutations:
+  tiered_methods_cdom <- cdom_relevant %>%
     mutate(
-      # Taken with a pump/at depth/etc.?
-      pump_tag = if_else(
-        condition = grepl(x = SampleCollectionEquipmentName,
-                          pattern = "pump|peristaltic|niskin|van dorn|Kemmerer",
-                          ignore.case = T) |
-          grepl(x = ActivityCommentText,
-                pattern = deep_text,
-                ignore.case = T),
-        true = 1, false = 0),
-      # Low flow indications?
-      low_flow_tag = if_else(
-        condition = grepl(x = ActivityCommentText,
-                          pattern = low_flow_text,
-                          ignore.case = TRUE) & 
-          !grepl(x = ActivityCommentText,
-                 pattern = "too deep|high flow",
-                 ignore.case = TRUE),
-        true = 1, false = 0
-      ),
-      # NA methods or equipment
-      na_tag = if_else(
-        condition = is.na(ResultAnalyticalMethod.MethodName) |
-          is.na(SampleCollectionEquipmentName) |
-          grepl(x = ResultAnalyticalMethod.MethodName,
-                pattern = na_text,
-                ignore.case = TRUE) |
-          grepl(x = SampleCollectionEquipmentName,
-                pattern = na_text,
-                ignore.case = TRUE),
-        true = 1, false = 0
-      ),
-      # Tag expected methods
-      common_tag = if_else(
-        condition = grepl(x = ResultAnalyticalMethod.MethodName,
-                          pattern = correct_text,
-                          ignore.case = TRUE) |
-          grepl(x = USGSPCode,
-                pattern = correct_pcodes),
-        true = 1, false = 0
-      ),
-      # Methods with lower reliability
-      lower_reliability_tag = if_else(
-        condition = grepl(x = ResultAnalyticalMethod.MethodName,
-                          pattern = lower_reliability,
-                          ignore.case = TRUE),
-        true = 1, false = 0
+      tier = case_when(
+        # Tier 0: Restrictive
+        # Wavelength included, dissolved fraction
+        grepl(pattern = "nm", x = ResultAnalyticalMethod.MethodName, ignore.case = TRUE) &
+          ResultSampleFractionText == "Dissolved" ~ 0,
+        # USGSPCode implies wavelength, dissolved fraction
+        USGSPCode == 32289 & ResultSampleFractionText == "Dissolved" ~ 0,
+        
+        # Tier 1: Narrowed
+        # Fluorometer, dissolved fraction, but no wavelength or USGSPCode info
+        grepl(pattern = "fluorometer", x = ResultAnalyticalMethod.MethodName, ignore.case = TRUE) &
+          is.na(USGSPCode) &
+          ResultSampleFractionText == "Dissolved" ~ 1,
+        # Wavelength included, total fraction
+        grepl(pattern = "nm", x = ResultAnalyticalMethod.MethodName, ignore.case = TRUE) &
+          ResultSampleFractionText == "Total" ~ 1,
+        # No method name, USGSPCode doesn't provide wavelength
+        is.na(ResultAnalyticalMethod.MethodName) &
+          USGSPCode %in% c(32330, 32322, 32314, 32295) ~ 1,
+        
+        # Tier 2: Inclusive
+        # CDOM with no other info
+        ResultAnalyticalMethod.MethodName == "Colorized Dissolved Organic Matter" &
+          is.na(USGSPCode) & is.na(ResultSampleFractionText) ~ 2,
+        # No method, code, or fraction
+        is.na(ResultAnalyticalMethod.MethodName) &
+          is.na(USGSPCode) &
+          is.na(ResultSampleFractionText) ~ 2
+        
       )
     )
-  
-  # Tiering process
-  tiered_methods_cdom <- cdom_flow_tagged %>%
-    group_by(ResultAnalyticalMethod.MethodName) %>%
-    add_count() %>%
-    ungroup() %>%
-    mutate(
-      tier = if_else(
-        # Has NA method/equip
-        condition = na_tag == 1 |
-          # Has low flow indication
-          low_flow_tag == 1 |
-          # Less reliable methods
-          lower_reliability_tag == 1 |
-          # Is non-USGS, labeled as SSC, and has pump/depth tag
-          ( 
-            (ProviderName == "STORET") &
-              (CharacteristicName == "Suspended Sediment Concentration (SSC)") &
-              (pump_tag == 0)
-          ) |
-          # cdom with pump tag
-          (
-            (CharacteristicName == "Total suspended solids") &
-              (pump_tag == 1)
-          ) |
-          # Not part of a common method group and has few records
-          (common_tag == 0) & (n <= 15),
-        true = 2,
-        false = 0
-      ),
-      tier = if_else(
-        condition = (tier == 0) & !is.na(ResultCommentText),
-        true = 1,
-        false = tier
-      )
-    ) %>%
-    select(-n)
   
   # Export a record of how methods were tiered and their respective row counts
   tiering_record <- tiered_methods_cdom %>%
-    count(CharacteristicName, ResultAnalyticalMethod.MethodName, USGSPCode,
-          pump_tag, low_flow_tag, na_tag, common_tag, tier) %>%
+    count(parameter, CharacteristicName, ResultAnalyticalMethod.MethodName,
+          USGSPCode, ResultSampleFractionText, tier) %>%
     arrange(desc(n)) 
   
   tiering_record_out_path <- "3_harmonize/out/cdom_tiering_record.csv"
@@ -860,7 +746,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   write_csv(x = tiering_record, file = tiering_record_out_path)
   
   # Confirm that no rows were lost during tiering
-  if(nrow(cdom_flow) != nrow(tiered_methods_cdom)){
+  if(nrow(cdom_relevant) != nrow(tiered_methods_cdom)){
     stop("Rows were lost during analytical method tiering. This is not expected.")
   }  
   
@@ -868,7 +754,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     step = "cdom harmonization",
     reason = "Dropped rows while tiering analytical methods",
     short_reason = "Analytical methods",
-    number_dropped = nrow(flagged_depth_cdom) - nrow(tiered_methods_cdom),
+    number_dropped = sum(map_int(flagged_depth_cdom, nrow)) - nrow(tiered_methods_cdom),
     n_rows = nrow(tiered_methods_cdom),
     order = 9
   )

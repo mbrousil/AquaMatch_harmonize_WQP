@@ -1,4 +1,5 @@
-# CDOM specific targets list for the harmonization step
+# CDOM/FDOM specific targets list for the harmonization step (Note: Referred to
+# as CDOM in these scripts)
 
 p3_cdom_targets_list <- list(
   

@@ -776,54 +776,18 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         ) ~ 0,
         
         # Integrated sample are given a field_flag of 1
+        grepl(
+          pattern = paste0(
+            c("integrated", "multiple", "pump"),
+            collapse = "|"),
+          x = SampleCollectionEquipmentName,
+          ignore.case = TRUE
+        ) ~ 1,
+        
+        # Everything else, 2
+        .default = 2
       )
     )
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  # Field flag 1 = cdom was taken at depth, van dorn, etc. and SSC was NOT
-  # taken at depth
-  field_flagged_cdom <- tiered_methods_cdom %>%
-    mutate(
-      field_flag = if_else(
-        # cdom with pump tag
-        condition = (
-          (CharacteristicName == "Total suspended solids") &
-            (pump_tag == 1)
-        ) |
-          # Is non-USGS, labeled as SSC, and has pump/depth tag
-          ( 
-            (ProviderName == "STORET") &
-              (CharacteristicName == "Suspended Sediment Concentration (SSC)") &
-              (pump_tag == 0)
-          ),
-        true = 1,
-        false = 0
-      )
-    ) %>%
-    # Drop tag columns - these are recorded and exported in tiering_record. We
-    # keep only the final tier
-    select(-contains("_tag"))
   
   # How many records removed due to unlikely fraction types?
   print(
@@ -863,16 +827,20 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Unrealistic values ------------------------------------------------------
   
-  # We remove unrealistically high values prior to the final data export. This
-  # is based on values from Gray et al. (2000), "Comparability of
-  # suspended-sediment concentration and total suspended solids data". SSC values
-  # in SSC-cdom pairs in the Gray et al. dataset were below 10,000 with one
-  # exception and most cdom values were lower than their paired SSC value.
+  # We remove unrealistically high values prior to the final data export. We
+  # do not have enough of a window into national-scale data patterns to say
+  # with certainty what a realistic cutoff for CDOM would be, so we use 300 mg/L
+  # from our previous Dissolved Organic Carbon product. This was based on
+  # Hotchkiss and DelSontro (2024) and Mulholland (2003). This does not currently
+  # remove any values but we include the filter for reference in future use cases.
+  
+  # Values using RFU for units are not screened in this step.
+  
+  # We also remove any depths > 592m, the deepest point in a lake in the U.S.
   
   realistic_cdom <- misc_flagged_cdom %>%
     filter(
-      harmonized_value <= 10000,
-      # Limit depth based on deeping US lake
+      !((harmonized_value >= 300) & (harmonized_units == "mg/L")),
       harmonized_top_depth_value <= 592 | is.na(harmonized_top_depth_value),
       harmonized_bottom_depth_value <= 592 | is.na(harmonized_bottom_depth_value),
       harmonized_discrete_depth_value <= 592 | is.na(harmonized_discrete_depth_value)
@@ -886,39 +854,6 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     n_rows = nrow(realistic_cdom),
     order = 12
   )
-  
-  # Generate plots with harmonized dataset ----------------------------------
-  
-  # We'll generate plots now before aggregating across simultaneous records
-  # because it won't be possible to use CharacteristicName after that point.
-  
-  # Plot harmonized measurements by CharacteristicName and ProviderName
-  
-  plotting_subset <- realistic_cdom %>%
-    select(CharacteristicName, ProviderName, tier, harmonized_value) %>%
-    mutate(plot_value = harmonized_value + 0.001,
-           provider_label = case_when(
-             ProviderName == "NWIS" ~ "NWIS: National Water Information System (USGS)",
-             ProviderName == "STORET" ~ "STORET: Storage and Retrieval (EPA)"
-           ))
-  
-  char_dists <- plotting_subset %>%
-    ggplot() +
-    geom_histogram(aes(plot_value), color = "black", fill = "white") +
-    facet_wrap(vars(CharacteristicName), scales = "free_y") +
-    facet_grid(rows = vars(provider_label), cols = vars(CharacteristicName)) +
-    xlab(expression("Harmonized cdom (mg/L, " ~ log[10] ~ " transformed)")) +
-    ylab("Record count") +
-    ggtitle(label = "Distribution of harmonized cdom values by CharacteristicName & ProviderName",
-            subtitle = "0.001 added to each value for the purposes of visualization only") +
-    scale_x_log10(label = comma) +
-    scale_y_continuous(label = label_number(scale_cut = cut_short_scale())) +
-    theme_bw() +
-    theme(strip.text = element_text(size = 7))
-  
-  ggsave(filename = "3_harmonize/out/cdom_charname_dists.png",
-         plot = char_dists,
-         width = 8, height = 6, units = "in", device = "png")
   
   
   # Aggregate simultaneous records ------------------------------------------
@@ -1003,21 +938,21 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     )
   
   tier_dists <- no_simul_cdom_tier_label %>%
-    select(parameter, tier_label, harmonized_value) %>%
+    select(parameter, tier_label, harmonized_value, harmonized_units) %>%
     mutate(plot_value = harmonized_value + 0.001) %>%
     ggplot() +
-    geom_histogram(aes(plot_value), color = "black", fill = "white") +
-    facet_grid(cols = vars(parameter), rows = vars(tier_label), scales = "free_y") +
-    xlab(expression("Harmonized values (mg/L, " ~ log[10] ~ " transformed)")) +
+    geom_histogram(aes(plot_value, fill = parameter), color = "black") +
+    facet_grid(cols = vars(harmonized_units), rows = vars(tier_label), scales = "free_y") +
+    xlab(expression("Harmonized values (" ~ log[10] ~ " transformed)")) +
     ylab("Record count") +
-    ggtitle(label = "Distribution of harmonized values by parameter and tier",
+    ggtitle(label = "Distribution of harmonized values by parameter, tier, and unit",
             subtitle = "0.001 added to each value for the purposes of visualization only") +
     scale_x_log10(label = label_scientific()) +
     scale_y_continuous(label = label_number(scale_cut = cut_short_scale())) +
     theme_bw() +
     theme(strip.text = element_text(size = 7))
   
-  ggsave(filename = "3_harmonize/out/ssc_cdom_tier_dists_postagg.png",
+  ggsave(filename = "3_harmonize/out/cdom_tier_dists_postagg.png",
          plot = tier_dists,
          width = 6, height = 4, units = "in", device = "png")
   
@@ -1090,7 +1025,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     geom_text(data = grid_info,
               aes(x = median_x, y = max_y, label = removed_label))
   
-  ggsave(filename = "3_harmonize/out/ssc_cdom_tier_cv_dists_postagg.png",
+  ggsave(filename = "3_harmonize/out/cdom_tier_cv_dists_postagg.png",
          plot = tier_cv_dists,
          width = 6, height = 5, units = "in", device = "png")
   

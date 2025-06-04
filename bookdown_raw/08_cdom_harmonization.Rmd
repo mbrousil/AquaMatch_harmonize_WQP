@@ -49,11 +49,11 @@ max_steps <- max(documented_drops$reorder)
 step_data <- documented_drops %>%
   mutate(scaled = scale(n_rows, center = FALSE)) %>%
   mutate(reorder = factor(reorder,
-                        levels = step_order_rev),
+                          levels = step_order_rev),
          rows_label = paste0(short_reason,
                              ":  ",
-                             round((n_rows / 1000000), 1),
-                             " M rows"))
+                             n_rows,
+                             " rows"))
 ```
 
 ## Pre-harmonization of the raw CDOM WQP dataset
@@ -63,10 +63,7 @@ step_counter <- 1
 
 step_1_rows <- filter(step_data,
                       reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 ```
 
 At the start of the pre-harmonization process the raw CDOM WQP dataset contains `r step_1_rows` rows.
@@ -104,17 +101,11 @@ step_counter <- 2
 
 step_2_rows <- filter(step_data,
                       reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_2_dropped <- filter(step_data,
                          reorder == step_counter) %>%
-  mutate(thou_row = number_dropped / 1000) %>%
-  pull(thou_row) %>%
-  round(digits = 1) %>%
-  paste0(., " thousand")
+  pull(number_dropped) 
 ```
 
 Next, records that have missing data are dropped from the dataset. Several criteria are used when checking for missing data. If any of the below criteria are met the row is flagged as missing:
@@ -157,17 +148,11 @@ step_counter <- 3
 
 step_3_rows <- filter(step_data,
                       reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_3_dropped <- filter(step_data,
                          reorder == step_counter) %>%
-  mutate(thou_row = number_dropped / 1000) %>%
-  pull(thou_row) %>%
-  round(digits = 1) %>%
-  paste0(., " thousand")
+  pull(number_dropped)
 ```
 
 The final step in pre-harmonization is to filter the `ResultStatusIdentifier` column to include only the following statuses:
@@ -223,17 +208,11 @@ step_counter <- 4
 
 step_4_rows <- filter(step_data,
                       reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_4_dropped <- filter(step_data,
                          reorder == step_counter) %>%
-  mutate(thou_row = number_dropped / 1000) %>%
-  pull(thou_row) %>%
-  round(digits = 1) %>%
-  paste0(., " thousand")
+  pull(number_dropped)
 ```
 
 We next ensure that the media type for all CDOM data is `"Surface Water"`, `"Water"`, `"Estuary"`, or `NA`. `r step_4_dropped` rows are removed. The final row count after this is `r step_4_rows`.
@@ -270,17 +249,11 @@ step_counter <- 5
 
 step_5_rows <- filter(step_data,
                       reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_5_dropped <- filter(step_data,
                          reorder == step_counter) %>%
-  mutate(thou_dropped = number_dropped / 1000) %>%
-  pull(thou_dropped) %>%
-  round(digits = 1) %>%
-  paste0(., " thousand")
+  pull(number_dropped)
 ```
 
 In this step we filter out records based on indications that they have failed data quality assurance or quality control for some reason given by the data provider (these instances are referred to here as "failures").
@@ -349,15 +322,11 @@ step_counter <- 6
 
 step_6_rows <- filter(step_data,
                       reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_6_dropped <- filter(step_data,
                          reorder == step_counter) %>%
-  pull(number_dropped) %>%
-  round(digits = 1)
+  pull(number_dropped)
 ```
 
 In this step method detection limits (MDLs) are used to clean up the reported values. When a numeric value is missing for the data record (i.e., `NA` or text that became `NA` during an `as.numeric` call) we check for non-detect language in the `ResultLaboratoryCommentText`, `ResultCommentText`, `ResultDetectionConditionText`, and `ResultMeasureValue` columns. This language can be `"non-detect"`, `"not detect"`, `"non detect"`, `"undetect"`, or `"below"`.
@@ -402,15 +371,11 @@ step_counter <- 7
 
 step_7_rows <- filter(step_data,
                       reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_7_dropped <- filter(step_data,
                          reorder == step_counter) %>%
-  pull(number_dropped) %>%
-  round(digits = 1)
+  pull(number_dropped)
 ```
 
 Cleaning approximate values involves a similar process as for MDL cleaning. We flag "approximated" values in the dataset. The `ResultMeasureValue` column gets checked for **all** three of the following conditions:
@@ -457,15 +422,11 @@ step_counter <- 8
 
 step_8_rows <- filter(step_data,
                       reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_8_dropped <- filter(step_data,
                          reorder == step_counter) %>%
-  pull(number_dropped) %>%
-  round(digits = 1)
+  pull(number_dropped)
 ```
 
 The next step is similar to the MDL and approximate value cleaning processes, and follows the approximate cleaning process most closely. The goal is to clean up values that were entered as "greater than" some value. The `ResultMeasureValue` column gets checked for **all** three of the following conditions:
@@ -512,17 +473,11 @@ step_counter <- 9
 
 step_9_rows <- filter(step_data,
                       reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_9_dropped <- filter(step_data,
                          reorder == step_counter) %>%
-  mutate(thou_row = number_dropped / 1000) %>%
-  pull(thou_row) %>%
-  round(digits = 1) %>%
-  paste0(., " thousand")
+  pull(number_dropped)
 ```
 
 The goal of the preceding three steps was to prevent records with seemingly missing measurement data from being dropped if there was still a chance of recovering a usable value. At this point we've finished with that process and we proceed to check for remaining records with `NA` values in their `harmonized_value` column. If they exist, they are dropped. We also filter out any negative values in the dataset at this point because CDOM cannot be negative.
@@ -561,17 +516,11 @@ step_counter <- 10
 
 step_10_rows <- filter(step_data,
                        reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_10_dropped <- filter(step_data,
                           reorder == step_counter) %>%
-  mutate(thou_dropped = number_dropped / 1000) %>%
-  pull(thou_dropped) %>%
-  round(digits = 1) %>%
-  paste0(., " thousand")
+  pull(number_dropped)
 ```
 
 The next step in CDOM harmonization is converting the units of WQP records. Records that don't make sense for CDOM or can't be converted to mg per liter (mg/L) are dropped. We use the following unit conversion table for this:
@@ -627,10 +576,7 @@ step_counter <- 11
 
 step_11_rows <- filter(step_data,
                        reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_11_dropped <- filter(step_data,
                           reorder == step_counter) %>%
@@ -674,17 +620,11 @@ step_counter <- 12
 
 step_12_rows <- filter(step_data,
                        reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_12_dropped <- filter(step_data,
                           reorder == step_counter) %>%
-  mutate(thou_dropped = number_dropped / 1000) %>%
-  pull(thou_dropped) %>%
-  round(digits = 1) %>%
-  paste0(., " thousand")
+  pull(number_dropped)
 ```
 
 We next review the analytical methods used in measuring CDOM, primarily by classifying the text provided with each record in `ResultAnalyticalMethod.MethodName`. Once these methods are classified we arrange them into hierarchical tiers as described in the *Method tiering* section of the *Tiering, flagging, and quality control philosophy* chapter.
@@ -755,15 +695,11 @@ step_counter <- 13
 
 step_13_rows <- filter(step_data,
                        reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_13_dropped <- filter(step_data,
                           reorder == step_counter) %>%
-  pull(number_dropped) %>%
-  round(digits = 1)
+  pull(number_dropped)
 ```
 
 Next, we use the `field_flag` column to flag records that have a qualifier related to sampling depth:
@@ -809,15 +745,11 @@ step_counter <- 14
 
 step_14_rows <- filter(step_data,
                        reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_14_dropped <- filter(step_data,
                           reorder == step_counter) %>%
-  pull(number_dropped) %>%
-  round(digits = 1)
+  pull(number_dropped)
 ```
 
 Next, we add a placeholder for the miscellaneous flag column, `misc_flag`.
@@ -859,16 +791,12 @@ step_counter <- 15
 step_15_rows <- filter(step_data,
                        reorder == step_counter) %>%
   mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_15_dropped <- filter(step_data,
                           reorder == step_counter) %>%
   mutate(thou_row = number_dropped / 1000) %>%
-  pull(thou_row) %>%
-  round(digits = 1) %>%
-  paste0(., " thousand")
+  pull(number_dropped)
 ```
 
 Before finalizing the dataset we remove CDOM values that are beyond a realistic threshold. We use 10,000 mg/L as our cutoff for removal. This is based on values from Gray et al. (2000), *"Comparability of suspended-sediment concentration and total suspended solids data"*. SSC values in SSC-CDOM pairs in the Gray et al. dataset were below 10,000 with one exception and most CDOM values were lower than their paired SSC value.
@@ -909,17 +837,11 @@ step_counter <- 16
 
 step_16_rows <- filter(step_data,
                        reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(mil_row) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(n_rows)
 
 step_16_dropped <- filter(step_data,
                           reorder == step_counter) %>%
-  mutate(mil_dropped = number_dropped / 1000000) %>%
-  pull(mil_dropped) %>%
-  round(digits = 1) %>%
-  paste0(., " million")
+  pull(number_dropped)
 ```
 
 The final step of CDOM harmonization is to aggregate simultaneous observations. Prior to aggregation, the dataset has the following distribution of values when organized by `CharacteristicName` and `ProviderName`:

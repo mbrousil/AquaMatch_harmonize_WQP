@@ -523,7 +523,7 @@ step_10_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-The next step in CDOM harmonization is converting the units of WQP records. Records that don't make sense for CDOM or can't be converted to mg per liter (mg/L) are dropped. We use the following unit conversion table for this:
+The next step in CDOM harmonization is converting the units of WQP records. Records that don't make sense for CDOM, are not in mg per liter (mg/L) or relative fluorescence units (RFU), or can't be converted to mg/L are dropped. We use the unit conversion table for this. Note that both RFU and mg/L are retained for the final data product, but treated separately throughout the harmonization process.
 
 ```{r echo=FALSE, message = FALSE}
 read_csv("../3_harmonize/out/cdom_unit_table.csv") %>%
@@ -627,36 +627,25 @@ step_12_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-We next review the analytical methods used in measuring CDOM, primarily by classifying the text provided with each record in `ResultAnalyticalMethod.MethodName`. Once these methods are classified we arrange them into hierarchical tiers as described in the *Method tiering* section of the *Tiering, flagging, and quality control philosophy* chapter.
+We next review the analytical methods used in measuring CDOM by classifying the text provided with each record in `ResultAnalyticalMethod.MethodName`, `USGSPCode`, and `ResultSampleFractionText`. Once these methods are classified we arrange them into hierarchical tiers as described in the *Method tiering* section of the *Tiering, flagging, and quality control philosophy* chapter.
 
-However, prior to classification we check the `ResultAnalyticalMethod.MethodName` column for names that indicate non-CDOM measurements. Phrases used to flag and remove unrelated methods from CDOM data are: "10200", "150.1", "2340", "2550", "4500", "9222", "9223", "Alkalinity", "Chlorophyll", "DO NOT USE", "Mercury", "Nitrate", "Nitrogen", "Oxygen", "Phosphorus", "Temperature", "Silica".
+However, we found that there were methods for fluorescent Dissolved Organic Matter (fDOM) in addition to CDOM. So, prior to classification we assign "fDOM" or "CDOM" to each record in the `parameter` column based on the `USGSPCode` column. [`USGSPCode` values](https://help.waterdata.usgs.gov/parameter_cd?group_cd=%) of 32295, 32322, and 32330 are assigned "fDOM", while the rest are assigned "CDOM". (Note that we refer to records in this dataset as "CDOM" despite both of these types of data being present).
 
-We additionally remove samples that indicate being collected from flowing waters during a "no flow" period. We check for phrases matching "no flow", "not flow", or "zero flow" in `ActivityCommentText` **in addition to** `MonitoringLocationTypeName` entries matching "river", "stream", or "canal".
+In preparation for tiering, we check the `ResultAnalyticalMethod.MethodName` column for names that indicate non-CDOM measurements. The only phrase used to flag and remove unrelated methods from CDOM data is "9222", which we determined indicated a non-CDOM method.
 
 The above two processes drop `r step_12_dropped` rows, leaving `r step_12_rows` remaining.
-
-The next step towards creating tiers is to then identify the analytical methods in `ResultAnalyticalMethod.MethodName` that:
-
-+ **Indicate non-surface sampling**: This includes detection of "Activity Relative Depth: Bottom", "Activity Relative Depth: Near Bottom", "Activity Relative Depth: Midwater", "Relative Depth = Below Thermocline", or "hypolimnion" in `ActivityCommentText` or "pump", "peristaltic", "niskin", "van dorn", or "Kemmerer" in `SampleCollectionEquipmentName`.
-+ **Have `NA` values in `ResultAnalyticalMethod.MethodName` or `SampleCollectionEquipmentName`**
-+ **Indicate low-flow conditions**: This includes detection of "low flow", "no flow", "no visible flow", "low stream flow", "Flow: Low", "Not flowing", "low visible flow", "slow flow", "BELOW NORMAL", "Gentle flow", "NO DISCERNIBLE FLOW", or "Low base flow" in `ActivityCommentText` with **no** detection of "too deep" or "high flow". 
-+ **Have `[USGSPCode](https://help.waterdata.usgs.gov/codes-and-parameters/parameters)` or `ResultAnalyticalMethod.MethodName` values typical of CDOM or SSC (Suspended Sediment Concentration)**: Includes "2540", "160", "ASTM", "14B", "8006", or "108" in `ResultAnalyticalMethod.MethodName` or "00530", "80154", "70299", "70293", "69613", "69586", "69587", "69588", "69584", "69581", "69582", "69585", "69583", "69580", "69579", "70292" in `USGSPCode`.
-+ **Have `ResultAnalyticalMethod.MethodName` values that are less reliable CDOM analytical methods**: Includes detection of "GCLAS", "I-3765-85", or "Nephelometry"
-+ **Have 15 or fewer records associated with them**
-
-These classifications are not the final tiers, but they inform the tiering in the final step of this process.
-
 
 Finally, we group the data into three tiers as described in *Tiering, flagging, and quality control philosophy*. These tiers are:
 
 <br>
 
 <!-- Table created with https://www.tablesgenerator.com/markdown_tables -->
-| **Tier** | **Name** | **Description** | **CDOM Details** |
+| Tier | Name | Description | CDOM Details |
 |---|---|---|---|
-| 0 | Restrictive | Data that are verifiably self-similar across organizations and  time-periods and can be considered highly reliable and interoperable | Records that don't fall into tiers 1 or 2 |
-| 1 | Narrowed | Data that we have good reason to believe are self-similar, but for which  we can’t verify full interoperability across data providers | Records that do not meet the definition of tier 2, but have a non-NA ResultCommentText value |
-| 2 | Inclusive | Data that are assumed to be reliable and are harmonized to our best  ability given the information available from the data provider. This  tier includes  NA or non-resolvable descriptions for the  analytical method, which often make up the majority of methods  descriptions for any given parameter | Includes records that meet one of the following criteria: Have NA values in ResultAnalyticalMethod.MethodName or SampleCollectionEquipmentName; have ActivityCommentText values indicating low-flow conditions; are CDOM samples that were taken at depth or with a pump; are non-USGS, SSC samples that were **not** taken at depth or with a pump; or have ResultAnalyticalMethod.MethodName values with 15 or fewer total records and which are not clearly standard SSC or CDOM methods. We checked for sampling at depth or with a pump by checking for records that mention "pump", "peristaltic", "niskin", "van dorn", or "Kemmerer" in the SampleCollectionEquipmentName column or have one of the following phrases in the ActivityCommentText column: "Activity Relative Depth: Bottom", "Activity Relative Depth: Near Bottom",  "Activity Relative Depth: Midwater", "Relative Depth = Below Thermocline", "hypolimnion". |
+| 0 | Restrictive | Data that are verifiably self-similar across organizations and  time-periods and can be considered highly reliable and interoperable | ResultSampleFractionText column is "Dissolved" and ResultAnalyticalMethod.MethodName mentions wavelength or wavelength is implied by the USGSPCode column |
+| 1 | Narrowed | Data that we have good reason to believe are self-similar, but for which  we can’t verify full interoperability across data providers | Fluorometer mentioned in ResultAnalyticalMethod.MethodName, USGSPCode is NA, and ResultSampleFractionText is "Dissolved"; OR ResultAnalyticalMethod.MethodName mentions the wavelength but ResultSampleFractionText is "Total"; OR ResultAnalyticalMethod.MethodName is NA and USGSPCode doesn't imply wavelength |
+| 2 | Inclusive | Data that are assumed to be reliable and are harmonized to our best  ability given the information available from the data provider. This  tier includes  NA or non-resolvable descriptions for the  analytical method, which often make up the majority of methods descriptions for any given parameter | ResultAnalyticalMethod.MethodName is "Colorized Dissolved Organic Matter" but USGSPCode and ResultSampleFractionText are NA; OR ResultAnalyticalMethod.MethodName, USGSPCode, and ResultSampleFractionText are all NA |
+
 <br>
 
 At this point we export a file (`3_harmonize/out/cdom_tiering_record.csv`) that contains a record of how specific method text was tiered and how many row counts corresponded to each method.

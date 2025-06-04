@@ -691,14 +691,11 @@ step_13_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-Next, we use the `field_flag` column to flag records that have a qualifier related to sampling depth:
+Next, we use the `field_flag` column to flag records based on the type of sampling equipment that was used:
 
-+ `field_flag` = `1` when:
-  + CDOM was sampled at depth, or
-  + non-USGS SSC was **not** sampled at depth
-+ In all other cases `field_flag` is 0
-
-Sampling at depth is determined by whether the record was highlighted as indicating non-surface sampling during the previous harmonization step.
++ `field_flag` = `0` when discrete sampling methods were used. Indicated by detection of "grab", "bucket", "point", "kemmerer", "van dorn", "bailer", or "bottle" in `SampleCollectionEquipmentName`
++ `field_flag` = `1` when integrated sampling methods were used. Indicated by detection of "integrated", "multiple", or "pump" in `SampleCollectionEquipmentName`
++ `field_flag` = `2` for all other records
 
 No records should be removed by this process and so there are `r step_13_dropped` rows dropped leaving `r step_13_rows` remaining in the harmonized CDOM dataset.
 

@@ -12,21 +12,26 @@
 #' Intended to be the version of the dataset with simultaneous observations removed. 
 #' @param custom_width The desired output PNG width in inches.
 #' @param custom_height The desired output PNG height in inches.
-#' @param scale_type String for scales argument of facet_wrap, if applicable.:
+#' @param scale_type String for scales argument of facet_wrap, if applicable.
+#' @param year_seq Number of years between major axis ticks for the year x-axis labels.
 
 plot_time_charts <- function(dataset, #parameter,
                              custom_width = 6, custom_height = 4,
-                             scale_type = "fixed"){
+                             scale_type = "fixed", year_seq = 10){
   
   unique_params <- unique(dataset$parameter)
   
   tier_levels <- sort(unique(dataset$tier))
   
-  # Grab year data and plot record counts
-  year_plot <- dataset %>%
+  plot_data <- dataset %>%
     select(parameter, harmonized_local_time, tier) %>%
     mutate(year = year(harmonized_local_time),
-           tier = factor(x = tier, levels = tier_levels, ordered = TRUE)) %>%
+           weekday = wday(harmonized_local_time, label = TRUE),
+           month = month(harmonized_local_time, label = TRUE),
+           tier = factor(x = tier, levels = tier_levels, ordered = TRUE))
+  
+  # Grab year data and plot record counts
+  year_plot <- plot_data %>%
     count(parameter, year, tier) %>%
     ggplot() +
     geom_bar(aes(x = year, y = n, fill = tier),
@@ -36,8 +41,13 @@ plot_time_charts <- function(dataset, #parameter,
     ggtitle(
       paste0("Record distribution by year & tier: ",
              paste0(unique_params, collapse = ", "))
-      ) +
+    ) +
     scale_y_continuous(labels = label_number(scale_cut = cut_short_scale())) +
+    scale_x_continuous(
+      breaks = seq(from = min(plot_data$year),
+                   to = max(plot_data$year),
+                   by = year_seq)
+    )+
     scale_fill_viridis_d("Tier", direction = -1) +
     theme_bw()
   
@@ -54,10 +64,7 @@ plot_time_charts <- function(dataset, #parameter,
          width = custom_width, height = custom_height)
   
   # Day of week
-  day_plot <- dataset %>%
-    select(parameter, harmonized_local_time, tier) %>%
-    mutate(weekday = wday(harmonized_local_time, label = TRUE),
-           tier = factor(x = tier, levels = tier_levels, ordered = TRUE)) %>%
+  day_plot <- plot_data %>%
     count(parameter, weekday, tier) %>%
     ggplot() +
     geom_bar(aes(x = weekday, y = n, fill = tier),
@@ -67,7 +74,7 @@ plot_time_charts <- function(dataset, #parameter,
     ggtitle(
       paste0("Record distribution by day of week & tier: ",
              paste0(unique_params, collapse = ", "))
-      ) +
+    ) +
     scale_y_continuous(labels = label_number(scale_cut = cut_short_scale())) +
     scale_fill_viridis_d("Tier", direction = -1) +
     theme_bw()
@@ -84,10 +91,7 @@ plot_time_charts <- function(dataset, #parameter,
          width = custom_width, height = custom_height)
   
   # Month
-  month_plot <- dataset %>%
-    select(parameter, harmonized_local_time, tier) %>%
-    mutate(month = month(harmonized_local_time, label = TRUE),
-           tier = factor(x = tier, levels = tier_levels, ordered = TRUE)) %>%
+  month_plot <- plot_data %>%
     count(parameter, month, tier) %>%
     ggplot() +
     geom_bar(aes(x = month, y = n, fill = tier),
@@ -97,7 +101,7 @@ plot_time_charts <- function(dataset, #parameter,
     ggtitle(
       paste0("Record distribution by month & tier: ",
              paste0(unique_params, collapse = ", "))
-      ) +
+    ) +
     scale_y_continuous(labels = label_number(scale_cut = cut_short_scale())) +
     scale_fill_viridis_d("Tier", direction = -1) +
     theme_bw()

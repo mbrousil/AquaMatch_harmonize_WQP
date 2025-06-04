@@ -11,8 +11,9 @@
 #' @param map_crs The epsg code that should be used when creating the maps.
 #' @param custom_width The desired output PNG width in inches.
 #' @param custom_height The desired output PNG height in inches.
+#' @param n_bins From ?geom_hex: "numeric vector giving number of bins in both vertical and horizontal directions." 
 plot_tier_maps <- function(dataset, map_crs = 9311,
-                           custom_width = 6.5, custom_height = 8){
+                           custom_width = 6.5, custom_height = 8, n_bins = 60){
   
   # Check for multiple parameter entries. Will facet if so
   if(length(unique(dataset$parameter)) > 1) {
@@ -112,7 +113,7 @@ plot_tier_maps <- function(dataset, map_crs = 9311,
       mutate(parameter = toupper(parameter)) %>%
       ggplot() +
       geom_hex(aes(x = x, y = y),
-               bins = 60) +
+               bins = n_bins) +
       geom_sf(data = conterminous_us,
               color = "black",
               fill = NA) +
@@ -140,7 +141,7 @@ plot_tier_maps <- function(dataset, map_crs = 9311,
     map_plot <- sf_to_df(trim_recs_sf, fill = TRUE) %>%
       ggplot() +
       geom_hex(aes(x = x, y = y),
-               bins = 60) +
+               bins = n_bins) +
       geom_sf(data = conterminous_us,
               color = "black",
               fill = NA) +

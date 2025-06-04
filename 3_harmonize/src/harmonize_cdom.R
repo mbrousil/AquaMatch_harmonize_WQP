@@ -762,7 +762,6 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Flag field methods ------------------------------------------------------
   
-  
   field_flagged_cdom <- tiered_methods_cdom %>%
     mutate(
       field_flag = case_when(
@@ -957,106 +956,54 @@ harmonize_cdom <- function(raw_cdom, p_codes){
          width = 6, height = 4, units = "in", device = "png")
   
   # 2: Harmonized CVs
-  # Count NA CVs in each tier for plotting and make short count labels:
-  na_labels <- no_simul_cdom %>%
-    filter(is.na(harmonized_value_cv)) %>%
-    count(parameter, tier) %>%
-    rowwise() %>%
-    mutate(
-      short = if_else(
-        condition = n > 1000000,
-        false = number(x = n, scale_cut = cut_short_scale()),
-        true = number(x = n, accuracy = .1, scale_cut = cut_short_scale())
-      ),
-      removed_label = paste0("NAs removed: ", short)
-    ) %>%
-    ungroup()
   
-  # Make the initial plot (will add labels with number of NAs removed below)
-  tier_cv_dists_draft <- no_simul_cdom_tier_label %>%
+  # There are very few non-NA rows
+  non_na_rows <- no_simul_cdom_tier_label %>%
     select(parameter, tier_label, harmonized_value_cv) %>%
     mutate(plot_value = harmonized_value_cv + 0.001) %>%
+    na.omit() %>%
+    nrow()
+  
+  # Only tier 1 has non-NAs
+  tier_cv_dist <- no_simul_cdom_tier_label %>%
+    select(parameter, tier_label, harmonized_value_cv) %>%
+    mutate(plot_value = harmonized_value_cv + 0.001) %>%
+    na.omit() %>%
     ggplot() +
     geom_histogram(aes(plot_value), color = "black", fill = "white") +
     facet_grid(rows = vars(tier_label), cols = vars(parameter), scales = "free_y") +
     xlab(expression("Harmonized coefficient of variation, " ~ log[10] ~ " transformed)")) +
     ylab("Record count") +
-    ggtitle(label = "Distribution of harmonized CVs by tier",
-            subtitle = "0.001 added to each value for the purposes of visualization only") +
+    ggtitle(
+      label = paste0(
+        "Distribution of harmonized CVs (Tier 1 only; n = ",
+        non_na_rows,
+        ")"
+      ),
+      subtitle = "0.001 added to each value for the purposes of visualization only") +
     scale_x_log10(label = label_scientific()) +
     theme_bw() +
     theme(strip.text = element_text(size = 7))
   
-  # Extract build info from initial plot
-  gg_build <- ggplot_build(tier_cv_dists_draft)
-  
-  # Find out what the max y-axis break values are for each row's panels
-  panel_break_y_values <- map(
-    .x = 1:3,
-    .f = ~{
-      data.frame(
-        row = .x,
-        # Retrieve the max break value used on the y-axis
-        max_y = max(gg_build$layout$panel_scales_y[[.x]]$get_breaks())
-      )
-    }
-  ) %>%
-    bind_rows()
-  
-  # Find out what the median x-axis break values are for the panels so we can
-  # center the labels
-  panel_break_x_values <- gg_build$layout$panel_scales_x[[1]]$get_labels() %>%
-    as.numeric() %>%
-    median()
-  
-  # Extract the param * tier combinations that correspond to panel numbers under the hood
-  grid_info <- gg_build$layout$layout %>%
-    # Extract the raw tier numbers for back joining
-    mutate(tier = as.numeric(str_extract(string = tier_label, pattern = "[0-9]"))) %>%
-    # Join corresponding NA removal labels by panel
-    left_join(x = ., y = na_labels, by = c("parameter", "tier")) %>%
-    # Join info on max breaks used in each panel
-    left_join(x = ., y = panel_break_y_values, by = c("ROW" = "row")) %>%
-    # Slap on the median x val. Only 1 b/c we use "free_y" in facet_grid
-    mutate(median_x = panel_break_x_values)
-  
-  # Now update the plot using this info for geom_text placement
-  tier_cv_dists <- tier_cv_dists_draft +
-    geom_text(data = grid_info,
-              aes(x = median_x, y = max_y, label = removed_label))
-  
   ggsave(filename = "3_harmonize/out/cdom_tier_cv_dists_postagg.png",
-         plot = tier_cv_dists,
+         plot = tier_cv_dist,
          width = 6, height = 5, units = "in", device = "png")
   
   # 3. Maps
   # Similarly, create maps of records counts by tier
-  plot_tier_maps(dataset = no_simul_cdom, custom_width = 6.5, custom_height = 6.5)
+  plot_tier_maps(dataset = no_simul_cdom, custom_width = 6.5, custom_height = 6.5,
+                 n_bins = 15)
   
   # 4. Time
   # Year, month, day of week
-  plot_time_charts(dataset = no_simul_cdom, custom_width = 8, custom_height = 4)
+  plot_time_charts(dataset = no_simul_cdom, custom_width = 8.5, custom_height = 4,
+                   year_seq = 5)
   
   # 5. Depths
   # And the three depth cols
-  top_depth_dist <- no_simul_cdom_tier_label %>%
-    ggplot() +
-    geom_histogram(
-      aes(harmonized_top_depth_value, fill = tier_label),
-      color = "black") +
-    facet_grid(
-      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(parameter),
-      scales = "free_y"
-    ) +
-    scale_fill_viridis_d("Tier", direction = -1) +
-    xlab("harmonized_top_depth_value, m") +
-    ylab("Record count") +
-    ggtitle("harmonized_top_depth_value distribution by parameter and location type") +
-    theme_bw()
   
-  ggsave(filename = "3_harmonize/out/ssc_cdom_tier_top_depth_dist_postagg.png",
-         plot = top_depth_dist,
-         width = 8, height = 4, units = "in", device = "png")
+  # harmonized_top_depth_value: 
+  # There are no non-NA harmonized_top_depth_value records
   
   bottom_depth_dist <- no_simul_cdom_tier_label %>%
     ggplot() +

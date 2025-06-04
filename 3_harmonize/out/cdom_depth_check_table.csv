@@ -1,0 +1,9 @@
+three_cols_present,only_discrete,discrete_partial_integ,only_top,only_bottom,fully_integrated,no_depths,depth_flag,harmonized_units,n
+0,0,0,0,0,0,1,0,RFU,2515
+0,0,0,0,0,0,1,0,mg/L,2143
+0,1,0,0,0,0,0,1,RFU,423
+0,1,0,0,0,0,0,1,mg/L,2553
+0,0,0,0,1,0,0,2,RFU,6
+0,0,0,0,1,0,0,2,mg/L,16
+0,0,1,0,0,0,0,3,RFU,3
+0,0,1,0,0,0,0,3,mg/L,7

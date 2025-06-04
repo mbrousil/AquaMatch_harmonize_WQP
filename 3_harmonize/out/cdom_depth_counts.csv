@@ -1,0 +1,9 @@
+depth_agg_flag,harmonized_units,n
+<=1m,RFU,81
+<=1m,mg/L,1536
+<=5m,RFU,202
+<=5m,mg/L,537
+>5m,RFU,146
+>5m,mg/L,496
+No or inconsistent depth,RFU,2518
+No or inconsistent depth,mg/L,2150

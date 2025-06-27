@@ -52,8 +52,9 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     "beyond accept", "cancelled", "contaminat", "error", "fail", "improper",
     "interference", "invalid", "no result", "no test", "not accept",
     "outside of accept", "problem", "questionable", "suspect", "unable",
-    "violation", "reject", "no data", "time exceed", "value extrapolated",
-    "exceeds", "biased", "parameter not required", "not visited"
+    "violation", "reject", "no data", "value extrapolated",
+    "exceed", "biased", "parameter not required", "not visited", "warm",
+    "broken"
   )
   
   # Now get counts of fail-related string detections for each column: 
@@ -348,6 +349,23 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   rm(cdom_harmonized_values, cdom_approx_added, cdom_mdls_added,
      cdom_fails_removed)
   gc()
+  
+
+# Temporary filter break --------------------------------------------------
+
+  # Filter down to a single CharacteristicName for now while working out
+  # harmonization process for CDOM
+  
+  cdom_no_na <- cdom_no_na %>%
+    filter(CharacteristicName == "Absorbance at 280 nanometers")
+  
+  nrow(cdom_no_na)
+  
+  
+  
+  
+  
+  
   
   
   # Harmonize value units ---------------------------------------------------
@@ -788,7 +806,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
       )
     )
   
-  # How many records removed due to unlikely fraction types?
+  # How many records removed while field flagging?
   print(
     paste0(
       "Rows removed while assigning field flags: ",
@@ -1020,7 +1038,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     ggtitle("harmonized_bottom_depth_value distribution by parameter and location type") +
     theme_bw()
   
-  ggsave(filename = "3_harmonize/out/ssc_cdom_tier_bottom_depth_dist_postagg.png",
+  ggsave(filename = "3_harmonize/out/cdom_tier_bottom_depth_dist_postagg.png",
          plot = bottom_depth_dist,
          width = 8, height = 4, units = "in", device = "png")
   
@@ -1039,7 +1057,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     ggtitle("harmonized_discrete_depth_value distribution by parameter and location type") +
     theme_bw()
   
-  ggsave(filename = "3_harmonize/out/ssc_cdom_tier_discrete_depth_dist_postagg.png",
+  ggsave(filename = "3_harmonize/out/cdom_tier_discrete_depth_dist_postagg.png",
          plot = discrete_depth_dist,
          width = 8, height = 4, units = "in", device = "png")
   

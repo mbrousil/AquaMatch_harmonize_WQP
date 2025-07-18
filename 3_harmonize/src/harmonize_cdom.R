@@ -666,68 +666,40 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   unrelated_text <- "9222"
   
   cdom_relevant <- flagged_depth_cdom %>%
-    map(
-      ~.x %>%
-        filter(!grepl(pattern = unrelated_text,
-                      x = ResultAnalyticalMethod.MethodName,
-                      ignore.case = TRUE))
-    ) %>%
-    bind_rows() %>%
-    # Classify based on methods for fDOM/CDOM
-    # USGSPCode defs: https://help.waterdata.usgs.gov/parameter_cd?group_cd=%
-    mutate(
-      parameter = if_else(
-        condition = USGSPCode %in% c(32295, 32322, 32330),
-        true = "fDOM",
-        false = "CDOM"
-      )
-    )
+    filter(!grepl(pattern = unrelated_text,
+                  x = ResultAnalyticalMethod.MethodName,
+                  ignore.case = TRUE))
   
   # How many records removed due to irrelevant analytical methods?
   print(
     paste0(
       "Rows removed due to unrelated analytical methods: ",
-      sum(map_int(flagged_depth_cdom, nrow)) - nrow(cdom_relevant)
+      nrow(flagged_depth_cdom) - nrow(cdom_relevant)
     )
   )
   
-  
-  # There's a very small number of combinations of fields that we want to tier by,
-  # so we can afford to manually tier most permutations:
+  # We tier based on whether analytical methods (or pcode) are in agreement with
+  # the CharacteristicName
   tiered_methods_cdom <- cdom_relevant %>%
     mutate(
       tier = case_when(
-        # Tier 0: Restrictive
-        # Wavelength included, dissolved fraction
-        grepl(pattern = "nm", x = ResultAnalyticalMethod.MethodName, ignore.case = TRUE) &
-          ResultSampleFractionText == "Dissolved" ~ 0,
-        # USGSPCode implies wavelength, dissolved fraction
-        USGSPCode == 32289 & ResultSampleFractionText == "Dissolved" ~ 0,
-        
-        # Tier 1: Narrowed
-        # Fluorometer, dissolved fraction, but no wavelength or USGSPCode info
-        grepl(pattern = "fluorometer", x = ResultAnalyticalMethod.MethodName, ignore.case = TRUE) &
-          is.na(USGSPCode) &
-          ResultSampleFractionText == "Dissolved" ~ 1,
-        # Wavelength included, total fraction
-        grepl(pattern = "nm", x = ResultAnalyticalMethod.MethodName, ignore.case = TRUE) &
-          ResultSampleFractionText == "Total" ~ 1,
-        # No method name, USGSPCode doesn't provide wavelength
-        is.na(ResultAnalyticalMethod.MethodName) &
-          USGSPCode %in% c(32330, 32322, 32314, 32295) ~ 1,
-        
-        # Tier 2: Inclusive
-        # CDOM with no other info
-        ResultAnalyticalMethod.MethodName == "Colorized Dissolved Organic Matter" &
-          is.na(USGSPCode) & is.na(ResultSampleFractionText) ~ 2,
-        # No method, code, or fraction
-        is.na(ResultAnalyticalMethod.MethodName) &
-          is.na(USGSPCode) &
-          is.na(ResultSampleFractionText) ~ 2
-        
+        # Tier 0: Restrictive: Has wavelength listed in methods/p-code, and if there's
+        # a wavelength in the CharacteristicName then it matches the methods
+        (CharacteristicName == "Absorbance at 280 nanometers") &
+          (
+            grepl(x = ResultAnalyticalMethod.MethodName, pattern = "200|280|800") |
+              (USGSPCode == 61726)
+          )~ 0,
+        # Tier 1: Narrowed: Wavelengths included in multiple cols, but mismatch in
+        # what's expected
+        (CharacteristicName == "Absorbance at 280 nanometers") &
+          !is.na(ResultAnalyticalMethod.MethodName) &
+          !grepl(x = ResultAnalyticalMethod.MethodName, pattern = "200|280|800") &
+          (is.na(USGSPCode) | (USGSPCode != "61726")) ~ 1,
+        # Tier 2: Inclusive: Everything else
+        .default = 2
       )
-    )
-  
+    )  
   # Export a record of how methods were tiered and their respective row counts
   tiering_record <- tiered_methods_cdom %>%
     count(parameter, CharacteristicName, ResultAnalyticalMethod.MethodName,
@@ -747,7 +719,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     step = "cdom harmonization",
     reason = "Dropped rows while tiering analytical methods",
     short_reason = "Analytical methods",
-    number_dropped = sum(map_int(flagged_depth_cdom, nrow)) - nrow(tiered_methods_cdom),
+    number_dropped = nrow(flagged_depth_cdom) - nrow(tiered_methods_cdom),
     n_rows = nrow(tiered_methods_cdom),
     order = 9
   )

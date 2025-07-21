@@ -700,6 +700,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         .default = 2
       )
     )  
+  
   # Export a record of how methods were tiered and their respective row counts
   tiering_record <- tiered_methods_cdom %>%
     count(parameter, CharacteristicName, ResultAnalyticalMethod.MethodName,
@@ -791,20 +792,12 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Unrealistic values ------------------------------------------------------
   
-  # We remove unrealistically high values prior to the final data export. We
-  # do not have enough of a window into national-scale data patterns to say
-  # with certainty what a realistic cutoff for CDOM would be, so we use 300 mg/L
-  # from our previous Dissolved Organic Carbon product. This was based on
-  # Hotchkiss and DelSontro (2024) and Mulholland (2003). This does not currently
-  # remove any values but we include the filter for reference in future use cases.
+  # We remove unrealistically high values prior to the final data export.
   
-  # Values using RFU for units are not screened in this step.
-  
-  # We also remove any depths > 592m, the deepest point in a lake in the U.S.
+  # We remove any depths > 592m, the deepest point in a lake in the U.S.
   
   realistic_cdom <- misc_flagged_cdom %>%
     filter(
-      !((harmonized_value >= 300) & (harmonized_units == "mg/L")),
       harmonized_top_depth_value <= 592 | is.na(harmonized_top_depth_value),
       harmonized_bottom_depth_value <= 592 | is.na(harmonized_bottom_depth_value),
       harmonized_discrete_depth_value <= 592 | is.na(harmonized_discrete_depth_value)
@@ -929,7 +922,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     na.omit() %>%
     nrow()
   
-  # Only tier 1 has non-NAs
+  # Only tier 0 has non-NAs
   tier_cv_dist <- no_simul_cdom_tier_label %>%
     select(parameter, tier_label, harmonized_value_cv) %>%
     mutate(plot_value = harmonized_value_cv + 0.001) %>%
@@ -941,7 +934,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     ylab("Record count") +
     ggtitle(
       label = paste0(
-        "Distribution of harmonized CVs (Tier 1 only; n = ",
+        "Distribution of harmonized CVs (Tier 0 only; n = ",
         non_na_rows,
         ")"
       ),
@@ -967,8 +960,24 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   # 5. Depths
   # And the three depth cols
   
-  # harmonized_top_depth_value: 
-  # There are no non-NA harmonized_top_depth_value records
+  top_depth_dist <- no_simul_cdom_tier_label %>%
+    ggplot() +
+    geom_histogram(
+      aes(harmonized_top_depth_value, fill = tier_label),
+      color = "black") +
+    facet_grid(
+      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(parameter),
+      scales = "free_y"
+    ) +
+    scale_fill_viridis_d("Tier", direction = -1) +
+    xlab("harmonized_top_depth_value, m") +
+    ylab("Record count") +
+    ggtitle("harmonized_top_depth_value distribution by parameter and location type") +
+    theme_bw()
+  
+  ggsave(filename = "3_harmonize/out/cdom_tier_top_depth_dist_postagg.png",
+         plot = top_depth_dist,
+         width = 8, height = 4, units = "in", device = "png")
   
   bottom_depth_dist <- no_simul_cdom_tier_label %>%
     ggplot() +

@@ -63,7 +63,10 @@ step_counter <- 1
 
 step_1_rows <- filter(step_data,
                       reorder == step_counter) %>%
-  pull(n_rows)
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 ```
 
 At the start of the pre-harmonization process the raw CDOM WQP dataset contains `r step_1_rows` rows.
@@ -101,7 +104,10 @@ step_counter <- 2
 
 step_2_rows <- filter(step_data,
                       reorder == step_counter) %>%
-  pull(n_rows)
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_2_dropped <- filter(step_data,
                          reorder == step_counter) %>%
@@ -146,9 +152,12 @@ step_data %>%
 ```{r echo = FALSE}
 step_counter <- 3
 
-step_3_rows <- filter(step_data,
+step_3_rows <-  filter(step_data,
                       reorder == step_counter) %>%
-  pull(n_rows)
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_3_dropped <- filter(step_data,
                          reorder == step_counter) %>%
@@ -206,16 +215,26 @@ These `characteristicNames` are chosen in order to select for only those measure
 ```{r echo = FALSE}
 step_counter <- 4
 
-step_4_rows <- filter(step_data,
+step_4_rows <-  filter(step_data,
                       reorder == step_counter) %>%
-  pull(n_rows)
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
-step_4_dropped <- filter(step_data,
+step_4_dropped <-  filter(step_data,
                          reorder == step_counter) %>%
-  pull(number_dropped)
+  mutate(thou_row = number_dropped / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 ```
 
-We next ensure that the media type for all CDOM data is `"Surface Water"`, `"Water"`, `"Estuary"`, or `NA`. `r step_4_dropped` rows are removed. The final row count after this is `r step_4_rows`.
+We next ensure that the media type for all CDOM data is `"Surface Water"`, `"Water"`, `"Estuary"`, or `NA`. 
+
+**NOTE**: At this step we also remove records with the `CharacteristicName` "Beam Attenuation (Seabird)", which accounts for a large number of rows.
+
+`r step_4_dropped` rows are removed. The final row count after this is `r step_4_rows`.
 
 ```{r, fig.cap= "Bar plot showing the row count update for the current harmonization step.", echo = FALSE}
 step_data %>%
@@ -247,9 +266,12 @@ step_data %>%
 ```{r echo = FALSE}
 step_counter <- 5
 
-step_5_rows <- filter(step_data,
+step_5_rows <-  filter(step_data,
                       reorder == step_counter) %>%
-  pull(n_rows)
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_5_dropped <- filter(step_data,
                          reorder == step_counter) %>%
@@ -258,7 +280,7 @@ step_5_dropped <- filter(step_data,
 
 In this step we filter out records based on indications that they have failed data quality assurance or quality control for some reason given by the data provider (these instances are referred to here as "failures").
 
-After reviewing the contents of the `ActivityCommentText`, `ResultLaboratoryCommentText`, `ResultCommentText`, `ResultDetectionConditionText`, and `ResultMeasureValue_original` columns, we developed a list of terms that captured the majority of instances where records had failures or unacceptable measurements. (Note: `ResultMeasureValue_original` is a duplicate, character version of the `ResultMeasureValue` column that we use as a reference for the column's contents before it was converted to a numeric type.) We found the phrasing to be consistent across columns, so we searched for the same (case agnostic) terms in all four locations. The terms are: "beyond accept", "cancelled", "contaminat", "error", "fail", "improper", "interference", "invalid", "no result", "no test", "not accept", "outside of accept", "problem", "questionable", "suspect", "unable", "violation", "reject", "no data", "time exceed", "value extrapolated", "exceeds", "biased", "parameter not required", "not visited".
+After reviewing the contents of the `ActivityCommentText`, `ResultLaboratoryCommentText`, `ResultCommentText`, `ResultDetectionConditionText`, and `ResultMeasureValue_original` columns, we developed a list of terms that captured the majority of instances where records had failures or unacceptable measurements. (Note: `ResultMeasureValue_original` is a duplicate, character version of the `ResultMeasureValue` column that we use as a reference for the column's contents before it was converted to a numeric type.) We found the phrasing to be consistent across columns, so we searched for the same (case agnostic) terms in all four locations. The terms are: "beyond accept", "cancelled", "contaminat", "error", "fail", "improper", "interference", "invalid", "no result", "no test", "not accept", "outside of accept", "problem", "questionable", "suspect", "unable", "violation", "reject", "no data", "time exceed", "value extrapolated", "exceeds", "biased", "parameter not required", "not visited", "warm", "broken".
 
 Below are pie charts that break down the number of failure detections by column. Note that the plotting below is automated so if one or more of the columns listed above are not plotted, this indicates that the column(s) did not return any matches for the failure phrases. Also note that a single record can contain multiple failure phrases; therefore, failure phrases are not mutually exclusive.
 
@@ -322,7 +344,10 @@ step_counter <- 6
 
 step_6_rows <- filter(step_data,
                       reorder == step_counter) %>%
-  pull(n_rows)
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_6_dropped <- filter(step_data,
                          reorder == step_counter) %>%
@@ -369,9 +394,12 @@ step_data %>%
 ```{r echo = FALSE}
 step_counter <- 7
 
-step_7_rows <- filter(step_data,
+step_7_rows <-  filter(step_data,
                       reorder == step_counter) %>%
-  pull(n_rows)
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_7_dropped <- filter(step_data,
                          reorder == step_counter) %>%
@@ -420,9 +448,12 @@ step_data %>%
 ```{r echo = FALSE}
 step_counter <- 8
 
-step_8_rows <- filter(step_data,
+step_8_rows <-  filter(step_data,
                       reorder == step_counter) %>%
-  pull(n_rows)
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_8_dropped <- filter(step_data,
                          reorder == step_counter) %>%
@@ -471,9 +502,12 @@ step_data %>%
 ```{r echo = FALSE}
 step_counter <- 9
 
-step_9_rows <- filter(step_data,
+step_9_rows <-  filter(step_data,
                       reorder == step_counter) %>%
-  pull(n_rows)
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_9_dropped <- filter(step_data,
                          reorder == step_counter) %>%
@@ -509,14 +543,25 @@ step_data %>%
 
 <br>
 
+### Temporary step to select only a single `CharacteristicName`
+
+**NOTE**: This is a temporary section while this bookdown doc is being developed specifically for the CDOM dataset. Before the next harmonization step all `CharacteristicName` values **except** for "Absorbance at 280 nanometers" are removed to allow for barebones testing of the harmonization framework. 
+
+Around 110K rows are lost because of this filtering step, which below this **appear** to be dropped during unit harmonization. This is just a note that they are **not** dropped because of units.
+
+<br>
+
 ### Harmonize record units
 
 ```{r echo = FALSE}
 step_counter <- 10
 
-step_10_rows <- filter(step_data,
-                       reorder == step_counter) %>%
-  pull(n_rows)
+step_10_rows <-  filter(step_data,
+                      reorder == step_counter) %>%
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_10_dropped <- filter(step_data,
                           reorder == step_counter) %>%
@@ -574,9 +619,12 @@ step_data %>%
 ```{r echo = FALSE}
 step_counter <- 11
 
-step_11_rows <- filter(step_data,
-                       reorder == step_counter) %>%
-  pull(n_rows)
+step_11_rows <-  filter(step_data,
+                      reorder == step_counter) %>%
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_11_dropped <- filter(step_data,
                           reorder == step_counter) %>%
@@ -618,22 +666,23 @@ step_data %>%
 ```{r echo = FALSE}
 step_counter <- 12
 
-step_12_rows <- filter(step_data,
-                       reorder == step_counter) %>%
-  pull(n_rows)
+step_12_rows <-  filter(step_data,
+                      reorder == step_counter) %>%
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_12_dropped <- filter(step_data,
                           reorder == step_counter) %>%
   pull(number_dropped)
 ```
 
-We next review the analytical methods used in measuring CDOM by classifying the text provided with each record in `ResultAnalyticalMethod.MethodName`, `USGSPCode`, and `ResultSampleFractionText`. Once these methods are classified we arrange them into hierarchical tiers as described in the *Method tiering* section of the *Tiering, flagging, and quality control philosophy* chapter.
+We next review the analytical methods used in measuring CDOM alongside relevant information in `CharacteristicName` and `USGSPCode`. We use the information in these columns to construct hierarchical tiers as described in the *Method tiering* section of the *Tiering, flagging, and quality control philosophy* chapter.
 
-However, we found that there were methods for fluorescent Dissolved Organic Matter (fDOM) in addition to CDOM. So, prior to classification we assign "fDOM" or "CDOM" to each record in the `parameter` column based on the `USGSPCode` column. [`USGSPCode` values](https://help.waterdata.usgs.gov/parameter_cd?group_cd=%) of 32295, 32322, and 32330 are assigned "fDOM", while the rest are assigned "CDOM". (Note that we refer to records in this dataset as "CDOM" despite both of these types of data being present).
+In preparation for tiering, we check the `ResultAnalyticalMethod.MethodName` column for names that indicate non-CDOM measurements. 
 
-In preparation for tiering, we check the `ResultAnalyticalMethod.MethodName` column for names that indicate non-CDOM measurements. The only phrase used to flag and remove unrelated methods from CDOM data is "9222", which we determined indicated a non-CDOM method.
-
-The above two processes drop `r step_12_dropped` rows, leaving `r step_12_rows` remaining.
+The above process drops `r step_12_dropped` rows, leaving `r step_12_rows` remaining.
 
 Finally, we group the data into three tiers as described in *Tiering, flagging, and quality control philosophy*. These tiers are:
 
@@ -642,10 +691,9 @@ Finally, we group the data into three tiers as described in *Tiering, flagging, 
 <!-- Table created with https://www.tablesgenerator.com/markdown_tables -->
 | Tier | Name | Description | CDOM Details |
 |---|---|---|---|
-| 0 | Restrictive | Data that are verifiably self-similar across organizations and  time-periods and can be considered highly reliable and interoperable | ResultSampleFractionText column is "Dissolved" and ResultAnalyticalMethod.MethodName mentions wavelength or wavelength is implied by the USGSPCode column |
-| 1 | Narrowed | Data that we have good reason to believe are self-similar, but for which  we can’t verify full interoperability across data providers | Fluorometer mentioned in ResultAnalyticalMethod.MethodName, USGSPCode is NA, and ResultSampleFractionText is "Dissolved"; OR ResultAnalyticalMethod.MethodName mentions the wavelength but ResultSampleFractionText is "Total"; OR ResultAnalyticalMethod.MethodName is NA and USGSPCode doesn't imply wavelength |
-| 2 | Inclusive | Data that are assumed to be reliable and are harmonized to our best  ability given the information available from the data provider. This  tier includes  NA or non-resolvable descriptions for the  analytical method, which often make up the majority of methods descriptions for any given parameter | ResultAnalyticalMethod.MethodName is "Colorized Dissolved Organic Matter" but USGSPCode and ResultSampleFractionText are NA; OR ResultAnalyticalMethod.MethodName, USGSPCode, and ResultSampleFractionText are all NA |
-
+| 0 | Restrictive | Data that are verifiably self-similar across organizations and  time-periods and can be considered highly reliable and interoperable | Has wavelength listed in methods columns or USGSPCode, and if there's a wavelength in the CharacteristicName then it matches that in methods/USGSPCode. |
+| 1 | Narrowed | Data that we have good reason to believe are self-similar, but for which  we can’t verify full interoperability across data providers | Wavelengths included in multiple columns, but different columns may not agree. |
+| 2 | Inclusive | Data that are assumed to be reliable and are harmonized to our best  ability given the information available from the data provider. This  tier includes  NA or non-resolvable descriptions for the  analytical method, which often make up the majority of methods descriptions for any given parameter | All other instances. |
 <br>
 
 At this point we export a file (`3_harmonize/out/cdom_tiering_record.csv`) that contains a record of how specific method text was tiered and how many row counts corresponded to each method.
@@ -682,9 +730,12 @@ step_data %>%
 ```{r echo = FALSE}
 step_counter <- 13
 
-step_13_rows <- filter(step_data,
-                       reorder == step_counter) %>%
-  pull(n_rows)
+step_13_rows <-  filter(step_data,
+                      reorder == step_counter) %>%
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_13_dropped <- filter(step_data,
                           reorder == step_counter) %>%
@@ -729,9 +780,12 @@ step_data %>%
 ```{r echo = FALSE}
 step_counter <- 14
 
-step_14_rows <- filter(step_data,
-                       reorder == step_counter) %>%
-  pull(n_rows)
+step_14_rows <-  filter(step_data,
+                      reorder == step_counter) %>%
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_14_dropped <- filter(step_data,
                           reorder == step_counter) %>%
@@ -774,10 +828,12 @@ step_data %>%
 ```{r echo = FALSE}
 step_counter <- 15
 
-step_15_rows <- filter(step_data,
-                       reorder == step_counter) %>%
-  mutate(mil_row = n_rows / 1000000) %>%
-  pull(n_rows)
+step_15_rows <-  filter(step_data,
+                      reorder == step_counter) %>%
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_15_dropped <- filter(step_data,
                           reorder == step_counter) %>%
@@ -785,9 +841,9 @@ step_15_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-Before finalizing the dataset we remove CDOM values that are beyond a realistic threshold. We use 10,000 mg/L as our cutoff for removal. This is based on values from Gray et al. (2000), *"Comparability of suspended-sediment concentration and total suspended solids data"*. SSC values in SSC-CDOM pairs in the Gray et al. dataset were below 10,000 with one exception and most CDOM values were lower than their paired SSC value.
+Before finalizing the dataset we remove CDOM values that are beyond a realistic threshold. This step does not currently have a threshold value for CDOM measurements set, so it's more of a placeholder at this point. 
 
-We also remove any depths > 592m, the deepest point in a lake in the U.S.
+However, we also check for and remove any depths > 592m, the deepest point in a lake in the U.S.
 
 `r step_15_dropped` rows are removed. The final row count after this is `r step_15_rows`.
 
@@ -821,26 +877,23 @@ step_data %>%
 ```{r echo = FALSE}
 step_counter <- 16
 
-step_16_rows <- filter(step_data,
-                       reorder == step_counter) %>%
-  pull(n_rows)
+step_16_rows <-  filter(step_data,
+                      reorder == step_counter) %>%
+  mutate(thou_row = n_rows / 1000) %>%
+  pull(thou_row) %>%
+  round(digits = 1) %>%
+  paste0(., " thousand")
 
 step_16_dropped <- filter(step_data,
                           reorder == step_counter) %>%
   pull(number_dropped)
 ```
 
-The final step of CDOM harmonization is to aggregate simultaneous observations. Prior to aggregation, the dataset has the following distribution of values when organized by `CharacteristicName` and `ProviderName`:
-
-<br>
-
-<img src="3_harmonize/out/cdom_charname_dists.png" alt="Distribution of CDOM values by CharacteristicName and ProviderName" width="650"/>
-
-<br>
+The final step of CDOM harmonization is to aggregate simultaneous observations.
 
 **The aggregation process**: Any group of samples determined to be simultaneous are simplified into a single record containing the mean and coefficient of variation (CV) of the group. These can be either true duplicate entries in the WQP or records with non-identical values recorded at the same time and place and by the same organization (field and/or lab replicates/duplicates). The CV can be used to filter the dataset based on the amount of variability that is tolerable to specific use cases. Note, however, that many entries will have a CV that is `NA` because there are no simultaneous records or 0 because the records are duplicates and all entries have the same `harmonized_value`.
 
-We identify simultaneous records to aggregate by creating identical subgroups (`subgroup_id`) from the following columns: `parameter`, `OrganizationIdentifier`, `MonitoringLocationIdentifier`, `MonitoringLocationTypeName`, `ResolvedMonitoringLocationTypeName`, `ActivityStartDate`, `ActivityStartDateTime`, `ActivityStartTime.TimeZoneCode`, `harmonized_tz`, `harmonized_utc`, `harmonized_top_depth_value`, `harmonized_top_depth_unit`, `harmonized_bottom_depth_value`, `harmonized_bottom_depth_unit`, `harmonized_discrete_depth_value`, `harmonized_discrete_depth_unit`, `depth_flag`, `mdl_flag`, `approx_flag`, `greater_flag`, `tier`, `field_flag`, `misc_flag`, `harmonized_units`. This selection limits the columns included in the final dataset, but we also provide a copy of the AquaMatch dataset prior to its aggregation (pipeline target `p3_cdom_preagg_grouped`), and include the `subgroup_id` column, so that users can use the disaggregated data as well and match make joins between dataset versions.
+We identify simultaneous records to aggregate by creating identical subgroups (`subgroup_id`) from the following columns: `parameter`, `OrganizationIdentifier`, `MonitoringLocationIdentifier`, `MonitoringLocationTypeName`, `ResolvedMonitoringLocationTypeName`, `ActivityStartDate`, `ActivityStartTime.Time`, `ActivityStartTime.TimeZoneCode`, `harmonized_tz`, `harmonized_local_time`, `harmonized_utc`, `ActivityStartDateTime`, `harmonized_top_depth_value`, `harmonized_top_depth_unit`, `harmonized_bottom_depth_value`, `harmonized_bottom_depth_unit`, `harmonized_discrete_depth_value`, `harmonized_discrete_depth_unit`, `depth_flag`, `mdl_flag`, `approx_flag`, `greater_flag`, `tier`, `field_flag`, `misc_flag`, `harmonized_units`. This selection limits the columns included in the final dataset, but we also provide a copy of the AquaMatch dataset prior to its aggregation (pipeline target `p3_cdom_preagg_grouped`; available as an RDS file in the data release: AquaMatch_harmonize_WQP/_targets/objects/p3_cdom_preagg_grouped), and include the `subgroup_id` column, so that users can use the disaggregated data as well and match make joins between dataset versions.
 
 The final, aggregated values are presented in the `harmonized_value` and `harmonized_value_cv` columns. The number of rows used per group is recorded in the `harmonized_row_count` column.
 
@@ -877,7 +930,7 @@ At this point the harmonization of the CDOM data from the WQP is complete and we
 
 Below are several sets of figures illustrating different qualities of the dataset: 
 
-1. Histograms showing the distribution of harmonized measurements (top) and CVs (bottom) broken down by `tier` ***after*** aggregating simultaneous records.
+1. Histograms showing the distribution of harmonized measurements (top) and CVs (bottom) broken down by `tier` ***after*** aggregating simultaneous records. **However,** at this point in the dataset's development there is only a single tier of data present (tier 0, restrictive). Additionally, there are very few simultaneous records in the dataset, so only a few CVs are produced.
 
 <br>
 
@@ -890,23 +943,23 @@ Below are several sets of figures illustrating different qualities of the datase
 
 2. Maps showing the geographic distribution of records by tier within the US:
 
-<img src="3_harmonize/out/cdom_tier_hex_map.png" alt="Geographic distribution of SSC/CDOM records by tier in the conterminous US" width="650"/>
+<img src="3_harmonize/out/CDOM_tier_hex_map.png" alt="Geographic distribution of CDOM records by tier in the conterminous US" width="650"/>
 
 <br>
 
 3. Bar charts showing the distribution of values by tier across years, months, and days of the week:
 
-<img src="3_harmonize/out/cdom_year_tier_chart.png" alt="Temporal distribution of CDOM records by tier across years" width="650"/>
+<img src="3_harmonize/out/CDOM_year_tier_chart.png" alt="Temporal distribution of CDOM records by tier across years" width="650"/>
 
-<img src="3_harmonize/out/cdom_month_tier_chart.png" alt="Temporal distribution of CDOM records by tier across months" width="650"/>
+<img src="3_harmonize/out/CDOM_month_tier_chart.png" alt="Temporal distribution of CDOM records by tier across months" width="650"/>
 
-<img src="3_harmonize/out/cdom_wday_tier_chart.png" alt="Temporal distribution of CDOM records by tier across days of the week" width="650"/>
+<img src="3_harmonize/out/CDOM_wday_tier_chart.png" alt="Temporal distribution of CDOM records by tier across days of the week" width="650"/>
 
 <br>
 
 4. Lastly, bar charts showing the distribution of depth values by parameter, location type, and tier:
 
-<img src="3_harmonize/out/cdom_tier_top_depth_dist_postagg.png" alt="Distribution of harmonized_top_depth_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
+<img src="3_harmonize/out/cdom_tier_top_depth_dist_postagg.png" alt="Distribution of harmonized_top_top_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
 
 <img src="3_harmonize/out/cdom_tier_bottom_depth_dist_postagg.png" alt="Distribution of harmonized_top_bottom_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
 

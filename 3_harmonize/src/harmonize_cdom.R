@@ -660,9 +660,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   )
   
   # Before creating tiers remove records that have clearly unrelated or unreliable
-  # data based on their method. (Small dataset, so only one at time of publication).
-  # Note that from this point onward the parameter column will also differentiate
-  # fDOM from CDOM based on USGSPCode
+  # data based on their method.
   unrelated_text <- "9222"
   
   cdom_relevant <- flagged_depth_cdom %>%

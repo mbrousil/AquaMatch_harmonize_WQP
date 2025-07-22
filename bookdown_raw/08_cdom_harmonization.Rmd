@@ -208,6 +208,8 @@ Once ready for harmonization, the CDOM WQP dataset contains the following user-d
 
 These `characteristicNames` are chosen in order to select for only those measurements that pertain to CDOM.
 
+**NOTE**: These characteristicNames will be further filtered down to only include "Absorbance at 280 nanometers" later on in this document for the purpose of simplifying this workflow during development.
+
 <br>
 
 ### Filter media and fractions
@@ -232,7 +234,7 @@ step_4_dropped <-  filter(step_data,
 
 We next ensure that the media type for all CDOM data is `"Surface Water"`, `"Water"`, `"Estuary"`, or `NA`. 
 
-**NOTE**: At this step we also remove records with the `CharacteristicName` "Beam Attenuation (Seabird)", which accounts for a large number of rows.
+**NOTE**: At this step we also remove records with the `CharacteristicName` "Beam Attenuation (Seabird)", which accounts for a large number of rows but which is not relevant to the dataset.
 
 `r step_4_dropped` rows are removed. The final row count after this is `r step_4_rows`.
 
@@ -568,7 +570,7 @@ step_10_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-The next step in CDOM harmonization is converting the units of WQP records. Records that don't make sense for CDOM, are not in mg per liter (mg/L) or relative fluorescence units (RFU), or can't be converted to mg/L are dropped. We use the unit conversion table for this. Note that both RFU and mg/L are retained for the final data product, but treated separately throughout the harmonization process.
+The next step in CDOM harmonization is converting the units of WQP records. Records that don't make sense for CDOM or can't be converted to AU/m dropped. We use the unit conversion table below for this. 
 
 ```{r echo=FALSE, message = FALSE}
 read_csv("../3_harmonize/out/cdom_unit_table.csv") %>%

@@ -716,6 +716,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   # Export a record of how methods were tiered and their respective row counts
   tiering_record <- tiered_methods_cdom %>%
     count(
+      parameter,
       # Charname
       CharacteristicName,
       # Methods cols: 

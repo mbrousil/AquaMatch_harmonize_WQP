@@ -681,29 +681,56 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   tiered_methods_cdom <- cdom_relevant %>%
     mutate(
       tier = case_when(
-        # Tier 0: Restrictive: Has wavelength listed in methods/p-code, and if there's
-        # a wavelength in the CharacteristicName then it matches the methods
-        (CharacteristicName == "Absorbance at 280 nanometers") &
-          (
-            grepl(x = ResultAnalyticalMethod.MethodName, pattern = "200|280|800") |
-              (USGSPCode == 61726)
-          )~ 0,
-        # Tier 1: Narrowed: Wavelengths included in multiple cols, but mismatch in
-        # what's expected
-        (CharacteristicName == "Absorbance at 280 nanometers") &
-          !is.na(ResultAnalyticalMethod.MethodName) &
-          !grepl(x = ResultAnalyticalMethod.MethodName, pattern = "200|280|800") &
-          (is.na(USGSPCode) | (USGSPCode != "61726")) ~ 1,
-        # Tier 2: Inclusive: Everything else
+        # Tier 0: Has appropriate (and consistent) CharacteristicName, methods cols,
+        #         ResultMeasure.MeasureUnitCode, and ResultSampleFractionText is
+        #         filtered
+        
+        # A280 Tier 0
+        (
+          CharacteristicName == "Absorbance at 280 nanometers" &
+            (
+              # Method name checks out, has units, is dissolved
+              (ResultAnalyticalMethod.MethodName %in%
+                 c("Absorbance, 200 to 800 nm", "UV Absorb, 280 nm, GFF (NWQL)",
+                   "UV Absorb, 280 nm, Supor (annon)", "UV Absorb, 280 nm,silver (annon)")) &
+                (ResultMeasure.MeasureUnitCode %in% c("units/cm", "AU/cm")) &
+                (ResultSampleFractionText == "Dissolved")
+              # OR...
+            ) |
+            # NA methods with relevant USGSPCode
+            (
+              is.na(ResultAnalyticalMethod.MethodName) &
+                (USGSPCode == "61726")
+            )
+        ) ~ 0,
+        
+        # Tier 1: Mismatch in methods, etc.
+        
+        # Tier 2: Fraction is total, important information missing
+        
+        # Default is Tier 2
         .default = 2
       )
-    )  
+    ) 
   
   # Export a record of how methods were tiered and their respective row counts
   tiering_record <- tiered_methods_cdom %>%
-    count(parameter, CharacteristicName, ResultAnalyticalMethod.MethodName,
-          USGSPCode, ResultSampleFractionText, tier) %>%
+    count(
+      # Charname
+      CharacteristicName,
+      # Methods cols: 
+      ResultAnalyticalMethod.MethodName,
+      USGSPCode,
+      ResultAnalyticalMethod.MethodIdentifier,
+      ResultAnalyticalMethod.MethodIdentifierContext,
+      # Units
+      ResultMeasure.MeasureUnitCode,
+      # Fraction: should be filtered generally
+      ResultSampleFractionText,
+      tier
+    ) %>%
     arrange(desc(n)) 
+  
   
   tiering_record_out_path <- "3_harmonize/out/cdom_tiering_record.csv"
   

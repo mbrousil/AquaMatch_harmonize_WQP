@@ -28,9 +28,43 @@ harmonize_cdom <- function(raw_cdom, p_codes){
       # to the end product
       CharacteristicName != "Beam Attenuation (Seabird)"
     ) %>%
-    # Add an index to control for cases where there's not enough identifying info
-    # to track a unique record
-    rowid_to_column(., "index")
+    # Use the parameter column to hold info about the types of CDOM methods being
+    # handled (it will survive summarizing at the end of the process). The options
+    # below are based on what's actually present in the dataset, so all conceivable
+    # options are not included
+    mutate(
+      parameter = case_when(
+        # Absorbance at 254 nm
+        CharacteristicName %in% c("Specific UV Absorbance at 254 nm", "UV 254") &
+          !(ResultMeasure.MeasureUnitCode %in% c("L/mg-cm", "L/mgDOC*m")) ~ "Absorbance at 254 nm",
+        
+        # Absorbance at 280 nm
+        CharacteristicName == "Absorbance at 280 nanometers" ~ "Absorbance at 280 nm",
+        
+        # Absorbance at 370 nm
+        CharacteristicName == "Absorbance at 370 nanometers" ~ "Absorbance at 370 nm",
+        
+        # Absorbance at 440 nm
+        CharacteristicName == "Absorption coefficient at 440 nm" ~ "Absorbance at 440 nm",
+        
+        CharacteristicName == "Colored dissolved organic matter (CDOM)"	&
+          ResultAnalyticalMethod.MethodName == "CDOM absorption (440nm)" ~ "Absorbance at 440 nm",
+        
+        # FDOM
+        CharacteristicName == "Colored dissolved organic matter (CDOM)" &
+          (ResultAnalyticalMethod.MethodName %in% c(
+            "Turner Designs Trilogy Fluorometer with CDOM specific excitation/emission filters for monitoring CDOM in natural waters",
+            "Turner Designs fluoro.,365/470nm", "YSI EXO fluorometer, 365/480 nm",
+            "YSI EXO, 365/480/80 nm") | is.na(ResultAnalyticalMethod.MethodName)) &
+          ResultMeasure.MeasureUnitCode %in% c("RFU", "ug/l QSE", "mg/l", "ug/L") ~ "FDOM",
+        
+        # SUVA
+        ResultMeasure.MeasureUnitCode %in% c("L/mg-cm", "L/mgDOC*m") ~ "SUVA",
+        
+        # Fill note to come back to other options later
+        .default = "Unknown"
+      )
+    )
   
   if(any(is.na(cdom$parameter))){
     stop("Unexpected values generated when classifying parameters by CharacteristicName.")
@@ -358,16 +392,16 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Temporary filter break --------------------------------------------------
   
-  # Filter down to a single CharacteristicName for now while working out
+  # Filter down to a few CharacteristicNames for now while working out
   # harmonization process for CDOM
   
   cdom_no_na <- cdom_no_na %>%
-    filter(CharacteristicName == "Absorbance at 280 nanometers")
+    filter(
+      grepl(pattern = "254|280|370|440", 
+            x = parameter)
+    )
   
   nrow(cdom_no_na)
-  
-  cdom_no_na %>%
-    count(USGSPCode, ResultMeasure.MeasureUnitCode)
   
   
   # Harmonize value units ---------------------------------------------------
@@ -661,12 +695,14 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Before creating tiers remove records that have clearly unrelated or unreliable
   # data based on their method.
-  unrelated_text <- "9222"
+  # unrelated_text <- "9222"
+  # 
+  # cdom_relevant <- flagged_depth_cdom %>%
+  #   filter(!grepl(pattern = unrelated_text,
+  #                 x = ResultAnalyticalMethod.MethodName,
+  #                 ignore.case = TRUE))
   
-  cdom_relevant <- flagged_depth_cdom %>%
-    filter(!grepl(pattern = unrelated_text,
-                  x = ResultAnalyticalMethod.MethodName,
-                  ignore.case = TRUE))
+  cdom_relevant <- flagged_depth_cdom
   
   # How many records removed due to irrelevant analytical methods?
   print(
@@ -687,7 +723,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         
         # A280 Tier 0
         (
-          CharacteristicName == "Absorbance at 280 nanometers" &
+          parameter == "Absorbance at 280 nm" &
             (
               # Method name checks out, has units, is dissolved
               (ResultAnalyticalMethod.MethodName %in%

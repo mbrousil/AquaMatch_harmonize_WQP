@@ -28,13 +28,16 @@ harmonize_cdom <- function(raw_cdom, p_codes){
       # to the end product
       CharacteristicName != "Beam Attenuation (Seabird)"
     ) %>%
+    # Add an index to control for cases where there's not enough identifying info
+    # to track a unique record
+    rowid_to_column(., "index") %>%
     # Use the parameter column to hold info about the types of CDOM methods being
     # handled (it will survive summarizing at the end of the process). The options
     # below are based on what's actually present in the dataset, so all conceivable
     # options are not included
     mutate(
       parameter = case_when(
-        # Absorbance at 254 nm
+        
         CharacteristicName %in% c("Specific UV Absorbance at 254 nm", "UV 254") &
           !(ResultMeasure.MeasureUnitCode %in% c("L/mg-cm", "L/mgDOC*m")) ~ "Absorbance at 254 nm",
         
@@ -59,7 +62,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
           ResultMeasure.MeasureUnitCode %in% c("RFU", "ug/l QSE", "mg/l", "ug/L") ~ "FDOM",
         
         # SUVA
-        ResultMeasure.MeasureUnitCode %in% c("L/mg-cm", "L/mgDOC*m") ~ "SUVA",
+        ResultMeasure.MeasureUnitCode %in% c("L/mg-cm", "L/mgDOC*m") |
+          USGSPCode == 63162 ~ "SUVA",
         
         # Fill note to come back to other options later
         .default = "Unknown"
@@ -82,6 +86,20 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   rm(raw_cdom)
   gc()
+  
+  
+  # Temporary filter break --------------------------------------------------
+  
+  # Filter down to a few CharacteristicNames for now while working out
+  # harmonization process for CDOM
+  
+  cdom <- cdom %>%
+    filter(
+      grepl(pattern = "254|280|370|440", 
+            x = parameter)
+    )
+  
+  nrow(cdom)
   
   
   # Document and remove fail language ---------------------------------------
@@ -390,26 +408,12 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   gc()
   
   
-  # Temporary filter break --------------------------------------------------
-  
-  # Filter down to a few CharacteristicNames for now while working out
-  # harmonization process for CDOM
-  
-  cdom_no_na <- cdom_no_na %>%
-    filter(
-      grepl(pattern = "254|280|370|440", 
-            x = parameter)
-    )
-  
-  nrow(cdom_no_na)
-  
-  
   # Harmonize value units ---------------------------------------------------
   
   # Matchup table for expected cdom units in the dataset
   unit_conversion_table <- tibble(
-    ResultMeasure.MeasureUnitCode = c("AU/cm", "units/cm"),
-    conversion = c(100, 100)
+    ResultMeasure.MeasureUnitCode = c("AU/cm", "units/cm", "#/cm", "cm", "None", "nm", NA, "m"),
+    conversion = c(100, 100, 100, 100, 1, 1e-9, 1, 1)
   )
   
   unit_table_out_path <- "3_harmonize/out/cdom_unit_table.csv"
@@ -425,15 +429,18 @@ harmonize_cdom <- function(raw_cdom, p_codes){
            harmonized_units = "AU/m")
   
   # Plot and export unit codes that didn't make it through joining
-  cdom_no_na %>%
-    anti_join(x = .,
-              y = unit_conversion_table,
-              by = "ResultMeasure.MeasureUnitCode")  %>%
-    count(ResultMeasure.MeasureUnitCode, name = "record_count") %>%
-    plot_unit_pie() %>%
-    ggsave(filename = "3_harmonize/out/cdom_unit_drop_pie.png",
-           plot = .,
-           width = 6, height = 6, units = "in", device = "png")
+  tryCatch({
+    cdom_no_na %>%
+      anti_join(x = .,
+                y = unit_conversion_table,
+                by = "ResultMeasure.MeasureUnitCode")  %>%
+      count(ResultMeasure.MeasureUnitCode, name = "record_count") %>%
+      plot_unit_pie() %>%
+      ggsave(filename = "3_harmonize/out/cdom_unit_drop_pie.png",
+             plot = .,
+             width = 6, height = 6, units = "in", device = "png")
+  }, error = function(e) NULL
+  )
   
   # How many records removed due to limits on values?
   print(
@@ -695,13 +702,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Before creating tiers remove records that have clearly unrelated or unreliable
   # data based on their method.
-  # unrelated_text <- "9222"
-  # 
-  # cdom_relevant <- flagged_depth_cdom %>%
-  #   filter(!grepl(pattern = unrelated_text,
-  #                 x = ResultAnalyticalMethod.MethodName,
-  #                 ignore.case = TRUE))
-  
+  # (None currently)
   cdom_relevant <- flagged_depth_cdom
   
   # How many records removed due to irrelevant analytical methods?
@@ -712,8 +713,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     )
   )
   
-  # We tier based on whether analytical methods (or pcode) are in agreement with
-  # the CharacteristicName
+  # NOTE: The options below are based on what's actually present in the dataset,
+  # so all conceivable options are NOT included
   tiered_methods_cdom <- cdom_relevant %>%
     mutate(
       tier = case_when(
@@ -721,7 +722,12 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         #         ResultMeasure.MeasureUnitCode, and ResultSampleFractionText is
         #         filtered
         
-        # A280 Tier 0
+        # Absorbance at 254 nm Tier 0
+        parameter == "Absorbance at 254 nm" &
+          (ResultMeasure.MeasureUnitCode %in% c("#/cm", "units/cm", "cm")) &
+          (ResultSampleFractionText == "Dissolved") ~ 0,
+        
+        # Absorbance at 280 nm Tier 0
         (
           parameter == "Absorbance at 280 nm" &
             (
@@ -740,9 +746,19 @@ harmonize_cdom <- function(raw_cdom, p_codes){
             )
         ) ~ 0,
         
+        # Absorbance at 370 nm Tier 0: Nothing currently
+        parameter == "Absorbance at 370 nm" &
+          ResultMeasure.MeasureUnitCode == "AU/cm" ~ 0,
+          
+        # Absorbance at 440 nm Tier 0: Nothing currently
+        
         # Tier 1: Mismatch in methods, etc.
         
-        # Tier 2: Fraction is total, important information missing
+        # Tier 2: Fraction is total, important information missing, etc.
+        is.na(ResultMeasure.MeasureUnitCode) |
+          ResultMeasure.MeasureUnitCode %in% c("None", "nm") |
+          is.na(ResultSampleFractionText) |
+          ResultSampleFractionText %in% c("Total", "None") ~ 2,
         
         # Default is Tier 2
         .default = 2

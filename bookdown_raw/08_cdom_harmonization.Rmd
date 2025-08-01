@@ -212,6 +212,14 @@ These `characteristicNames` are chosen in order to select for only those measure
 
 <br>
 
+### Temporary step to select only a single `CharacteristicName`
+
+**NOTE**: This is a temporary section while this bookdown doc is being developed specifically for the CDOM dataset. Before the next harmonization step all `CharacteristicName` values **except** for "Absorbance at 280 nanometers" are removed to allow for barebones testing of the harmonization framework. 
+
+Around 110K rows are lost because of this filtering step, which below this **appear** to be dropped during unit harmonization. This is just a note that they are **not** dropped because of units.
+
+<br>
+
 ### Filter media and fractions
 
 ```{r echo = FALSE}
@@ -545,13 +553,6 @@ step_data %>%
 
 <br>
 
-### Temporary step to select only a single `CharacteristicName`
-
-**NOTE**: This is a temporary section while this bookdown doc is being developed specifically for the CDOM dataset. Before the next harmonization step all `CharacteristicName` values **except** for "Absorbance at 280 nanometers" are removed to allow for barebones testing of the harmonization framework. 
-
-Around 110K rows are lost because of this filtering step, which below this **appear** to be dropped during unit harmonization. This is just a note that they are **not** dropped because of units.
-
-<br>
 
 ### Harmonize record units
 

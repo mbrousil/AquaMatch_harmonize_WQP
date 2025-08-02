@@ -5,6 +5,7 @@ output:
 params:
   documented_drops: NA
   cdom_chars: NA
+  tiering_record: NA
 always_allow_html: true
 ---
 
@@ -22,6 +23,7 @@ documented_drops <- params$documented_drops %>%
   filter(grepl(pattern = "cdom", x = step, ignore.case = TRUE),
          !((step == "cdom harmonization") & short_reason == "Start"))
 cdom_chars <- params$cdom_chars
+tiering_record <- params$tiering_record
 ```
 
 Following the completion of the {dataRetrieval} download process described previously, the pipeline contains raw WQP data for each parameter of interest. Before we harmonize each parameter we run through a series of universal "pre-harmonization" steps, which ensure that the datasets are appropriately formatted when entering their harmonization routines.
@@ -582,7 +584,7 @@ read_csv("../3_harmonize/out/cdom_unit_table.csv") %>%
 
 <br>
 
-Below is a pie chart that breaks down the different unit codes that were dropped in the unit harmonization process, and how many records were lost with each code.
+Below is a pie chart that breaks down the different unit codes that were dropped in the unit harmonization process, and how many records were lost with each code. (Note that if there is no pie chart below that is because no unit codes were dropped).
 
 <br>
 
@@ -681,13 +683,11 @@ step_12_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-We next review the analytical methods used in measuring CDOM alongside relevant information in `CharacteristicName` and `USGSPCode`. We use the information in these columns to construct hierarchical tiers as described in the *Method tiering* section of the *Tiering, flagging, and quality control philosophy* chapter.
+We next review information related to the analytical methods, sample fraction, and result units for each record to construct hierarchical tiers as described in the *Method tiering* section of the *Tiering, flagging, and quality control philosophy* chapter.
 
 In preparation for tiering, we check the `ResultAnalyticalMethod.MethodName` column for names that indicate non-CDOM measurements. 
 
-The above process drops `r step_12_dropped` rows, leaving `r step_12_rows` remaining.
-
-Finally, we group the data into three tiers as described in *Tiering, flagging, and quality control philosophy*. These tiers are:
+Finally, we group the data into three tiers as described in *Tiering, flagging, and quality control philosophy*. Broadly, these tiers are:
 
 <br>
 
@@ -699,7 +699,19 @@ Finally, we group the data into three tiers as described in *Tiering, flagging, 
 | 2 | Inclusive | Data that are assumed to be reliable and are harmonized to our best  ability given the information available from the data provider. This  tier includes  NA or non-resolvable descriptions for the  analytical method, which often make up the majority of methods descriptions for any given parameter | All other instances. |
 <br>
 
-At this point we export a file (`3_harmonize/out/cdom_tiering_record.csv`) that contains a record of how specific method text was tiered and how many row counts corresponded to each method.
+At this point we create a file (`3_harmonize/out/cdom_tiering_record.csv`) that contains a record of how specific method text was tiered and how many row counts corresponded to each method. This file is also included as an interactive HTML table below, in order to illustrate how the specifics of each tiering decision in the table above are carried out.
+
+```{r fig.alt="Table containing combinations of CDOM record summary information and corresponding tiers."}
+
+tiering_record %>%
+kable() %>%
+  kable_paper() %>%
+  scroll_box(width = "750px", height = "500px")
+```
+
+<br>
+
+The above process drops `r step_12_dropped` rows, leaving `r step_12_rows` remaining.
 
 <br>
 

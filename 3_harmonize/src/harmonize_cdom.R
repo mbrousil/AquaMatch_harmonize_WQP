@@ -24,7 +24,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     filter(
       ActivityMediaSubdivisionName %in% c("Surface Water", "Water", "Estuary") |
         is.na(ActivityMediaSubdivisionName),
-      # Filter out CharacteristicName that was downloaded but not actually relevant
+      # Filter out CDOM CharacteristicName that was downloaded but not actually relevant
       # to the end product
       CharacteristicName != "Beam Attenuation (Seabird)"
     ) %>%
@@ -984,6 +984,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
             subtitle = "0.001 added to each value for the purposes of visualization only") +
     scale_x_log10(label = label_scientific()) +
     scale_y_continuous(label = label_number(scale_cut = cut_short_scale())) +
+    scale_fill_viridis_d() +
     theme_bw() +
     theme(strip.text = element_text(size = 7))
   
@@ -1027,13 +1028,14 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # 3. Maps
   # Similarly, create maps of records counts by tier
-  plot_tier_maps(dataset = no_simul_cdom, custom_width = 6.5, custom_height = 6.5,
-                 n_bins = 15)
+  plot_tier_maps(dataset = no_simul_cdom, custom_width = 6.5, custom_height = 8.25,
+                 n_bins = 15, param_name = "cdom", flip_facets = TRUE,
+                 legend_position = "bottom")
   
   # 4. Time
   # Year, month, day of week
   plot_time_charts(dataset = no_simul_cdom, custom_width = 8.5, custom_height = 4,
-                   year_seq = 5)
+                   year_seq = 5, param_name = "cdom")
   
   # 5. Depths
   # And the three depth cols

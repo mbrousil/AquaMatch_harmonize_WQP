@@ -1,6 +1,9 @@
 ResultMeasure.MeasureUnitCode,conversion
-mg/l,1
-mg/L,1
-ug/l,0.001
-ug/L,0.001
-ug/l QSE,0.001
+AU/cm,100
+units/cm,100
+#/cm,100
+cm,100
+None,1
+nm,1e-9
+NA,1
+m,1

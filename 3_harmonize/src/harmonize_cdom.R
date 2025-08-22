@@ -95,8 +95,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   cdom <- cdom %>%
     filter(
-      grepl(pattern = "254|280|370|440", 
-            x = parameter)
+      parameter != "FDOM"
     )
   
   nrow(cdom)
@@ -412,8 +411,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Matchup table for expected cdom units in the dataset
   unit_conversion_table <- tibble(
-    ResultMeasure.MeasureUnitCode = c("AU/cm", "units/cm", "#/cm", "cm", "None", "nm", NA, "m"),
-    conversion = c(100, 100, 100, 100, 1, 1e-9, 1, 1)
+    ResultMeasure.MeasureUnitCode = c("AU/cm", "units/cm", "#/cm", "cm", "None", "nm", NA, "m", "L/mg-cm", "L/mgDOC*m"),
+    conversion = c(100, 100, 100, 100, 1, 1e-9, 1, 1, 100, 1)
   )
   
   unit_table_out_path <- "3_harmonize/out/cdom_unit_table.csv"
@@ -425,8 +424,13 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     inner_join(x = .,
                y = unit_conversion_table,
                by = "ResultMeasure.MeasureUnitCode") %>%
-    mutate(harmonized_value = harmonized_value * conversion,
-           harmonized_units = "AU/m")
+    mutate(
+      harmonized_value = harmonized_value * conversion,
+      # Units will vary based on the exact CDOM parameter
+      harmonized_units = case_when(
+        parameter == "SUVA" ~ "L/mgDOC*m",
+        .default = "AU/m")
+    )
   
   # Plot and export unit codes that didn't make it through joining
   tryCatch({
@@ -724,8 +728,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         
         # Absorbance at 254 nm Tier 0
         parameter == "Absorbance at 254 nm" &
-          (ResultMeasure.MeasureUnitCode %in% c("#/cm", "units/cm", "cm")) &
-          (ResultSampleFractionText == "Dissolved") ~ 0,
+          ResultMeasure.MeasureUnitCode %in% c("#/cm", "units/cm", "cm") &
+          ResultSampleFractionText == "Dissolved" ~ 0,
         
         # Absorbance at 280 nm Tier 0
         (
@@ -735,8 +739,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
               (ResultAnalyticalMethod.MethodName %in%
                  c("Absorbance, 200 to 800 nm", "UV Absorb, 280 nm, GFF (NWQL)",
                    "UV Absorb, 280 nm, Supor (annon)", "UV Absorb, 280 nm,silver (annon)")) &
-                (ResultMeasure.MeasureUnitCode %in% c("units/cm", "AU/cm")) &
-                (ResultSampleFractionText == "Dissolved")
+                ResultMeasure.MeasureUnitCode %in% c("units/cm", "AU/cm") &
+                ResultSampleFractionText == "Dissolved"
               # OR...
             ) |
             # NA methods with relevant USGSPCode
@@ -749,8 +753,18 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         # Absorbance at 370 nm Tier 0: Nothing currently
         parameter == "Absorbance at 370 nm" &
           ResultMeasure.MeasureUnitCode == "AU/cm" ~ 0,
-          
+        
         # Absorbance at 440 nm Tier 0: Nothing currently
+        
+        # SUVA Tier 0:
+        parameter == "SUVA" &
+          # Method options
+          (
+            USGSPCode == 63162 |
+              ResultAnalyticalMethod.MethodIdentifier %in% c("5910-B", "415.3") |
+              ResultAnalyticalMethod.MethodName == "UV absorbance, 254 nm"
+          ) &
+          ResultSampleFractionText == "Dissolved" ~ 0,
         
         # Tier 1: Mismatch in methods, etc.
         

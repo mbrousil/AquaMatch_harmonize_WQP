@@ -155,13 +155,14 @@ bookdown_targets_list <- list(
       params = list(
         documented_drops = p3_documented_drops,
         cdom_chars = p1_wqp_params_cdom$cdom,
-        tiering_record = p3_cdom_tiering_record),
+        tiering_record = p3_cdom_tiering_record,
+        param_drop_record = p3_cdom_param_drop_record),
       output_file = "08_cdom_harmonization",
       output_dir = "chapters") %>%
       change_ext(inext = "md", outext = "Rmd"),
     format = "file",
     packages = c("tidyverse", "bookdown", "ggrepel", "viridis", "kableExtra",
-                 "rmarkdown")
+                 "rmarkdown", "scales")
   ),
   
   tar_target(

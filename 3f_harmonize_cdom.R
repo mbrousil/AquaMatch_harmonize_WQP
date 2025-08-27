@@ -73,6 +73,14 @@ p3_cdom_targets_list <- list(
                  "sf", "sfheaders")
   ),
   
+  # Record of rows that were dropped early in harmonization for not being part
+  # of CDOM params of interest
+  tar_file_read(
+    name = p3_cdom_param_drop_record,
+    command = p3_cdom_harmonized$cdom_param_drop_record_path,
+    read = read_csv(file = !!.x)
+  ),
+  
   tar_file_read(
     name = p3_cdom_tiering_record,
     command = p3_cdom_harmonized$cdom_tiering_record_path,

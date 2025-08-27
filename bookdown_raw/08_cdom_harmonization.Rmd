@@ -6,6 +6,7 @@ params:
   documented_drops: NA
   cdom_chars: NA
   tiering_record: NA
+  param_drop_record: NA
 always_allow_html: true
 ---
 
@@ -24,6 +25,7 @@ documented_drops <- params$documented_drops %>%
          !((step == "cdom harmonization") & short_reason == "Start"))
 cdom_chars <- params$cdom_chars
 tiering_record <- params$tiering_record
+param_drop_record <- params$param_drop_record
 ```
 
 Following the completion of the {dataRetrieval} download process described previously, the pipeline contains raw WQP data for each parameter of interest. Before we harmonize each parameter we run through a series of universal "pre-harmonization" steps, which ensure that the datasets are appropriately formatted when entering their harmonization routines.
@@ -245,18 +247,27 @@ We then assign each record to one of the `parameter` values in the table below, 
 
 | Parameter | Definition |
 |---|---|
-| Absorbance at 254 nm | `CharacteristicName` is either "Specific UV Absorbance at 254 nm" or "UV 254" and `ResultMeasure.MeasureUnitCode` is **not** "L/mg-cm" or "L/mgDOC*m" |
+| Absorbance at 254 nm | `CharacteristicName` is either "Specific UV Absorbance at 254 nm" or "UV 254" and `ResultMeasure.MeasureUnitCode` is **not** "L/mg-cm" or "L/mgDOC*m". Alternatively, `CharacteristicName` is "UV Absorption, relative conc. of organic constituents" and `ResultAnalyticalMethod.MethodIdentifier` is "5910-B" |
 | Absorbance at 280 nm | `CharacteristicName` is "Absorbance at 280 nanometers" |
 | Absorbance at 370 nm | `CharacteristicName` is "Absorbance at 370 nanometers" |
 | Absorbance at 440 nm | `CharacteristicName` is "Absorbance at 440 nanometers" OR `CharacteristicName` is "Colored dissolved organic matter (CDOM)" and `ResultAnalyticalMethod.MethodName` is "CDOM absorption (440nm)" |
 | FDOM | `CharacteristicName` is "Colored dissolved organic matter (CDOM)" AND `ResultAnalyticalMethod.MethodName` is NA or mentions a fluorometer AND `ResultMeasure.MeasureUnitCode` is one of "RFU", "ug/l QSE", "mg/l", or "ug/L" |
-| SUVA | `ResultMeasure.MeasureUnitCode` is "L/mg-cm" or "L/mgDOC*m" |
+| Fluorescence Index | `CharacteristicName` is "Fluorescence index" |
+| SUVA | `ResultMeasure.MeasureUnitCode` is "L/mg-cm" or "L/mgDOC*m" OR `CharacteristicName` is "UV Absorption, relative conc. of organic constituents" and `ResultAnalyticalMethod.MethodIdentifier` is "415.3"|
 
 <br> 
 
-**Temporary filter**:
-Following the `parameter` assignments we currently drop records that **do not** match the wavelengths 254, 280, 370, or 440 in the `parameter` column. This is a temporary step to simplify the data harmonization process while this workflow is in development. Around 58K rows are lost because of this filtering step. The figure below makes it **appear** that these are dropped because of the media filtering step, but this is not the case. 
+Records that do not meet the criteria of one of the `parameter` entries above are dropped (n = `r comma(sum(param_drop_record$n))`). A summary of the types of dropped records and their row counts is below:
 
+```{r fig.alt="Table containing combinations of CDOM record summary information that were dropped while categorizing by parameter."}
+
+param_drop_record %>%
+kable() %>%
+  kable_paper() %>%
+  scroll_box(width = "750px", height = "500px")
+```
+
+<br>
 
 `r step_4_dropped` rows are removed. The final row count after this is `r step_4_rows`.
 

@@ -17,7 +17,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   raw_names <- names(raw_cdom)
   
   # First step is to read in the data and do basic formatting and filtering
-  cdom <- raw_cdom %>%
+  cdom_narrowed <- raw_cdom %>%
     # Link up USGS p-codes. and their common names can be useful for method lumping:
     left_join(x = ., y = p_codes, by = c("USGSPCode" = "parm_cd")) %>%
     # Filter out non-target media types
@@ -38,8 +38,12 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     mutate(
       parameter = case_when(
         
+        # Absorbance at 254 nm
         CharacteristicName %in% c("Specific UV Absorbance at 254 nm", "UV 254") &
           !(ResultMeasure.MeasureUnitCode %in% c("L/mg-cm", "L/mgDOC*m")) ~ "Absorbance at 254 nm",
+        
+        CharacteristicName == "UV Absorption, relative conc. of organic constituents" &
+          ResultAnalyticalMethod.MethodIdentifier == "5910-B" ~ "Absorbance at 254 nm",
         
         # Absorbance at 280 nm
         CharacteristicName == "Absorbance at 280 nanometers" ~ "Absorbance at 280 nm",
@@ -61,30 +65,50 @@ harmonize_cdom <- function(raw_cdom, p_codes){
             "YSI EXO, 365/480/80 nm") | is.na(ResultAnalyticalMethod.MethodName)) &
           ResultMeasure.MeasureUnitCode %in% c("RFU", "ug/l QSE", "mg/l", "ug/L") ~ "FDOM",
         
+        # Fluorescence index
+        CharacteristicName == "Fluorescence index" ~ "Fluorescence index",
+        
         # SUVA
         ResultMeasure.MeasureUnitCode %in% c("L/mg-cm", "L/mgDOC*m") |
           USGSPCode == 63162 ~ "SUVA",
+        
+        CharacteristicName == "UV Absorption, relative conc. of organic constituents" &
+          ResultAnalyticalMethod.MethodIdentifier == "415.3" ~ "SUVA",
         
         # Fill note to come back to other options later
         .default = "Unknown"
       )
     )
   
-  if(any(is.na(cdom$parameter))){
+  if(any(is.na(cdom_narrowed$parameter))){
     stop("Unexpected values generated when classifying parameters by CharacteristicName.")
   }
+  
+  # Drop (but document) "unknown" parameters
+  cdom <- cdom_narrowed %>%
+    filter(parameter != "Unknown")
+  
+  param_drop_record_out_path <- "3_harmonize/out/cdom_param_drop_record.csv"
+  
+  write_csv(x = cdom_narrowed %>%
+              filter(parameter == "Unknown") %>%
+              count(CharacteristicName,	ResultAnalyticalMethod.MethodName,
+                    USGSPCode,	ResultAnalyticalMethod.MethodIdentifier,
+                    ResultAnalyticalMethod.MethodIdentifierContext,
+                    ResultMeasure.MeasureUnitCode, ResultSampleFractionText),
+            file = param_drop_record_out_path)
   
   # Record info on any dropped rows  
   dropped_media <- tibble(
     step = "cdom harmonization",
-    reason = "Filtered for only specific water media",
-    short_reason = "Target water media",
+    reason = "Filtered for only specific water media & relevant parameters",
+    short_reason = "Target water media & parameters",
     number_dropped = nrow(raw_cdom) - nrow(cdom),
     n_rows = nrow(cdom),
     order = 1
   )
   
-  rm(raw_cdom)
+  rm(raw_cdom, cdom_narrowed)
   gc()
   
   
@@ -411,15 +435,18 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Matchup table for expected cdom units in the dataset
   unit_conversion_table <- tibble(
-    ResultMeasure.MeasureUnitCode = c("AU/cm", "units/cm", "#/cm", "cm", "None", "nm", NA, "m", "L/mg-cm", "L/mgDOC*m"),
+    ResultMeasure.MeasureUnitCode = c("AU/cm", "units/cm", "#/cm", "cm", "None",
+                                      "nm", NA, "m", "L/mg-cm", "L/mgDOC*m"),
     conversion = c(100, 100, 100, 100, 1, 1e-9, 1, 1, 100, 1)
   )
   
+  # Export a record of unit conversions
   unit_table_out_path <- "3_harmonize/out/cdom_unit_table.csv"
   
   write_csv(x = unit_conversion_table,
             file = unit_table_out_path)
   
+  # Do the conversion
   converted_units_cdom <- cdom_no_na %>%
     inner_join(x = .,
                y = unit_conversion_table,
@@ -792,7 +819,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
       ResultAnalyticalMethod.MethodIdentifierContext,
       # Units
       ResultMeasure.MeasureUnitCode,
-      # Fraction: should be filtered generally
+      # Fraction: should generally be filtered 
       ResultSampleFractionText,
       tier
     ) %>%
@@ -1166,6 +1193,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   )
   
   return(list(
+    cdom_param_drop_record_path = param_drop_record_out_path,
     cdom_tiering_record_path = tiering_record_out_path,
     cdom_grouped_preagg_path = grouped_cdom_out_path,
     cdom_harmonized_path = data_out_path,

@@ -1027,7 +1027,9 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     scale_y_continuous(label = label_number(scale_cut = cut_short_scale())) +
     scale_fill_viridis_d() +
     theme_bw() +
-    theme(strip.text = element_text(size = 7))
+    theme(
+      strip.text = element_text(size = 7),
+      legend.position = "bottom")
   
   ggsave(filename = "3_harmonize/out/cdom_tier_dists_postagg.png",
          plot = tier_dists,
@@ -1069,14 +1071,14 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # 3. Maps
   # Similarly, create maps of records counts by tier
-  plot_tier_maps(dataset = no_simul_cdom, custom_width = 6.5, custom_height = 8.25,
+  plot_tier_maps(dataset = no_simul_cdom, custom_width = 8, custom_height = 12,
                  n_bins = 15, param_name = "cdom", flip_facets = TRUE,
                  legend_position = "bottom")
   
   # 4. Time
   # Year, month, day of week
-  plot_time_charts(dataset = no_simul_cdom, custom_width = 8.5, custom_height = 4,
-                   year_seq = 5, param_name = "cdom")
+  plot_time_charts(dataset = no_simul_cdom, custom_width = 6.5, custom_height = 4,
+                   year_seq = 5, param_name = "cdom", legend_position = "bottom")
   
   # 5. Depths
   # And the three depth cols
@@ -1094,11 +1096,12 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     xlab("harmonized_top_depth_value, m") +
     ylab("Record count") +
     ggtitle("harmonized_top_depth_value distribution by parameter and location type") +
-    theme_bw()
+    theme_bw() +
+    theme(legend.position = "bottom")
   
   ggsave(filename = "3_harmonize/out/cdom_tier_top_depth_dist_postagg.png",
          plot = top_depth_dist,
-         width = 8, height = 4, units = "in", device = "png")
+         width = 6, height = 10, units = "in", device = "png")
   
   bottom_depth_dist <- no_simul_cdom_tier_label %>%
     ggplot() +
@@ -1113,11 +1116,12 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     xlab("harmonized_bottom_depth_value, m") +
     ylab("Record count") +
     ggtitle("harmonized_bottom_depth_value distribution by parameter and location type") +
-    theme_bw()
+    theme_bw() +
+    theme(legend.position = "bottom")
   
   ggsave(filename = "3_harmonize/out/cdom_tier_bottom_depth_dist_postagg.png",
          plot = bottom_depth_dist,
-         width = 8, height = 4, units = "in", device = "png")
+         width = 6, height = 10, units = "in", device = "png")
   
   discrete_depth_dist <- no_simul_cdom_tier_label %>%
     ggplot() +
@@ -1132,11 +1136,12 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     xlab("harmonized_discrete_depth_value, m") +
     ylab("Record count") +
     ggtitle("harmonized_discrete_depth_value distribution by parameter and location type") +
-    theme_bw()
+    theme_bw() +
+    theme(legend.position = "bottom")
   
   ggsave(filename = "3_harmonize/out/cdom_tier_discrete_depth_dist_postagg.png",
          plot = discrete_depth_dist,
-         width = 8, height = 4, units = "in", device = "png")
+         width = 6, height = 10, units = "in", device = "png")
   
   # Clean up
   rm(no_simul_cdom_tier_label)

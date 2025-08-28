@@ -112,19 +112,6 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   gc()
   
   
-  # Temporary filter break --------------------------------------------------
-  
-  # Filter down to a few CharacteristicNames for now while working out
-  # harmonization process for CDOM
-  
-  cdom <- cdom %>%
-    filter(
-      parameter != "FDOM"
-    )
-  
-  nrow(cdom)
-  
-  
   # Document and remove fail language ---------------------------------------
   
   # The values that will be considered fails for each column:
@@ -436,8 +423,9 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   # Matchup table for expected cdom units in the dataset
   unit_conversion_table <- tibble(
     ResultMeasure.MeasureUnitCode = c("AU/cm", "units/cm", "#/cm", "cm", "None",
-                                      "nm", NA, "m", "L/mg-cm", "L/mgDOC*m"),
-    conversion = c(100, 100, 100, 100, 1, 1e-9, 1, 1, 100, 1)
+                                      "nm", NA, "m", "L/mg-cm", "L/mgDOC*m",
+                                      "mg/l", "ug/L", "ug/l QSE", "RFU"),
+    conversion = c(100, 100, 100, 100, 1, 1e-9, 1, 1, 100, 1, 1000, 1, 1, 1)
   )
   
   # Export a record of unit conversions
@@ -456,6 +444,9 @@ harmonize_cdom <- function(raw_cdom, p_codes){
       # Units will vary based on the exact CDOM parameter
       harmonized_units = case_when(
         parameter == "SUVA" ~ "L/mgDOC*m",
+        parameter == "FDOM" & ResultMeasure.MeasureUnitCode == "RFU" ~ "RFU",
+        parameter == "FDOM" & ResultMeasure.MeasureUnitCode %in% c("mg/l", "ug/L") ~ "ug/L",
+        parameter == "FDOM" & ResultMeasure.MeasureUnitCode == "ug/l QSE" ~ "ug/l QSE",
         .default = "AU/m")
     )
   
@@ -793,6 +784,12 @@ harmonize_cdom <- function(raw_cdom, p_codes){
           ) &
           ResultSampleFractionText == "Dissolved" ~ 0,
         
+        # FDOM Tier 0:
+        parameter == "FDOM" &
+          USGSPCode == 32295 &
+          ResultMeasure.MeasureUnitCode == "ug/l QSE" &
+          ResultSampleFractionText == "Dissolved" ~ 0,
+        
         # Tier 1: Mismatch in methods, etc.
         
         # Tier 2: Fraction is total, important information missing, etc.
@@ -1018,7 +1015,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     mutate(plot_value = harmonized_value + 0.001) %>%
     ggplot() +
     geom_histogram(aes(plot_value, fill = parameter), color = "black") +
-    facet_grid(cols = vars(harmonized_units), rows = vars(tier_label), scales = "free_y") +
+    facet_grid(rows = vars(harmonized_units), cols = vars(tier_label), scales = "free_x") +
     xlab(expression("Harmonized values (" ~ log[10] ~ " transformed)")) +
     ylab("Record count") +
     ggtitle(label = "Distribution of harmonized values by parameter, tier, and unit",
@@ -1033,7 +1030,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   ggsave(filename = "3_harmonize/out/cdom_tier_dists_postagg.png",
          plot = tier_dists,
-         width = 6, height = 4, units = "in", device = "png")
+         width = 8, height = 10, units = "in", device = "png")
   
   # 2: Harmonized CVs
   
@@ -1051,7 +1048,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     na.omit() %>%
     ggplot() +
     geom_histogram(aes(plot_value), color = "black", fill = "white") +
-    facet_grid(rows = vars(tier_label), cols = vars(parameter), scales = "free_y") +
+    facet_grid(cols = vars(tier_label), rows = vars(parameter), scales = "free_x") +
     xlab(expression("Harmonized coefficient of variation, " ~ log[10] ~ " transformed)")) +
     ylab("Record count") +
     ggtitle(
@@ -1067,17 +1064,17 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   ggsave(filename = "3_harmonize/out/cdom_tier_cv_dists_postagg.png",
          plot = tier_cv_dist,
-         width = 6, height = 5, units = "in", device = "png")
+         width = 6, height = 8, units = "in", device = "png")
   
   # 3. Maps
   # Similarly, create maps of records counts by tier
-  plot_tier_maps(dataset = no_simul_cdom, custom_width = 8, custom_height = 12,
+  plot_tier_maps(dataset = no_simul_cdom, custom_width = 8, custom_height = 14,
                  n_bins = 15, param_name = "cdom", flip_facets = TRUE,
                  legend_position = "bottom")
   
   # 4. Time
   # Year, month, day of week
-  plot_time_charts(dataset = no_simul_cdom, custom_width = 6.5, custom_height = 4,
+  plot_time_charts(dataset = no_simul_cdom, custom_width = 7, custom_height = 8,
                    year_seq = 5, param_name = "cdom", legend_position = "bottom")
   
   # 5. Depths
@@ -1101,7 +1098,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   ggsave(filename = "3_harmonize/out/cdom_tier_top_depth_dist_postagg.png",
          plot = top_depth_dist,
-         width = 6, height = 10, units = "in", device = "png")
+         width = 7, height = 10, units = "in", device = "png")
   
   bottom_depth_dist <- no_simul_cdom_tier_label %>%
     ggplot() +

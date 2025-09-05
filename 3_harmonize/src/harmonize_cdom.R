@@ -24,8 +24,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     filter(
       ActivityMediaSubdivisionName %in% c("Surface Water", "Water", "Estuary") |
         is.na(ActivityMediaSubdivisionName),
-      # Filter out CDOM CharacteristicName that was downloaded but not actually relevant
-      # to the end product
+      # Filter out CharacteristicName that was downloaded but not actually relevant
+      # to the end CDOM product
       CharacteristicName != "Beam Attenuation (Seabird)"
     ) %>%
     # Add an index to control for cases where there's not enough identifying info
@@ -447,6 +447,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         parameter == "FDOM" & ResultMeasure.MeasureUnitCode == "RFU" ~ "RFU",
         parameter == "FDOM" & ResultMeasure.MeasureUnitCode %in% c("mg/l", "ug/L") ~ "ug/L",
         parameter == "FDOM" & ResultMeasure.MeasureUnitCode == "ug/l QSE" ~ "ug/l QSE",
+        parameter == "Fluorescence index" ~ "None",
         .default = "AU/m")
     )
   
@@ -804,24 +805,31 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     ) 
   
   # Export a record of how methods were tiered and their respective row counts
-  tiering_record <- tiered_methods_cdom %>%
-    count(
-      parameter,
-      # Charname
-      CharacteristicName,
-      # Methods cols: 
-      ResultAnalyticalMethod.MethodName,
-      USGSPCode,
-      ResultAnalyticalMethod.MethodIdentifier,
-      ResultAnalyticalMethod.MethodIdentifierContext,
-      # Units
-      ResultMeasure.MeasureUnitCode,
-      # Fraction: should generally be filtered 
-      ResultSampleFractionText,
-      tier
-    ) %>%
-    arrange(desc(n)) 
+  tier_group_cols <- c(
+    "parameter",
+    # Charname
+    "CharacteristicName",
+    # Methods cols: 
+    "ResultAnalyticalMethod.MethodName",
+    "USGSPCode",
+    "ResultAnalyticalMethod.MethodIdentifier",
+    "ResultAnalyticalMethod.MethodIdentifierContext",
+    # Units
+    "ResultMeasure.MeasureUnitCode",
+    # Fraction: should generally be filtered 
+    "ResultSampleFractionText",
+    "tier"
+  )
   
+  tiering_record <- tiered_methods_cdom %>%
+    group_by(across(all_of(tier_group_cols))) %>%
+    add_count() %>%
+    mutate(min_value = min(harmonized_value),
+           max_value = max(harmonized_value)) %>%
+    ungroup() %>%
+    select(tier_group_cols, min_value, max_value, n) %>%
+    distinct() %>%
+    arrange(desc(n)) 
   
   tiering_record_out_path <- "3_harmonize/out/cdom_tiering_record.csv"
   
@@ -1012,14 +1020,13 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   tier_dists <- no_simul_cdom_tier_label %>%
     select(parameter, tier_label, harmonized_value, harmonized_units) %>%
-    mutate(plot_value = harmonized_value + 0.001) %>%
+    mutate(plot_value = harmonized_value) %>%
     ggplot() +
     geom_histogram(aes(plot_value, fill = parameter), color = "black") +
-    facet_grid(rows = vars(harmonized_units), cols = vars(tier_label), scales = "free_x") +
-    xlab(expression("Harmonized values (" ~ log[10] ~ " transformed)")) +
+    facet_grid(rows = vars(harmonized_units), cols = vars(tier_label), scales = "free") +
+    xlab(expression("Harmonized values")) +
     ylab("Record count") +
-    ggtitle(label = "Distribution of harmonized values by parameter, tier, and unit",
-            subtitle = "0.001 added to each value for the purposes of visualization only") +
+    ggtitle(label = "Distribution of harmonized values by parameter, tier, and unit") +
     scale_x_log10(label = label_scientific()) +
     scale_y_continuous(label = label_number(scale_cut = cut_short_scale())) +
     scale_fill_viridis_d() +

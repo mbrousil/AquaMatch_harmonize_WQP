@@ -597,7 +597,7 @@ step_10_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-The next step in CDOM harmonization is converting the units of WQP records. Records that don't make sense for CDOM or can't be converted to AU/m dropped. We use the unit conversion table below for this. 
+The next step in CDOM harmonization is converting the units of WQP records. Records that don't make sense for CDOM or can't be converted to a standardized unit dropped. We standardize units to "AU/m" unless the `parameter` is "SUVA" ("L/mgDOC*m"), "FDOM" ("RFU", "ug/l QSE"), or "Fluorescence index" ("None"). We use the unit conversion table below for this. 
 
 ```{r echo=FALSE, message = FALSE}
 read_csv("../3_harmonize/out/cdom_unit_table.csv") %>%

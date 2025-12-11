@@ -13,6 +13,45 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Minor data prep ---------------------------------------------------------
   
+  # Produce a bar chart of the current CharacteristicName counts
+  stack_chart <- raw_cdom %>%
+    count(CharacteristicName) %>% 
+    # Alpha order
+    arrange(desc(CharacteristicName)) %>%
+    # Cumulative (i.e., stacked) position of the labels, using midpoint of each
+    # bar
+    mutate(cume_pos = cumsum(n) - n / 2) %>%
+    ggplot(aes(x = 1, y = n)) +
+    geom_bar(aes(fill = CharacteristicName),
+             color = "black", position = "stack", stat = "identity",
+             alpha = 0.85) +
+    # Align right
+    geom_text_repel(
+      aes(
+        # Include row counts
+        label = paste0(CharacteristicName, " : n = ", comma(n)),
+        y = cume_pos),
+      hjust = 0,
+      force_pull = 0,
+      nudge_x = 1,
+      min.segment.length = 0.75,
+      direction = "y",
+      show.legend = FALSE
+    ) +
+    xlim(c(0, 10)) +
+    scale_fill_viridis_d() +
+    scale_y_continuous(labels = label_number(scale_cut = cut_short_scale())) +
+    xlab(NULL) +
+    ylab("Cumulative record count") +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank())
+  
+  ggsave(filename = "3_harmonize/out/cdom_stacked_char_names.png",
+         plot = stack_chart, width = 6.5, height = 7.5, units = "in", device = "png")
+  
   # Grab the column names of the dataset coming in
   raw_names <- names(raw_cdom)
   

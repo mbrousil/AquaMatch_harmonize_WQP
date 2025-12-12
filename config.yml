@@ -61,7 +61,7 @@ admin_update:
   google_email: "therossyndicate@gmail.com"
   download_repo_directory: "../AquaMatch_download_WQP/"
   cdom_use_stable: TRUE
-  cdom_stable_date: "20250930" #YYYYMMDD format
+  cdom_stable_date: "20251211" #YYYYMMDD format
   chl_use_stable: TRUE
   chl_stable_date: "20240701" #YYYYMMDD format
   doc_use_stable: TRUE

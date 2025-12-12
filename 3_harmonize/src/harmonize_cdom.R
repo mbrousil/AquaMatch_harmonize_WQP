@@ -29,7 +29,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     geom_text_repel(
       aes(
         # Include row counts
-        label = paste0(CharacteristicName, " : n = ", comma(n)),
+        label = paste0(CharacteristicName, ": n = ", comma(n)),
         y = cume_pos),
       hjust = 0,
       force_pull = 0,
@@ -62,10 +62,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     # Filter out non-target media types
     filter(
       ActivityMediaSubdivisionName %in% c("Surface Water", "Water", "Estuary") |
-        is.na(ActivityMediaSubdivisionName),
-      # Filter out CharacteristicName that was downloaded but not actually relevant
-      # to the end CDOM product
-      CharacteristicName != "Beam Attenuation (Seabird)"
+        is.na(ActivityMediaSubdivisionName)
     ) %>%
     # Add an index to control for cases where there's not enough identifying info
     # to track a unique record
@@ -90,8 +87,12 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         # Absorbance at 370 nm
         CharacteristicName == "Absorbance at 370 nanometers" ~ "Absorbance at 370 nm",
         
+        # Absorbance at 412 nm
+        CharacteristicName == "Absorbance at 412 nm" ~ "Absorbance at 412 nm",
+        
         # Absorbance at 440 nm
-        CharacteristicName == "Absorption coefficient at 440 nm" ~ "Absorbance at 440 nm",
+        CharacteristicName %in% c("Absorption coefficient at 440 nm",
+                                  "Absorbance at 440 nm") ~ "Absorbance at 440 nm",
         
         CharacteristicName == "Colored dissolved organic matter (CDOM)"	&
           ResultAnalyticalMethod.MethodName == "CDOM absorption (440nm)" ~ "Absorbance at 440 nm",
@@ -103,6 +104,9 @@ harmonize_cdom <- function(raw_cdom, p_codes){
             "Turner Designs fluoro.,365/470nm", "YSI EXO fluorometer, 365/480 nm",
             "YSI EXO, 365/480/80 nm") | is.na(ResultAnalyticalMethod.MethodName)) &
           ResultMeasure.MeasureUnitCode %in% c("RFU", "ug/l QSE", "mg/l", "ug/L") ~ "FDOM",
+        
+        # FDOM: A Few different char names with different excitation/emission nums
+        grepl(pattern = "Fluorescence, excitation", x = CharacteristicName) ~ "FDOM",
         
         # Fluorescence index
         CharacteristicName == "Fluorescence index" ~ "Fluorescence index",

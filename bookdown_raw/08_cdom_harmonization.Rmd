@@ -210,7 +210,10 @@ step_data %>%
 
 Once ready for harmonization, the CDOM WQP dataset contains the following user-defined `CharacteristicNames`: `r cdom_chars`.
 
-These `CharacteristicNames` are chosen in order to select for only those measurements that pertain to CDOM.
+<img src="3_harmonize/out/cdom_stacked_char_names.png" alt="Stacked bar chart with counts of CharacteristicName records" width="650"/>
+
+These `CharacteristicNames` are chosen in order to select for only those measurements that pertain to CDOM. We selected them by reviewing options in the
+`Characteristics` field of the [Water Quality Portal Filter Results](https://www.waterqualitydata.us/#advanced=true) page.
 
 <br>
 
@@ -237,9 +240,7 @@ step_4_dropped <-  filter(step_data,
 
 We next ensure that the media type for all CDOM data is `"Surface Water"`, `"Water"`, `"Estuary"`, or `NA`. Any records not meeting these criteria are dropped.
 
-**NOTE**: At this step we also remove records with the `CharacteristicName` "Beam Attenuation (Seabird)", which accounts for a large number of rows but which is not relevant to the dataset.
-
-We then assign each record to one of the `parameter` values in the table below, based on its values for `CharacteristicName`, `ResultAnalyticalMethod.MethodName`, and `ResultMeasure.MeasureUnitCode`. This helps us to group comparable measurements throughout the rest of the process:
+We then assign each record to one of the `parameter` values in the table below, based on its values for `CharacteristicName`, `ResultAnalyticalMethod.MethodName`, and `ResultMeasure.MeasureUnitCode`. This helps us to group comparable measurements throughout the rest of the process and generally simplify the way the dataset is organized:
 
 <br>
 
@@ -250,8 +251,9 @@ We then assign each record to one of the `parameter` values in the table below, 
 | Absorbance at 254 nm | `CharacteristicName` is either "Specific UV Absorbance at 254 nm" or "UV 254" and `ResultMeasure.MeasureUnitCode` is **not** "L/mg-cm" or "L/mgDOC*m". Alternatively, `CharacteristicName` is "UV Absorption, relative conc. of organic constituents" and `ResultAnalyticalMethod.MethodIdentifier` is "5910-B" |
 | Absorbance at 280 nm | `CharacteristicName` is "Absorbance at 280 nanometers" |
 | Absorbance at 370 nm | `CharacteristicName` is "Absorbance at 370 nanometers" |
-| Absorbance at 440 nm | `CharacteristicName` is "Absorbance at 440 nanometers" OR `CharacteristicName` is "Colored dissolved organic matter (CDOM)" and `ResultAnalyticalMethod.MethodName` is "CDOM absorption (440nm)" |
-| FDOM | `CharacteristicName` is "Colored dissolved organic matter (CDOM)" AND `ResultAnalyticalMethod.MethodName` is NA or mentions a fluorometer AND `ResultMeasure.MeasureUnitCode` is one of "RFU", "ug/l QSE", "mg/l", or "ug/L" |
+| Absorbance at 412 nm | `CharacteristicName` is "Absorbance at 412 nm" |
+| Absorbance at 440 nm | `CharacteristicName` is "Absorption coefficient at 440 nm" OR "Absorbance at 440 nm" OR `CharacteristicName` is "Colored dissolved organic matter (CDOM)" and `ResultAnalyticalMethod.MethodName` is "CDOM absorption (440nm)" |
+| FDOM | `CharacteristicName` is "Colored dissolved organic matter (CDOM)" AND `ResultAnalyticalMethod.MethodName` is NA or mentions a fluorometer AND `ResultMeasure.MeasureUnitCode` is one of "RFU", "ug/l QSE", "mg/l", or "ug/L". Alternatively, `CharacteristicName` is formatted like "Fluorescence, excitation 275 emission 304" but exact numbers will vary. |
 | Fluorescence Index | `CharacteristicName` is "Fluorescence index" |
 | SUVA | `ResultMeasure.MeasureUnitCode` is "L/mg-cm" or "L/mgDOC*m" OR `CharacteristicName` is "UV Absorption, relative conc. of organic constituents" and `ResultAnalyticalMethod.MethodIdentifier` is "415.3"|
 
@@ -268,6 +270,10 @@ kable() %>%
 ```
 
 <br>
+
+Below is a stacked barplot of the dataset organized by the new `parameter` column:
+
+<img src="3_harmonize/out/cdom_stacked_param_names.png" alt="Stacked bar chart with counts of parameter records" width="650"/>
 
 `r step_4_dropped` rows are removed. The final row count after this is `r step_4_rows`.
 

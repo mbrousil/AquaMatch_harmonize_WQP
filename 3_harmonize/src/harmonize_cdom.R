@@ -133,6 +133,46 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   param_drop_record_out_path <- "3_harmonize/out/cdom_param_drop_record.csv"
   
+  # Produce a bar chart of the current CharacteristicName counts
+  stack_param_chart <- cdom %>%
+    count(parameter) %>% 
+    # Alpha order
+    arrange(desc(parameter)) %>%
+    # Cumulative (i.e., stacked) position of the labels, using midpoint of each
+    # bar
+    mutate(cume_pos = cumsum(n) - n / 2) %>%
+    ggplot(aes(x = 1, y = n)) +
+    geom_bar(aes(fill = parameter),
+             color = "black", position = "stack", stat = "identity",
+             alpha = 0.85) +
+    # Align right
+    geom_text_repel(
+      aes(
+        # Include row counts
+        label = paste0(parameter, ": n = ", comma(n)),
+        y = cume_pos),
+      hjust = 0,
+      force_pull = 0,
+      nudge_x = 1,
+      min.segment.length = 0.75,
+      direction = "y",
+      show.legend = FALSE
+    ) +
+    xlim(c(0, 10)) +
+    scale_fill_viridis_d() +
+    scale_y_continuous(labels = label_number(scale_cut = cut_short_scale())) +
+    xlab(NULL) +
+    ylab("Cumulative record count") +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank())
+  
+  ggsave(filename = "3_harmonize/out/cdom_stacked_param_names.png",
+         plot = stack_param_chart, width = 6.5, height = 7.5, units = "in", device = "png")
+  
+  
   write_csv(x = cdom_narrowed %>%
               filter(parameter == "Unknown") %>%
               count(CharacteristicName,	ResultAnalyticalMethod.MethodName,

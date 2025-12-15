@@ -253,6 +253,11 @@ We then assign each record to one of the `parameter` values in the table below, 
 | Absorbance at 370 nm | `CharacteristicName` is "Absorbance at 370 nanometers" |
 | Absorbance at 412 nm | `CharacteristicName` is "Absorbance at 412 nm" |
 | Absorbance at 440 nm | `CharacteristicName` is "Absorption coefficient at 440 nm" OR "Absorbance at 440 nm" OR `CharacteristicName` is "Colored dissolved organic matter (CDOM)" and `ResultAnalyticalMethod.MethodName` is "CDOM absorption (440nm)" |
+| Absorption spectral slope, 275 to 295 nm | `CharacteristicName` is "Absorption spectral slope (Sag)" and `USGSPCode` is 32300 |
+| Absorption spectral slope, 290 to 350 nm | `CharacteristicName` is "Absorption spectral slope (Sag)" and `USGSPCode` is 32301 |
+| Absorption spectral slope, 350 to 400 nm | `CharacteristicName` is "Absorption spectral slope (Sag)" and `USGSPCode` is 32302 |
+| Absorption spectral slope, 412 to 600 nm | `CharacteristicName` is "Absorption spectral slope (Sag)" and `USGSPCode` is 32331 |
+| Absorption spectral slope, 412 to 676 nm | `CharacteristicName` is "Absorption spectral slope (Sag)" and `USGSPCode` is 32303 |
 | FDOM | `CharacteristicName` is "Colored dissolved organic matter (CDOM)" AND `ResultAnalyticalMethod.MethodName` is NA or mentions a fluorometer AND `ResultMeasure.MeasureUnitCode` is one of "RFU", "ug/l QSE", "mg/l", or "ug/L". Alternatively, `CharacteristicName` is formatted like "Fluorescence, excitation 275 emission 304" but exact numbers will vary. |
 | Fluorescence Index | `CharacteristicName` is "Fluorescence index" |
 | SUVA | `ResultMeasure.MeasureUnitCode` is "L/mg-cm" or "L/mgDOC*m" OR `CharacteristicName` is "UV Absorption, relative conc. of organic constituents" and `ResultAnalyticalMethod.MethodIdentifier` is "415.3"|

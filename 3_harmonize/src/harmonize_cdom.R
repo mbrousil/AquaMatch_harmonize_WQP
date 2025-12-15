@@ -97,6 +97,26 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         CharacteristicName == "Colored dissolved organic matter (CDOM)"	&
           ResultAnalyticalMethod.MethodName == "CDOM absorption (440nm)" ~ "Absorbance at 440 nm",
         
+        # Absorption spectral slope 275-295
+        CharacteristicName == "Absorption spectral slope (Sag)" & 
+          USGSPCode == 32300 ~ "Absorption spectral slope, 275 to 295 nm",
+        
+        # Absorption spectral slope 290-350
+        CharacteristicName == "Absorption spectral slope (Sag)" & 
+          USGSPCode == 32301 ~ "Absorption spectral slope, 290 to 350 nm",
+        
+        # Absorption spectral slope 350-400
+        CharacteristicName == "Absorption spectral slope (Sag)" & 
+          USGSPCode == 32302 ~ "Absorption spectral slope, 350 to 400 nm",
+        
+        # Absorption spectral slope 412-600
+        CharacteristicName == "Absorption spectral slope (Sag)" & 
+          USGSPCode == 32331 ~ "Absorption spectral slope, 412 to 600 nm",
+        
+        # Absorption spectral slope 412-676
+        CharacteristicName == "Absorption spectral slope (Sag)" & 
+          USGSPCode == 32303 ~ "Absorption spectral slope, 412 to 676 nm",
+        
         # FDOM
         CharacteristicName == "Colored dissolved organic matter (CDOM)" &
           (ResultAnalyticalMethod.MethodName %in% c(
@@ -133,7 +153,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   param_drop_record_out_path <- "3_harmonize/out/cdom_param_drop_record.csv"
   
-  # Produce a bar chart of the current CharacteristicName counts
+  # Produce a bar chart of the current parameter counts
   stack_param_chart <- cdom %>%
     count(parameter) %>% 
     # Alpha order

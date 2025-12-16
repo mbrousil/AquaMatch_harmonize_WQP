@@ -880,11 +880,16 @@ harmonize_cdom <- function(raw_cdom, p_codes){
             )
         ) ~ 0,
         
-        # Absorbance at 370 nm Tier 0: Nothing currently
+        # Absorbance at 370 nm Tier 0
         parameter == "Absorbance at 370 nm" &
           ResultMeasure.MeasureUnitCode == "AU/cm" ~ 0,
         
-        # Absorbance at 440 nm Tier 0: Nothing currently
+        # Absorbance at 412 nm Tier 0
+        parameter == "Absorbance at 412 nm" &
+          ResultMeasure.MeasureUnitCode == "AU/cm" &
+          ResultSampleFractionText == "Dissolved" ~ 0,
+        
+        # Absorbance at 440 nm Tier 0
         parameter == "Absorbance at 440 nm" &
           ResultMeasure.MeasureUnitCode == "AU/cm" &
           ResultSampleFractionText == "Dissolved" ~ 0,
@@ -893,6 +898,20 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         grepl(pattern = "Absorption spectral slope", x = parameter) & 
           ( is.na(ResultMeasure.MeasureUnitCode) | ResultMeasure.MeasureUnitCode == "None" ) &
           ResultSampleFractionText == "Dissolved" ~ 0,
+        
+        # FDOM Tier 0:
+        parameter == "FDOM" &
+          USGSPCode == 32295 &
+          ResultMeasure.MeasureUnitCode == "ug/l QSE" &
+          ResultSampleFractionText == "Dissolved" ~ 0,
+        
+        parameter == "FDOM" &
+          ResultMeasure.MeasureUnitCode == "RU" &
+          ResultSampleFractionText == "Dissolved" ~ 0,
+        
+        # Fluorescence Index Tier 0:
+        parameter == "Fluorescence index" &
+        grepl(pattern = "nm", x = ResultAnalyticalMethod.MethodName) ~ 0,
         
         # SUVA Tier 0:
         parameter == "SUVA" &
@@ -903,17 +922,6 @@ harmonize_cdom <- function(raw_cdom, p_codes){
               ResultAnalyticalMethod.MethodName == "UV absorbance, 254 nm"
           ) &
           ResultSampleFractionText == "Dissolved" ~ 0,
-        
-        # FDOM Tier 0:
-        parameter == "FDOM" &
-          USGSPCode == 32295 &
-          ResultMeasure.MeasureUnitCode == "RU" &
-          ResultSampleFractionText == "Dissolved" ~ 0,
-        
-        parameter == "FDOM" &
-          ResultMeasure.MeasureUnitCode == "ug/l QSE" &
-          ResultSampleFractionText == "Dissolved" ~ 0,
-        
         
         # Tier 1: Mismatch in methods, etc.
         
@@ -1146,8 +1154,10 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     select(parameter, tier_label, harmonized_value, harmonized_units) %>%
     mutate(plot_value = harmonized_value) %>%
     ggplot() +
-    geom_histogram(aes(plot_value, fill = parameter), color = "black") +
-    facet_grid(rows = vars(harmonized_units), cols = vars(tier_label), scales = "free") +
+    geom_histogram(aes(plot_value, fill = parameter),
+                   color = "black", alpha = 0.85) +
+    facet_grid(rows = vars(harmonized_units), cols = vars(tier_label),
+               scales = "free") +
     xlab(expression("Harmonized values")) +
     ylab("Record count") +
     ggtitle(label = "Distribution of harmonized values by parameter, tier, and unit") +
@@ -1157,7 +1167,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     theme_bw() +
     theme(
       strip.text = element_text(size = 7),
-      legend.position = "bottom")
+      legend.position = "bottom") +
+    guides(fill = guide_legend(nrow = 5))
   
   ggsave(filename = "3_harmonize/out/cdom_tier_dists_postagg.png",
          plot = tier_dists,
@@ -1199,14 +1210,15 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # 3. Maps
   # Similarly, create maps of records counts by tier
-  plot_tier_maps(dataset = no_simul_cdom, custom_width = 8, custom_height = 14,
+  plot_tier_maps(dataset = no_simul_cdom, custom_width = 8, custom_height = 26,
                  n_bins = 15, param_name = "cdom", flip_facets = TRUE,
                  legend_position = "bottom")
   
   # 4. Time
   # Year, month, day of week
   plot_time_charts(dataset = no_simul_cdom, custom_width = 7, custom_height = 8,
-                   year_seq = 5, param_name = "cdom", legend_position = "bottom")
+                   year_seq = 5, param_name = "cdom", legend_position = "bottom",
+                   scale_type = "free_y")
   
   # 5. Depths
   # And the three depth cols
@@ -1229,7 +1241,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   ggsave(filename = "3_harmonize/out/cdom_tier_top_depth_dist_postagg.png",
          plot = top_depth_dist,
-         width = 7, height = 10, units = "in", device = "png")
+         width = 7, height = 18, units = "in", device = "png")
   
   bottom_depth_dist <- no_simul_cdom_tier_label %>%
     ggplot() +
@@ -1249,7 +1261,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   ggsave(filename = "3_harmonize/out/cdom_tier_bottom_depth_dist_postagg.png",
          plot = bottom_depth_dist,
-         width = 6, height = 10, units = "in", device = "png")
+         width = 6, height = 18, units = "in", device = "png")
   
   discrete_depth_dist <- no_simul_cdom_tier_label %>%
     ggplot() +
@@ -1269,7 +1281,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   ggsave(filename = "3_harmonize/out/cdom_tier_discrete_depth_dist_postagg.png",
          plot = discrete_depth_dist,
-         width = 6, height = 10, units = "in", device = "png")
+         width = 6, height = 18, units = "in", device = "png")
   
   # Clean up
   rm(no_simul_cdom_tier_label)

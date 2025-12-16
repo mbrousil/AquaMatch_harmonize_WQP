@@ -122,7 +122,9 @@ harmonize_cdom <- function(raw_cdom, p_codes){
           (ResultAnalyticalMethod.MethodName %in% c(
             "Turner Designs Trilogy Fluorometer with CDOM specific excitation/emission filters for monitoring CDOM in natural waters",
             "Turner Designs fluoro.,365/470nm", "YSI EXO fluorometer, 365/480 nm",
-            "YSI EXO, 365/480/80 nm") | is.na(ResultAnalyticalMethod.MethodName)) &
+            "YSI EXO, 365/480/80 nm") |
+             is.na(ResultAnalyticalMethod.MethodName) |
+             ResultAnalyticalMethod.MethodIdentifier == "FLUORO") &
           ResultMeasure.MeasureUnitCode %in% c("RFU", "ug/l QSE", "mg/l", "ug/L") ~ "FDOM",
         
         # FDOM: A Few different char names with different excitation/emission nums
@@ -527,8 +529,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   unit_conversion_table <- tibble(
     ResultMeasure.MeasureUnitCode = c("AU/cm", "units/cm", "#/cm", "cm", "None",
                                       "nm", NA, "m", "L/mg-cm", "L/mgDOC*m",
-                                      "mg/l", "ug/L", "ug/l QSE", "RFU"),
-    conversion = c(100, 100, 100, 100, 1, 1e-9, 1, 1, 100, 1, 1000, 1, 1, 1)
+                                      "mg/l", "ug/L", "ug/l QSE", "RFU", "RU"),
+    conversion = c(100, 100, 100, 100, 1, 1e-9, 1, 1, 100, 1, 1000, 1, 1, 1, 1)
   )
   
   # Export a record of unit conversions
@@ -548,9 +550,15 @@ harmonize_cdom <- function(raw_cdom, p_codes){
       harmonized_units = case_when(
         parameter == "SUVA" ~ "L/mgDOC*m",
         parameter == "FDOM" & ResultMeasure.MeasureUnitCode == "RFU" ~ "RFU",
+        parameter == "FDOM" & ResultMeasure.MeasureUnitCode == "RU" ~ "RU",
+        # P Code says RU but NA provided, fill but will flag as tier 2
+        parameter == "FDOM" &
+          is.na(ResultMeasure.MeasureUnitCode) &
+          USGSPCode == 32305 ~ "RU",
         parameter == "FDOM" & ResultMeasure.MeasureUnitCode %in% c("mg/l", "ug/L") ~ "ug/L",
         parameter == "FDOM" & ResultMeasure.MeasureUnitCode == "ug/l QSE" ~ "ug/l QSE",
         parameter == "Fluorescence index" ~ "None",
+        grepl(pattern = "Absorption spectral slope", x = parameter) ~ "None",
         .default = "AU/m")
     )
   
@@ -877,6 +885,14 @@ harmonize_cdom <- function(raw_cdom, p_codes){
           ResultMeasure.MeasureUnitCode == "AU/cm" ~ 0,
         
         # Absorbance at 440 nm Tier 0: Nothing currently
+        parameter == "Absorbance at 440 nm" &
+          ResultMeasure.MeasureUnitCode == "AU/cm" &
+          ResultSampleFractionText == "Dissolved" ~ 0,
+        
+        # Absorption spectral slope variations
+        grepl(pattern = "Absorption spectral slope", x = parameter) & 
+          ( is.na(ResultMeasure.MeasureUnitCode) | ResultMeasure.MeasureUnitCode == "None" ) &
+          ResultSampleFractionText == "Dissolved" ~ 0,
         
         # SUVA Tier 0:
         parameter == "SUVA" &
@@ -891,8 +907,13 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         # FDOM Tier 0:
         parameter == "FDOM" &
           USGSPCode == 32295 &
+          ResultMeasure.MeasureUnitCode == "RU" &
+          ResultSampleFractionText == "Dissolved" ~ 0,
+        
+        parameter == "FDOM" &
           ResultMeasure.MeasureUnitCode == "ug/l QSE" &
           ResultSampleFractionText == "Dissolved" ~ 0,
+        
         
         # Tier 1: Mismatch in methods, etc.
         

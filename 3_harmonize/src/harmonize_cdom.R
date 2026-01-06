@@ -529,8 +529,10 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   unit_conversion_table <- tibble(
     ResultMeasure.MeasureUnitCode = c("AU/cm", "units/cm", "#/cm", "cm", "None",
                                       "nm", NA, "m", "L/mg-cm", "L/mgDOC*m",
-                                      "mg/l", "ug/L", "ug/l QSE", "RFU", "RU"),
-    conversion = c(100, 100, 100, 100, 1, 1e-9, 1, 1, 100, 1, 1000, 1, 1, 1, 1)
+                                      "mg/l", "ug/L", "ug/l QSE", "RFU", "RU",
+                                      "per m", "nm-1"),
+    conversion = c(100, 100, 100, 100, 1, 1e-9, 1, 1, 100, 1, 1000, 1, 1, 1, 1,
+                   1, 1e-9)
   )
   
   # Export a record of unit conversions

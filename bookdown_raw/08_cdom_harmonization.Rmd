@@ -329,7 +329,7 @@ In this step we filter out records based on indications that they have failed da
 
 After reviewing the contents of the `ActivityCommentText`, `ResultLaboratoryCommentText`, `ResultCommentText`, `ResultDetectionConditionText`, and `ResultMeasureValue_original` columns, we developed a list of terms that captured the majority of instances where records had failures or unacceptable measurements. (Note: `ResultMeasureValue_original` is a duplicate, character version of the `ResultMeasureValue` column that we use as a reference for the column's contents before it was converted to a numeric type.) We found the phrasing to be consistent across columns, so we searched for the same (case agnostic) text in all four locations. The terms are: "beyond accept", "cancelled", "contaminat", "error", "fail", "improper", "interference", "invalid", "no result", "no test", "not accept", "outside of accept", "problem", "questionable", "suspect", "unable", "violation", "reject", "no data", "time exceed", "value extrapolated", "exceeds", "biased", "parameter not required", "not visited", "warm", "broken".
 
-Below are pie charts that break down the number of failure detections by column. Note that the plotting below is automated so if one or more of the columns listed above are not plotted, this indicates that the column(s) did not return any matches for the failure phrases. Also note that a single record can contain multiple failure phrases; therefore, failure phrases are not mutually exclusive.
+Below are pie charts that break down the number of failure detections by column. **Note that the plotting below is automated so if one or more of the columns listed above are not plotted, this indicates that the column(s) did not return any matches for the failure phrases.** Also note that a single record can contain multiple failure phrases; therefore, failure phrases are not mutually exclusive.
 
 <br>
 
@@ -620,7 +620,7 @@ read_csv("../3_harmonize/out/cdom_unit_table.csv") %>%
 
 <br>
 
-Below is a pie chart that breaks down the different unit codes that were dropped in the unit harmonization process, and how many records were lost with each code. (Note that if there is no pie chart below that is because no unit codes were dropped).
+Below is a pie chart that breaks down the different unit codes that were dropped in the unit harmonization process, and how many records were lost with each code. **(Note that if there is no pie chart below that is because no unit codes were dropped).**
 
 <br>
 

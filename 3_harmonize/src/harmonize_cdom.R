@@ -59,10 +59,12 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   cdom_narrowed <- raw_cdom %>%
     # Link up USGS p-codes. and their common names can be useful for method lumping:
     left_join(x = ., y = p_codes, by = c("USGSPCode" = "parm_cd")) %>%
-    # Filter out non-target media types
     filter(
+      # Filter out non-target media types
       ActivityMediaSubdivisionName %in% c("Surface Water", "Water", "Estuary") |
-        is.na(ActivityMediaSubdivisionName)
+        is.na(ActivityMediaSubdivisionName),
+      # Filter out a handful of samples with questionable relevance
+      OrganizationIdentifier != "SDDENR_WQX"
     ) %>%
     # Add an index to control for cases where there's not enough identifying info
     # to track a unique record
@@ -108,6 +110,10 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         # Absorption spectral slope 350-400
         CharacteristicName == "Absorption spectral slope (Sag)" & 
           USGSPCode == 32302 ~ "Absorption spectral slope, 350 to 400 nm",
+        
+        # Absorption spectral slop 400-500
+        ResultAnalyticalMethod.MethodName == "Slope Of CDOM Absorption Coefficient Spectrum (400 To 500 Nm)" &
+          StatisticalBaseCode == "Slope" ~ "Absorption spectral slope, 400 to 500 nm",
         
         # Absorption spectral slope 412-600
         CharacteristicName == "Absorption spectral slope (Sag)" & 
@@ -526,14 +532,35 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   # Harmonize value units ---------------------------------------------------
   
   # Matchup table for expected cdom units in the dataset
-  unit_conversion_table <- tibble(
-    ResultMeasure.MeasureUnitCode = c("AU/cm", "units/cm", "#/cm", "cm", "None",
-                                      "nm", NA, "m", "L/mg-cm", "L/mgDOC*m",
-                                      "mg/l", "ug/L", "ug/l QSE", "RFU", "RU",
-                                      "per m", "nm-1"),
-    conversion = c(100, 100, 100, 100, 1, 1e-9, 1, 1, 100, 1, 1000, 1, 1, 1, 1,
-                   1, 1e-9)
+  unit_conversion_table <- tribble(
+    ~ResultMeasure.MeasureUnitCode, ~conversion,
+    "AU/cm",                                100,
+    "units/cm",                             100,
+    "#/cm",                                 100,
+    "cm",                                   100,
+    "None",                                   1,
+    # "nm" records show evidence that they are meant to be cm-1 units, see below
+    "nm",                                   100,
+    NA,                                       1,
+    "m",                                      1,
+    "L/mg-cm",                              100,
+    "L/mgDOC*m",                              1,
+    "mg/l",                                1000,
+    "ug/L",                                   1,
+    "ug/l QSE",                               1,
+    "RFU",                                    1,
+    "RU",                                     1,
+    "per m",                                  1,
+    "nm-1",                                   1
   )
+  
+  # Per KR: UV 254 param with "ResultMeasure.MeasureUnitCode" == "nm" has 
+  # "DetectionQuantitationLimitMeasure.MeasureUnitCode" == "units/cm". Values
+  # for these records are in the range of what would be expected for natural
+  # waters for A254 reported in cm-1 units and the detection limit listed as
+  # 0.005 also aligns with A/cm measurements. So there is solid evidence these
+  # records can be treated as per cm and harmonized to per meter like other
+  # UV 254 records.
   
   # Export a record of unit conversions
   unit_table_out_path <- "3_harmonize/out/cdom_unit_table.csv"
@@ -560,7 +587,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         parameter == "FDOM" & ResultMeasure.MeasureUnitCode %in% c("mg/l", "ug/L") ~ "ug/L",
         parameter == "FDOM" & ResultMeasure.MeasureUnitCode == "ug/l QSE" ~ "ug/l QSE",
         parameter == "Fluorescence index" ~ "None",
-        grepl(pattern = "Absorption spectral slope", x = parameter) ~ "None",
+        grepl(pattern = "Absorption spectral slope", x = parameter) ~ "nm-1",
         .default = "AU/m")
     )
   
@@ -913,7 +940,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         
         # Fluorescence Index Tier 0:
         parameter == "Fluorescence index" &
-        grepl(pattern = "nm", x = ResultAnalyticalMethod.MethodName) ~ 0,
+          grepl(pattern = "nm", x = ResultAnalyticalMethod.MethodName) ~ 0,
         
         # SUVA Tier 0:
         parameter == "SUVA" &

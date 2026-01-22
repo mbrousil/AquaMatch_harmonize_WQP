@@ -111,7 +111,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         CharacteristicName == "Absorption spectral slope (Sag)" & 
           USGSPCode == 32302 ~ "Absorption spectral slope, 350 to 400 nm",
         
-        # Absorption spectral slop 400-500
+        # Absorption spectral slope 400-500
         ResultAnalyticalMethod.MethodName == "Slope Of CDOM Absorption Coefficient Spectrum (400 To 500 Nm)" &
           StatisticalBaseCode == "Slope" ~ "Absorption spectral slope, 400 to 500 nm",
         

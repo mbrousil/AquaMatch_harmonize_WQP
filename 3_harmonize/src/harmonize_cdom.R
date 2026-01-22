@@ -62,9 +62,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     filter(
       # Filter out non-target media types
       ActivityMediaSubdivisionName %in% c("Surface Water", "Water", "Estuary") |
-        is.na(ActivityMediaSubdivisionName),
-      # Filter out a handful of samples with questionable relevance
-      OrganizationIdentifier != "SDDENR_WQX"
+        is.na(ActivityMediaSubdivisionName)
     ) %>%
     # Add an index to control for cases where there's not enough identifying info
     # to track a unique record

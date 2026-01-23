@@ -32,11 +32,32 @@ The download process begins by using the {dataRetrieval} package to catalogue th
 
 Our general process for selecting characteristic names is to review the Characteristics field on [Water Quality Portal](https://www.waterqualitydata.us/#advanced=true) for relevant keywords for our parameters of interest, download a subset of that data, and then perform iterative searches for key words related to the parameter within text in available metadata fields (e.g., methods-related, units, USGS parameter codes, etc.). Final selected names are then reviewed for relevance to the target parameter and for completeness of the record to provide meaningful information to end users.
 
-Below are the current parameters and their `characteristicName`s as defined in the configuration YAML, `1_inventory/cfg/wqp_codes.yml`. Data for these parameters are requested from the WQP within a spatial grid that is mapped in the next section.
-
-```{r, results='asis'}
+```{r, include=FALSE}
 names_yaml <- names(yaml_contents)
 
+names_list <- tribble(
+  ~short, ~full,
+  "cdom", "colored dissolved organic matter",
+  "chlorophyll", "chlorophyll a",
+  "doc", "dissolved organic carbon",
+  "sdd", "Secchi disk depth",
+  "tss", "total suspended solids"
+)
+
+# List of params included in the current document:
+current_list <- names_list %>%
+  filter(short %in% names_yaml) %>%
+  transmute(string = paste0(short, " (", full, ")")) %>%
+  flatten() %>%
+  paste0() %>%
+  paste0(collapse = ", ")
+```
+
+Below are the current parameters and their `characteristicName`s as defined in the configuration YAML, `1_inventory/cfg/wqp_codes.yml`. Data for these parameters are requested from the WQP within a spatial grid that is mapped in the next section. Parameters included here are: `r current_list`
+
+<br>
+
+```{r, results='asis'}
 map_df(.x = names_yaml,
     .f = ~yaml_contents[.x] %>%
         as_tibble() %>%

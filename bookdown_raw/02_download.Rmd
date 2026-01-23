@@ -28,7 +28,11 @@ options(tigris_use_cache = TRUE)
 
 ### Catalogue existing data
 
-The download process begins by using the {dataRetrieval} package to catalogue the data that is available in the WQP. To do this the user selects parameters of interest and their corresponding `characteristicName` for retrieving data from the WQP. Below are the current parameters and their `characteristicName`s as defined in the configuration YAML, `1_inventory/cfg/wqp_codes.yml`. Data for these parameters are requested from the WQP within a spatial grid that is mapped in the next section.
+The download process begins by using the {dataRetrieval} package to catalogue the data that is available in the WQP. To do this we select parameters of interest and their corresponding `characteristicName` for retrieving data from the WQP. 
+
+Our general process for selecting characteristic names is to review the Characteristics field on [Water Quality Portal](https://www.waterqualitydata.us/#advanced=true) for relevant keywords for our parameters of interest, download a subset of that data, and then perform iterative searches for key words related to the parameter within text in available metadata fields (e.g., methods-related, units, USGS parameter codes, etc.). Final selected names are then reviewed for relevance to the target parameter and for completeness of the record to provide meaningful information to end users.
+
+Below are the current parameters and their `characteristicName`s as defined in the configuration YAML, `1_inventory/cfg/wqp_codes.yml`. Data for these parameters are requested from the WQP within a spatial grid that is mapped in the next section.
 
 ```{r, results='asis'}
 names_yaml <- names(yaml_contents)

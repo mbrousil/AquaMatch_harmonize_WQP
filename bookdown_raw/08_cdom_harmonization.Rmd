@@ -987,7 +987,7 @@ At this point the harmonization of the CDOM data from the WQP is complete and we
 
 Below are several sets of figures illustrating different qualities of the dataset: 
 
-1. Histograms showing the distribution of harmonized measurements (top) and CVs (bottom) broken down by `tier` ***after*** aggregating simultaneous records. **However,** at this point in the dataset's development there is only a single tier of data present (tier 0, restrictive). Additionally, there are very few simultaneous records in the dataset, so only a few CVs are produced.
+1. Histograms showing the distribution of harmonized measurements (top) and CVs (bottom) broken down by `tier` ***after*** aggregating simultaneous records. There are very few simultaneous records in the dataset, so only a few CVs are produced.
 
 <br>
 

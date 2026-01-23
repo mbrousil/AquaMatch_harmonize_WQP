@@ -92,7 +92,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         
         # Absorbance at 440 nm
         CharacteristicName %in% c("Absorption coefficient at 440 nm",
-                                  "Absorbance at 440 nm") ~ "Absorbance at 440 nm",
+                                  "Absorbance at 440 nm") &
+          StatisticalBaseCode != "Slope" ~ "Absorbance at 440 nm",
         
         CharacteristicName == "Colored dissolved organic matter (CDOM)"	&
           ResultAnalyticalMethod.MethodName == "CDOM absorption (440nm)" ~ "Absorbance at 440 nm",

@@ -621,7 +621,7 @@ read_csv("../3_harmonize/out/cdom_unit_table.csv") %>%
 
 <br>
 
-**Note** that in the table above "nm" units are given a conversion factor of 100. This is because we assessed that these records are likely intended to use cm-1 units. For example: The `DetectionQuantitationLimitMeasure.MeasureUnitCode` for these records is "units/cm", their measured values fall within expected ranges for natural waters for absorbance at 254 nm reported in cm-1 units, and the detection limit listed as 0.005 also aligns with cm-1 measurements.
+**Note** that in the table above "nm" units are given a conversion factor of 100. This is because we assessed that these records are likely intended to use cm-1 units. For example: The `DetectionQuantitationLimitMeasure.MeasureUnitCode` for these records is "units/cm", their measured values fall within expected ranges for natural waters for absorbance at 254 nm reported in cm-1 units, and the detection limit listed as 0.005 also aligns with cm-1 measurements. **Additionally** the table lists "None" with a conversion factor of 1, which allows it to be retained as-is for records with the “Fluorescence index” parameter. Records with parameter variants of “Absorption spectral slope” are often provided in the WQP with units of "None" as well, but we convert these to "nm-1" in this step.
 
 <br>
 

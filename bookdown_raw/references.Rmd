@@ -5,7 +5,12 @@ output:
 always_allow_html: true
 ---
 
+
 # References
+
+Avouris, D. M., E. L. Hestir, J. Fleck, J. A. Hansen, and B. A. Bergamaschi. 2025. An Integrated Sensor Network and Data Driven Approach to Satellite Remote Sensing of Dissolved Organic Matter. Earth and Space Science 12: e2024EA004048. doi:10.1029/2024EA004048
+
+Brezonik, P. L., R. W. Bouchard Jr., J. C. Finlay, C. G. Griffin, L. G. Olmanson, J. P. Anderson, W. A. Arnold, and R. Hozalski. 2019. Color, chlorophyll a, and suspended solids effects on Secchi depth in lakes: implications for trophic state assessment. Ecological Applications 29: e01871. doi:10.1002/eap.1871
 
 Davies-Colley, R. J., W. N. Vant, and D. G. Smith. 1993. Colour and Clarity of Natural Waters: Science and Management of Optical Water Quality, Ellis Horwood.
 
@@ -16,6 +21,8 @@ Gieskes, W. W. C., C. Veth, A. Woehrmann, and M. Graefe. 1987. Secchi disc visib
 Gray, John R., G.D. Glysson, L.M. Turcios, and G. E. Schwarz. "Comparability of Suspended-Sediment Concentration and Total Suspended Solids Data." Report. Water-Resources Investigations Report, 2000. USGS Publications Warehouse. <https://doi.org/10.3133/wri004191>.
 
 Hotchkiss, E. R., and T. DelSontro. 2024. Chapter 28 - Organic Carbon Cycling and Ecosystem Metabolism, p. 939--997. In I.D. Jones and J.P. Smol (eds.), Wetzel's Limnology (Fourth Edition). Academic Press.
+
+Korak, J. A., and G. McKay. 2024. Meta-Analysis of Optical Surrogates for the Characterization of Dissolved Organic Matter. Environ. Sci. Technol. 58: 7380–7392. doi:10.1021/acs.est.3c10627
 
 Landau, W. M. 2021. The targets R package: a dynamic Make-like function-oriented pipeline toolkit for reproducibility and high-performance computing. Journal of Open Source Software 6: 2959.
 
@@ -32,3 +39,5 @@ Ross, M. R. V., S. N. Topp, A. P. Appling, X. Yang, C. Kuhn, D. Butman, M. Simar
 Teucher, A. 2023. lutz: Look Up Time Zones of Point Coordinates. R package version 0.3.2, <https://CRAN.R-project.org/package=lutz>.
 
 Wetzel, R. G. 2024. Wetzel's limnology: lake and river ecosystems, Fourth edition. I.D. Jones and J.P. Smol (eds.). Academic Press, an imprint of Elsevier.
+
+Yates, C. A. and others. 2023. Determining patterns in the composition of dissolved organic matter in fresh waters according to land use and management. Biogeochemistry 164: 143–162. doi:10.1007/s10533-022-00964-2

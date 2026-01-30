@@ -1058,11 +1058,40 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # Miscellaneous flag ------------------------------------------------------
   
-  # This is a flag that isn't currently needed for cdom, but other parameters
-  # will use it.
+  # The miscellaneous flag for CDOM is used to flag measurements that exceed
+  # published records based on a review of relevant literature. We do this 
+  # instead of filtering them out, but a depth-related filter still occurs in
+  # the next step. 1 = exceeds published value, 0 = does not exceed published 
+  # value
   
   misc_flagged_cdom <- field_flagged_cdom %>%
-    mutate(misc_flag = NA_character_)
+    mutate(
+      misc_flag = case_when(
+        # Yates et al. 2023
+        parameter == "Absorbance at 254 nm" &
+          harmonized_value > 450 ~ 1,
+        # Korak and McKay 2024
+        parameter == "Absorbance at 280 nm" &
+          harmonized_value > 36.1 ~ 1,
+        parameter == "Absorbance at 370 nm" &
+          harmonized_value > 11 ~ 1,
+        parameter == "SUVA" &
+          harmonized_value > 6.83 ~ 1,
+        parameter == "FDOM" &
+          harmonized_units == "RU" &
+          harmonized_value > 4.38 ~ 1,
+        parameter == "Fluorescence index" &
+          harmonized_value > 2.18 ~ 1,
+        # Brezonik et al. 2019
+        parameter == "Absorbance at 440 nm" &
+          harmonized_value > 14 ~ 1,
+        # Avouris et al. 2025
+        parameter == "FDOM" &
+          grepl(pattern = "ug/L", x = harmonized_units, ignore.case = TRUE) &
+          harmonized_value > 84.4 ~ 1,
+        .default = 0
+      )
+    )
   
   dropped_misc <- tibble(
     step = "cdom harmonization",
@@ -1105,6 +1134,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # First tag aggregate subgroups with group IDs
   grouped_cdom <- realistic_cdom %>%
+    # Don't group records flagged for having high values
+    filter(misc_flag == 0) %>%
     group_by(parameter, OrganizationIdentifier, MonitoringLocationIdentifier,
              MonitoringLocationTypeName, ResolvedMonitoringLocationTypeName,
              ActivityStartDate, ActivityStartTime.Time,
@@ -1118,7 +1149,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     mutate(subgroup_id = cur_group_id())
   
   # Export the dataset with subgroup IDs for joining future aggregated product
-  # back to original raw data
+  # back to original raw data (Excludes data with flagged high values)
   grouped_cdom_out_path <- "3_harmonize/out/cdom_harmonized_grouped.feather"
   
   grouped_cdom %>%
@@ -1156,7 +1187,9 @@ harmonize_cdom <- function(raw_cdom, p_codes){
       c(subgroup_id, harmonized_row_count, harmonized_units,
         harmonized_value, harmonized_value_cv, lat, lon, datum),
       .after = misc_flag
-    )
+    ) %>%
+    # Add back flagged values
+    bind_rows(., filter(realistic_cdom, misc_flag == 1))
   
   rm(grouped_cdom)
   gc()

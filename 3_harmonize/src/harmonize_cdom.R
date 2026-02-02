@@ -1175,7 +1175,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     write_feather(path = grouped_cdom_out_path)
   
   # Now aggregate at the subgroup level to take care of simultaneous observations
-  no_simul_cdom <- grouped_cdom %>%
+  no_simul_cdom_partial <- grouped_cdom %>%
     # Make sure we don't drop subgroup ID
     group_by(subgroup_id, .add = TRUE) %>%
     summarize(
@@ -1199,9 +1199,15 @@ harmonize_cdom <- function(raw_cdom, p_codes){
       c(subgroup_id, harmonized_row_count, harmonized_units,
         harmonized_value, harmonized_value_cv, lat, lon, datum),
       .after = misc_flag
-    ) %>%
-    # Add back flagged values
-    bind_rows(., filter(realistic_cdom, misc_flag == 1))
+    ) 
+  
+  # "full" version will add back flagged values
+  no_simul_cdom <- no_simul_cdom_partial  %>%
+    bind_rows(.,
+              realistic_cdom %>%
+                filter(misc_flag == 1) %>%
+                select(any_of(names(no_simul_cdom_partial)))
+    )
   
   rm(grouped_cdom)
   gc()

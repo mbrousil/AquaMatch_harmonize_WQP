@@ -1,0 +1,28 @@
+parameter,harmonized_units,misc_flag,n
+Absorbance at 254 nm,AU/m,0,49634
+Absorbance at 254 nm,AU/m,1,3
+Absorbance at 280 nm,AU/m,0,27431
+Absorbance at 280 nm,AU/m,1,1525
+Absorbance at 370 nm,AU/m,0,2653
+Absorbance at 370 nm,AU/m,1,24
+Absorbance at 412 nm,AU/m,0,2826
+Absorbance at 412 nm,AU/m,1,2
+Absorbance at 440 nm,AU/m,0,56
+Absorbance at 440 nm,AU/m,1,2
+"Absorption spectral slope, 275 to 295 nm",nm-1,0,2684
+"Absorption spectral slope, 290 to 350 nm",nm-1,0,2684
+"Absorption spectral slope, 350 to 400 nm",nm-1,0,2679
+"Absorption spectral slope, 350 to 400 nm",nm-1,1,1
+"Absorption spectral slope, 400 to 500 nm",nm-1,0,1414
+"Absorption spectral slope, 412 to 600 nm",nm-1,0,983
+"Absorption spectral slope, 412 to 676 nm",nm-1,0,1589
+FDOM,RFU,0,2955
+FDOM,RU,0,18391
+FDOM,RU,1,38
+FDOM,ug/L,0,1719
+FDOM,ug/L,1,633
+FDOM,ug/l QSE,0,2053
+FDOM,ug/l QSE,1,291
+Fluorescence index,None,0,2665
+SUVA,L/mgDOC*m,0,44128
+SUVA,L/mgDOC*m,1,1374

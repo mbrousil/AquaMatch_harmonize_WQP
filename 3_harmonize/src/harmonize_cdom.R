@@ -1082,8 +1082,13 @@ harmonize_cdom <- function(raw_cdom, p_codes){
           harmonized_value > 4.38 ~ 1,
         parameter == "Fluorescence index" &
           harmonized_value > 2.18 ~ 1,
+        grepl(pattern = "Absorption spectral slope", x = parameter) & 
+          harmonized_value > 0.0473 ~ 1,
         # Brezonik et al. 2019
         parameter == "Absorbance at 440 nm" &
+          harmonized_value > 14 ~ 1,
+        # Using 440 threshold as conservative max for 412
+        parameter == "Absorbance at 412 nm" &
           harmonized_value > 14 ~ 1,
         # Avouris et al. 2025
         parameter == "FDOM" &
@@ -1092,6 +1097,13 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         .default = 0
       )
     )
+  
+  # Export a record of flag counts
+  misc_flag_table_out_path <- "3_harmonize/out/cdom_misc_flag_table.csv"
+  
+  write_csv(x = misc_flagged_cdom %>%
+              count(parameter, harmonized_units, misc_flag),
+            file = misc_flag_table_out_path)
   
   dropped_misc <- tibble(
     step = "cdom harmonization",

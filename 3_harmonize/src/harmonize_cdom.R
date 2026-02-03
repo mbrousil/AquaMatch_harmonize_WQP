@@ -1269,7 +1269,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     na.omit() %>%
     ggplot() +
     geom_histogram(aes(plot_value), color = "black", fill = "white") +
-    facet_grid(cols = vars(tier_label), rows = vars(parameter), scales = "free_x") +
+    # facet_grid(cols = vars(tier_label), rows = vars(parameter), scales = "free_x") +
+    facet_wrap(parameter ~ tier_label, scales = "free_x", ncol = 3) +
     xlab(expression("Harmonized coefficient of variation, " ~ log[10] ~ " transformed)")) +
     ylab("Record count") +
     ggtitle(
@@ -1285,7 +1286,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   ggsave(filename = "3_harmonize/out/cdom_tier_cv_dists_postagg.png",
          plot = tier_cv_dist,
-         width = 6, height = 8, units = "in", device = "png")
+         width = 8.5, height = 10, units = "in", device = "png")
   
   # 3. Maps
   # Similarly, create maps of records counts by tier

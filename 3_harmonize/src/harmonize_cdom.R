@@ -1235,8 +1235,8 @@ harmonize_cdom <- function(raw_cdom, p_codes){
     ggplot() +
     geom_histogram(aes(plot_value, fill = parameter),
                    color = "black", alpha = 0.85) +
-    facet_grid(rows = vars(harmonized_units), cols = vars(tier_label),
-               scales = "free") +
+    # facet_wrap allows each facet to have its own axes; grid doesn't
+    facet_wrap(harmonized_units ~ tier_label, ncol = 3, scales = "free") +
     xlab(expression("Harmonized values")) +
     ylab("Record count") +
     ggtitle(label = "Distribution of harmonized values by parameter, tier, and unit") +

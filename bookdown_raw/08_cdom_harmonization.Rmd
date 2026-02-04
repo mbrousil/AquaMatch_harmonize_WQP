@@ -562,7 +562,7 @@ step_9_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-The goal of the preceding three steps was to prevent records with seemingly missing measurement data from being dropped if there was still a chance of recovering a usable value. At this point we've finished with that process and we proceed to check for remaining records with `NA` values in their `harmonized_value` column. If they exist, they are dropped. We also filter out any negative values in the dataset at this point because CDOM cannot be negative.
+The goal of the preceding three steps was to prevent records with seemingly missing measurement data from being dropped if there was still a chance of recovering a usable value. At this point we've finished with that process and we proceed to check for remaining records with `NA` values in their `harmonized_value` column. If they exist, they are dropped. We also filter out any negative values in the dataset at this point because CDOM cannot be negative. The exception to this is for the "Absorption spectral slope" parameters, which we take the absolute value of instead of removing.
 
 `r step_9_dropped` rows are removed. The final row count after this is `r step_9_rows`.
 
@@ -849,20 +849,24 @@ step_14_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-Next, we populate the miscellaneous flag (`misc_flag`) column. The miscellaneous flag is used in this dataset to mark measurements that exceed published maximum records based on a review of the relevant literature. We do this instead of filtering the records out, but a depth-related filter still occurs in the next harmonization step. Flag values of 1 = exceeds published value and 0 = does not exceed published value. Thresholds used and citations are below, followed by a table with counts by parameters, unit, and flag value:
+Next, we populate the miscellaneous flag (`misc_flag`) column. The miscellaneous flag is used in this dataset to mark measurements that fall outside published maximum records based on a review of the relevant literature. We do this instead of filtering the records out, but a depth-related filter still occurs in the next harmonization step.
 
-| **Parameter** | **Units** | **Max value** | **Source** |
-|---|---|---|---|
-| Absorbance at 254 nm | AU/m | 450 | Yates et al. 2023 |
-| Absorbance at 280 nm | AU/m | 36.1 | Korak and McKay 2024 |
-| Absorbance at 370 nm | AU/m | 11 | Korak and McKay 2024 |
-| Absorbance at 412 nm | AU/m | 14 | We use the threshold for 440 nm (below) as a conservative estimate |
-| Absorbance at 440 nm | AU/m | 14 | Brezonik et al. 2019 |
-| Absorption spectral slope (multiple) | nm-1 | 0.0473 | Korak and McKay 2024 |
-| FDOM | RU | 4.38 | Korak and McKay 2024 |
-| FDOM | ug/L, ug/l QSE | 84.4 | Avouris et al. 2025 |
-| Fluorescence index | None | 2.18 | Korak and McKay 2024 |
-| SUVA | L/mgDOC*m | 6.83 | Korak and McKay 2024 |
+For this flag column, values are as follows: 0 = does not exceed published range, 1 = below published minimum, and 2 = above published maximum. Absorption spectral slope parameters, SUVA, and Fluorescence index are checked for values below minimum **or** above maximum published records, while the rest of the parameter options are just checked for values above published maximums. We use the absolute value of absorption spectral slope when testing against thresholds.
+
+Thresholds used and citations are below, followed by a table with counts by parameters, unit, and flag value:
+
+| **Parameter** | **Units** | **Min value** | **Max value** | **Source** |
+|---|---|---|---|---|
+| Absorbance at 254 nm | AU/m | - | 450 | Yates et al. 2023 |
+| Absorbance at 280 nm | AU/m | - | 36.1 | Korak and McKay 2024 |
+| Absorbance at 370 nm | AU/m | - | 11 | Korak and McKay 2024 |
+| Absorbance at 412 nm | AU/m | - | 14 | We use the threshold for 440 nm (below) as a conservative estimate |
+| Absorbance at 440 nm | AU/m | - | 14 | Brezonik et al. 2019 |
+| Absorption spectral slope (multiple) | nm-1 | 0.0026 | 0.0473 | Korak and McKay 2024 |
+| FDOM | RU | - | 4.38 | Korak and McKay 2024 |
+| FDOM | ug/L, ug/l QSE | - | 84.4 | Avouris et al. 2025 |
+| Fluorescence index | None | 1.31 | 2.18 | Korak and McKay 2024 |
+| SUVA | L/mgDOC*m | 0.651 | 6.83 | Korak and McKay 2024 |
 
 <br>
 
@@ -973,7 +977,7 @@ The final step of CDOM harmonization is to aggregate simultaneous observations.
 
 We identify simultaneous records to aggregate by creating identical subgroups (`subgroup_id`) from the following columns: `parameter`, `OrganizationIdentifier`, `MonitoringLocationIdentifier`, `MonitoringLocationTypeName`, `ResolvedMonitoringLocationTypeName`, `ActivityStartDate`, `ActivityStartTime.Time`, `ActivityStartTime.TimeZoneCode`, `harmonized_tz`, `harmonized_local_time`, `harmonized_utc`, `ActivityStartDateTime`, `harmonized_top_depth_value`, `harmonized_top_depth_unit`, `harmonized_bottom_depth_value`, `harmonized_bottom_depth_unit`, `harmonized_discrete_depth_value`, `harmonized_discrete_depth_unit`, `depth_flag`, `mdl_flag`, `approx_flag`, `greater_flag`, `tier`, `field_flag`, `misc_flag`, `harmonized_units`. This selection limits the columns included in the final dataset, but we also provide a copy of the AquaMatch dataset prior to its aggregation (pipeline target `p3_cdom_preagg_grouped`; available as an RDS file in the data release: AquaMatch_harmonize_WQP/_targets/objects/p3_cdom_preagg_grouped), and include the `subgroup_id` column, so that users can use the disaggregated data as well and match make joins between dataset versions.
 
-**Note**: We hold out any records where `misc_flag` is 1 from the aggregation step above, and as a result those records are *not* included in the `p3_cdom_preagg_grouped` object, nor its RDS export. The records are added back into the final dataset once the aggregation is complete, but they have `NA` for `subgroup_id`, `harmonized_value_cv`, and `harmonized_row_count` because they are never grouped or aggregated. We do this to allow end users to decide how they want to handle values that exceed published maximums.
+**Note**: We hold out any records where `misc_flag` is 1 or 2 from the aggregation step above, and as a result those records are *not* included in the `p3_cdom_preagg_grouped` object, nor its RDS export. The records are added back into the final dataset once the aggregation is complete, but they have `NA` for `subgroup_id`, `harmonized_value_cv`, and `harmonized_row_count` because they are never grouped or aggregated. We do this to allow end users to decide how they want to handle values that exceed published maximums.
 
 The final values are presented in the `harmonized_value` and `harmonized_value_cv` columns. The number of rows used per group is recorded in the `harmonized_row_count` column.
 

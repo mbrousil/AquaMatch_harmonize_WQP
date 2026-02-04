@@ -93,7 +93,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         # Absorbance at 440 nm
         CharacteristicName %in% c("Absorption coefficient at 440 nm",
                                   "Absorbance at 440 nm") &
-          StatisticalBaseCode != "Slope" ~ "Absorbance at 440 nm",
+          (StatisticalBaseCode != "Slope" | is.na(StatisticalBaseCode)) ~ "Absorbance at 440 nm",
         
         CharacteristicName == "Colored dissolved organic matter (CDOM)"	&
           ResultAnalyticalMethod.MethodName == "CDOM absorption (440nm)" ~ "Absorbance at 440 nm",
@@ -504,13 +504,26 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # At this point we've processed MDLs, approximate values, and values containing
   # symbols like ">". If there are still remaining NAs in the numeric measurement
-  # column then it's time to drop them.
+  # column then it's time to drop them, unless they are slopes.
   
   cdom_no_na <- cdom_harmonized_values %>%
     filter(
       !is.na(harmonized_value),
       # Some negative values can be introduced by the previous NA parsing steps:
-      harmonized_value >= 0
+      (
+        (!grepl(pattern = "Absorption spectral slope", x = parameter) &
+           harmonized_value >= 0) |
+          grepl(pattern = "Absorption spectral slope", x = parameter)
+      )
+    ) %>%
+    # Take absolute value of any negative slopes
+    mutate(
+      harmonized_value = ifelse(
+        test = grepl(pattern = "Absorption spectral slope", x = parameter) &
+          harmonized_value < 0,
+        yes = abs(harmonized_value),
+        no = harmonized_value
+      )
     )
   
   dropped_na <- tibble(
@@ -1059,41 +1072,54 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   # Miscellaneous flag ------------------------------------------------------
   
   # The miscellaneous flag for CDOM is used to flag measurements that exceed
-  # published records based on a review of relevant literature. We do this 
+  # published ranges based on a review of relevant literature. We do this 
   # instead of filtering them out, but a depth-related filter still occurs in
-  # the next step. 1 = exceeds published value, 0 = does not exceed published 
-  # value
+  # the next step. 0 = does not exceed published range, 1 = below published minimum,
+  # 2 = above published maximum
+  
   
   misc_flagged_cdom <- field_flagged_cdom %>%
     mutate(
       misc_flag = case_when(
+        # Minimums (code 1)
+        # Korak and McKay 2024
+        grepl(pattern = "Absorption spectral slope", x = parameter) & 
+          harmonized_value < 0.0026 ~ 1,
+        parameter == "SUVA" &
+          harmonized_value < 0.651 ~ 1,
+        parameter == "Fluorescence index" &
+          harmonized_value < 1.31 ~ 1,
+        
+        # Maximums (code 2)
         # Yates et al. 2023
         parameter == "Absorbance at 254 nm" &
-          harmonized_value > 450 ~ 1,
+          harmonized_value > 450 ~ 2,
         # Korak and McKay 2024
         parameter == "Absorbance at 280 nm" &
-          harmonized_value > 36.1 ~ 1,
+          harmonized_value > 36.1 ~ 2,
         parameter == "Absorbance at 370 nm" &
-          harmonized_value > 11 ~ 1,
+          harmonized_value > 11 ~ 2,
         parameter == "SUVA" &
-          harmonized_value > 6.83 ~ 1,
+          harmonized_value > 6.83 ~ 2,
         parameter == "FDOM" &
           harmonized_units == "RU" &
-          harmonized_value > 4.38 ~ 1,
+          harmonized_value > 4.38 ~ 2,
         parameter == "Fluorescence index" &
-          harmonized_value > 2.18 ~ 1,
+          harmonized_value > 2.18 ~ 2,
         grepl(pattern = "Absorption spectral slope", x = parameter) & 
-          harmonized_value > 0.0473 ~ 1,
+          harmonized_value > 0.0473 ~ 2,
         # Brezonik et al. 2019
         parameter == "Absorbance at 440 nm" &
-          harmonized_value > 14 ~ 1,
+          harmonized_value > 14 ~ 2,
         # Using 440 threshold as conservative max for 412
         parameter == "Absorbance at 412 nm" &
-          harmonized_value > 14 ~ 1,
+          harmonized_value > 14 ~ 2,
         # Avouris et al. 2025
         parameter == "FDOM" &
           grepl(pattern = "ug/L", x = harmonized_units, ignore.case = TRUE) &
-          harmonized_value > 84.4 ~ 1,
+          harmonized_value > 84.4 ~ 2,
+        
+        # Default (code 0)
         .default = 0
       )
     )
@@ -1146,7 +1172,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   # First tag aggregate subgroups with group IDs
   grouped_cdom <- realistic_cdom %>%
-    # Don't group records flagged for having high values
+    # Don't group records flagged for having high or low values
     filter(misc_flag == 0) %>%
     group_by(parameter, OrganizationIdentifier, MonitoringLocationIdentifier,
              MonitoringLocationTypeName, ResolvedMonitoringLocationTypeName,
@@ -1205,7 +1231,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   no_simul_cdom <- no_simul_cdom_partial  %>%
     bind_rows(.,
               realistic_cdom %>%
-                filter(misc_flag == 1) %>%
+                filter(misc_flag != 0) %>%
                 select(any_of(names(no_simul_cdom_partial)))
     )
   

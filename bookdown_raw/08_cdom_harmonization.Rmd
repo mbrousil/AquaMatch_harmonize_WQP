@@ -737,7 +737,7 @@ Finally, we group the data into three tiers as described in *Tiering, flagging, 
 |---|---|---|---|
 | 0 | Restrictive | Data that are verifiably self-similar across organizations and  time-periods and can be considered highly reliable and interoperable | Has appropriate (and consistent) information in `CharacteristicName`, methods columns, and `ResultMeasure.MeasureUnitCode`. `ResultSampleFractionText` is filtered |
 | 1 | Narrowed | Data that we have good reason to believe are self-similar, but for which  we can’t verify full interoperability across data providers | There is a mismatch in information, e.g., between the methods columns |
-| 2 | Inclusive | Data that are assumed to be reliable and are harmonized to our best  ability given the information available from the data provider. This  tier includes NA or non-resolvable descriptions for the analytical  method, which often make up the majority of methods descriptions for any  given parameter | `ResultSampleFractionText` is reported as total or important information is missing from the one or more relevant columns |
+| 2 | Inclusive | Data that are assumed to be reliable and are harmonized to our best  ability given the information available from the data provider. This  tier includes NA or non-resolvable descriptions for the analytical  method, which often make up the majority of methods descriptions for any  given parameter | `ResultSampleFractionText` is reported as total or important information is missing from one or more relevant columns |
 
 <br>
 

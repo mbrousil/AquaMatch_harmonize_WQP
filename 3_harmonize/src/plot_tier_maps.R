@@ -104,13 +104,29 @@ plot_tier_maps <- function(dataset, param_name, map_crs = 9311, flip_facets = FA
              st_make_valid() %>%
              st_transform(crs = map_crs)) %>%
     # More informative facet panel labels
-    mutate(tier_label = case_when(
-      tier == 0 ~ "Tier 0: Restrictive",
-      tier == 1 ~ "Tier 1: Narrowed",
-      tier == 2 ~ "Tier 2: Inclusive",
-      # SDD only
-      tier == 3 ~ "Tier 3: Inclusive"
-    ))
+    mutate(
+      tier_label = case_when(
+        tier == 0 ~ "Tier 0: Restrictive",
+        tier == 1 ~ "Tier 1: Narrowed",
+        tier == 2 ~ "Tier 2: Inclusive",
+        # SDD only
+        tier == 3 ~ "Tier 3: Inclusive"
+      ),
+      param_label = case_when(
+        parameter == "Absorbance at 254 nm" ~ "Abs 254 nm",
+        parameter == "Absorbance at 280 nm" ~ "Abs 280 nm",
+        parameter == "Absorbance at 370 nm" ~ "Abs 370 nm", 
+        parameter == "Absorbance at 412 nm" ~ "Abs 412 nm",
+        parameter == "Absorbance at 440 nm" ~ "Abs 440 nm",
+        parameter == "Absorption spectral slope, 275 to 295 nm" ~ "Slope 275-295 nm", 
+        parameter == "Absorption spectral slope, 290 to 350 nm" ~ "Slope 290-350 nm",
+        parameter == "Absorption spectral slope, 350 to 400 nm" ~ "Slope 350-400 nm", 
+        parameter == "Absorption spectral slope, 400 to 500 nm" ~ "Slope 400-500 nm",
+        parameter == "Absorption spectral slope, 412 to 600 nm" ~ "Slope 412-600 nm", 
+        parameter == "Absorption spectral slope, 412 to 676 nm" ~ "Slope 412-676 nm",
+        .default = parameter
+      )
+    )
   
   # Focal records for the map
   trim_recs_sf <- recs_sf[conterminous_us, ]
@@ -119,7 +135,6 @@ plot_tier_maps <- function(dataset, param_name, map_crs = 9311, flip_facets = FA
     
     # Make the map
     map_plot <- sf_to_df(trim_recs_sf, fill = TRUE) %>%
-      mutate(parameter = toupper(parameter)) %>%
       ggplot() +
       geom_hex(aes(x = x, y = y),
                bins = n_bins) +
@@ -134,9 +149,9 @@ plot_tier_maps <- function(dataset, param_name, map_crs = 9311, flip_facets = FA
       ylab(NULL) +
       # If TRUE swap rows and cols
       if(flip_facets){
-        facet_grid(rows = vars(parameter), cols = vars(tier_label)) 
+        facet_grid(rows = vars(param_label), cols = vars(tier_label)) 
       } else{
-        facet_grid(rows = vars(tier_label), cols = vars(parameter)) 
+        facet_grid(rows = vars(tier_label), cols = vars(param_label)) 
       } 
     
     # Continue adding after if/else
@@ -173,7 +188,7 @@ plot_tier_maps <- function(dataset, param_name, map_crs = 9311, flip_facets = FA
       guides(x = guide_axis(check.overlap = TRUE),
              y = guide_axis(check.overlap = TRUE)) +
       ggtitle(
-        label = paste0(toupper(unique(dataset$parameter)),
+        label = paste0(unique(dataset$param_label),
                        " record counts across the US by tier"),
         subtitle = paste0(
           "Not shown: ",

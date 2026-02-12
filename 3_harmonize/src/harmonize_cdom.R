@@ -1252,6 +1252,20 @@ harmonize_cdom <- function(raw_cdom, p_codes){
         x = tier_label,
         levels = c("Restrictive (Tier 0)", "Narrowed (Tier 1)", "Inclusive (Tier 2)"),
         ordered = TRUE
+      ),
+      param_label = case_when(
+        parameter == "Absorbance at 254 nm" ~ "Abs 254 nm",
+        parameter == "Absorbance at 280 nm" ~ "Abs 280 nm",
+        parameter == "Absorbance at 370 nm" ~ "Abs 370 nm", 
+        parameter == "Absorbance at 412 nm" ~ "Abs 412 nm",
+        parameter == "Absorbance at 440 nm" ~ "Abs 440 nm",
+        parameter == "Absorption spectral slope, 275 to 295 nm" ~ "Slope 275-295 nm", 
+        parameter == "Absorption spectral slope, 290 to 350 nm" ~ "Slope 290-350 nm",
+        parameter == "Absorption spectral slope, 350 to 400 nm" ~ "Slope 350-400 nm", 
+        parameter == "Absorption spectral slope, 400 to 500 nm" ~ "Slope 400-500 nm",
+        parameter == "Absorption spectral slope, 412 to 600 nm" ~ "Slope 412-600 nm", 
+        parameter == "Absorption spectral slope, 412 to 676 nm" ~ "Slope 412-676 nm",
+        .default = parameter
       )
     )
   
@@ -1335,7 +1349,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
       aes(harmonized_top_depth_value, fill = tier_label),
       color = "black") +
     facet_grid(
-      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(parameter),
+      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(param_label),
       scales = "free_y"
     ) +
     scale_fill_viridis_d("Tier", direction = -1) +
@@ -1355,7 +1369,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
       aes(harmonized_bottom_depth_value, fill = tier_label),
       color = "black") +
     facet_grid(
-      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(parameter),
+      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(param_label),
       scales = "free_y"
     ) +
     scale_fill_viridis_d("Tier", direction = -1) +
@@ -1367,7 +1381,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   ggsave(filename = "3_harmonize/out/cdom_tier_bottom_depth_dist_postagg.png",
          plot = bottom_depth_dist,
-         width = 6, height = 18, units = "in", device = "png")
+         width = 8, height = 20, units = "in", device = "png")
   
   discrete_depth_dist <- no_simul_cdom_tier_label %>%
     ggplot() +
@@ -1375,7 +1389,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
       aes(harmonized_discrete_depth_value, fill = tier_label),
       color = "black") +
     facet_grid(
-      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(parameter),
+      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(param_label),
       scales = "free_y"
     ) +
     scale_fill_viridis_d("Tier", direction = -1) +
@@ -1387,7 +1401,7 @@ harmonize_cdom <- function(raw_cdom, p_codes){
   
   ggsave(filename = "3_harmonize/out/cdom_tier_discrete_depth_dist_postagg.png",
          plot = discrete_depth_dist,
-         width = 6, height = 18, units = "in", device = "png")
+         width = 8, height = 20, units = "in", device = "png")
   
   # Clean up
   rm(no_simul_cdom_tier_label)

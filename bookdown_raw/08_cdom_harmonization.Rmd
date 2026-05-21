@@ -213,7 +213,7 @@ Once ready for harmonization, the CDOM WQP dataset contains the following user-d
 <img src="3_harmonize/out/cdom_stacked_char_names.png" alt="Stacked bar chart with counts of CharacteristicName records" width="650"/>
 
 These `CharacteristicNames` are chosen in order to select for only those measurements that pertain to CDOM. We selected them by reviewing options in the
-`Characteristics` field of the [Water Quality Portal Filter Results](https://www.waterqualitydata.us/#advanced=true) page.
+`Characteristics` field of the [Water Quality Portal Filter Results](https://www.waterqualitydata.us/#advanced=true) page. Note that "Absorbance" CharacteristicNames correspond to decadic absorption coefficient.
 
 <br>
 
@@ -621,7 +621,11 @@ read_csv("../3_harmonize/out/cdom_unit_table.csv") %>%
 
 <br>
 
-**Note** that in the table above "nm" units are given a conversion factor of 100. This is because we assessed that these records are likely intended to use cm-1 units. For example: The `DetectionQuantitationLimitMeasure.MeasureUnitCode` for these records is "units/cm", their measured values fall within expected ranges for natural waters for absorbance at 254 nm reported in cm-1 units, and the detection limit listed as 0.005 also aligns with cm-1 measurements. **Additionally** the table lists "None" with a conversion factor of 1, which allows it to be retained as-is for records with the “Fluorescence index” parameter. Records with parameter variants of “Absorption spectral slope” are often provided in the WQP with units of "None" as well, but we convert these to "nm-1" in this step.
+**Notes**:
++ Units normalized by path length indicate that the corresponding measurement is a decadic absorption coefficient.
++ In the table above "nm" units are given a conversion factor of 100. This is because we assessed that these records are likely intended to use cm-1 units. For example: The `DetectionQuantitationLimitMeasure.MeasureUnitCode` for these records is "units/cm", their measured values fall within expected ranges for natural waters for absorbance at 254 nm reported in cm-1 units, and the detection limit listed as 0.005 also aligns with cm-1 measurements. 
++ The table lists "None" with a conversion factor of 1, which allows it to be retained as-is for records with the “Fluorescence index” parameter. Records with parameter variants of “Absorption spectral slope” are often provided in the WQP with units of "None" as well, but we convert these to "nm-1" in this step. 
++ Some FDOM records returned from the WQP had units of mg/L or ug/L. We suspect that they were intended to be "ug/l QSE" and were missing metadata that would allow us to reclassify them, so we've retained them with units "ug/L". We changed mg/L to ug/L because we felt it was likely that this small number of records (n = 539) was intended as ug/L and not mg/L. We retained these records in an effort to be conservative and allow end users the options to use or drop them as needed.
 
 <br>
 
@@ -849,9 +853,9 @@ step_14_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-Next, we populate the miscellaneous flag (`misc_flag`) column. The miscellaneous flag is used in this dataset to mark measurements that fall outside published maximum records based on a review of the relevant literature. We do this instead of filtering the records out, but a depth-related filter still occurs in the next harmonization step.
+Next, we populate the miscellaneous flag (`misc_flag`) column. The miscellaneous flag is used in this dataset to mark measurements that fall outside published minimum and maximum records based on a review of the relevant literature. We do this instead of filtering the records out, but a depth-related filter still occurs in the next harmonization step.
 
-For this flag column, values are as follows: 0 = does not exceed published range, 1 = below published minimum, and 2 = above published maximum. Absorption spectral slope parameters, SUVA, and Fluorescence index are checked for values below minimum **or** above maximum published records, while the rest of the parameter options are just checked for values above published maximums. We use the absolute value of absorption spectral slope when testing against thresholds.
+For this flag column, values are as follows: 0 = does not exceed published range, 1 = below published minimum, and 2 = above published maximum. Absorption spectral slope parameters, SUVA, and Fluorescence index are checked for values below minimum **or** above maximum published records, while the rest of the parameter options are just checked for values above published maximums. We use the absolute value of absorption spectral slope when testing against thresholds. "True" minimum and maximum values for absorption spectral slope depend upon the specific wavelength region being analyzed, but we are not aware of any standardized, region-specific limits in the literature. Therefore, we use a single, global minimum and maximum based on Korak and McKay (2024) to flag extreme outliers rather than provide region-specific quality control.
 
 Thresholds used and citations are below, followed by a table with counts by parameters, unit, and flag value:
 
@@ -977,7 +981,7 @@ The final step of CDOM harmonization is to aggregate simultaneous observations.
 
 We identify simultaneous records to aggregate by creating identical subgroups (`subgroup_id`) from the following columns: `parameter`, `OrganizationIdentifier`, `MonitoringLocationIdentifier`, `MonitoringLocationTypeName`, `ResolvedMonitoringLocationTypeName`, `ActivityStartDate`, `ActivityStartTime.Time`, `ActivityStartTime.TimeZoneCode`, `harmonized_tz`, `harmonized_local_time`, `harmonized_utc`, `ActivityStartDateTime`, `harmonized_top_depth_value`, `harmonized_top_depth_unit`, `harmonized_bottom_depth_value`, `harmonized_bottom_depth_unit`, `harmonized_discrete_depth_value`, `harmonized_discrete_depth_unit`, `depth_flag`, `mdl_flag`, `approx_flag`, `greater_flag`, `tier`, `field_flag`, `misc_flag`, `harmonized_units`. This selection limits the columns included in the final dataset, but we also provide a copy of the AquaMatch dataset prior to its aggregation (pipeline target `p3_cdom_preagg_grouped`; available as an RDS file in the data release: AquaMatch_harmonize_WQP/_targets/objects/p3_cdom_preagg_grouped), and include the `subgroup_id` column, so that users can use the disaggregated data as well and match make joins between dataset versions.
 
-**Note**: We hold out any records where `misc_flag` is 1 or 2 from the aggregation step above, and as a result those records are *not* included in the `p3_cdom_preagg_grouped` object, nor its RDS export. The records are added back into the final dataset once the aggregation is complete, but they have `NA` for `subgroup_id`, `harmonized_value_cv`, and `harmonized_row_count` because they are never grouped or aggregated. We do this to allow end users to decide how they want to handle values that exceed published maximums.
+**Note**: We hold out any records where `misc_flag` is 1 or 2 from the aggregation step above, and as a result those records are *not* included in the `p3_cdom_preagg_grouped` object, nor its RDS export. The records are added back into the final dataset once the aggregation is complete, but they have `NA` for `subgroup_id`, `harmonized_value_cv`, and `harmonized_row_count` because they are never grouped or aggregated. A small number of duplicate records are also included where misc_flag is 1 or 2 since no aggregation takes place. We do this to allow end users to decide how they want to handle values that exceed published maximums.
 
 The final values are presented in the `harmonized_value` and `harmonized_value_cv` columns. The number of rows used per group is recorded in the `harmonized_row_count` column.
 

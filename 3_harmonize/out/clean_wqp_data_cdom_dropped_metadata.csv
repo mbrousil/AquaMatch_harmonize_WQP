@@ -1,4 +1,4 @@
 reason,short_reason,number_dropped,n_rows,order,step
-Starting dataset,Start,0,559189,0,cdom pre-harmonization
-Removed missing results,Remove missing,353,558836,1,cdom pre-harmonization
-Keep only status = accepted/final/historical/validated/preliminary/NA,Finalized statuses,0,558836,2,cdom pre-harmonization
+Starting dataset,Start,0,186390,0,cdom pre-harmonization
+Removed missing results,Remove missing,473,185917,1,cdom pre-harmonization
+Keep only status = accepted/final/historical/validated/preliminary/NA,Finalized statuses,0,185917,2,cdom pre-harmonization

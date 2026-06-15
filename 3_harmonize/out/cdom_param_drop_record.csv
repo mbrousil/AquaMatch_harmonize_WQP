@@ -1,0 +1,9 @@
+CharacteristicName,ResultAnalyticalMethod.MethodName,USGSPCode,ResultAnalyticalMethod.MethodIdentifier,ResultAnalyticalMethod.MethodIdentifierContext,ResultMeasure.MeasureUnitCode,ResultSampleFractionText,n
+Colored dissolved organic matter (CDOM),9222 B ~ Standard Total Coliform Membrane Filter Procedure,NA,9222B,APHA,ug/L,NA,7
+Colored dissolved organic matter (CDOM),CHROMOPHORIC DISSOLVED ORGANIC MATTER,NA,NASA-CDOM,21VASWCB,None,Dissolved,839
+Colored dissolved organic matter (CDOM),NASA/TM-2003-211621/Rev4-Vol.IV,NA,NASA/TM-2003-211621,RTI,m,NA,96
+Colored dissolved organic matter (CDOM),NA,32295,NA,NA,NA,Dissolved,2
+Colored dissolved organic matter (CDOM),NA,32322,NA,NA,NA,Total,2
+Colored dissolved organic matter (CDOM),NA,NA,NA,NA,m,NA,130
+Emission intensity ratio,"Fluorescence scan, 250-620 nm",32347,FL020,USGS,None,Dissolved,5
+"UV Absorption, relative conc. of organic constituents",UNKNOWN,NA,UNKNOWN,AZDEQ_SW,units/cm,Total,32

@@ -1,5 +1,33 @@
 depth_agg_flag,harmonized_units,n
-<=1m,AU/m,3292
-<=5m,AU/m,289
->5m,AU/m,1415
-No or inconsistent depth,AU/m,76335
+<=1m,AU/m,3479
+<=1m,L/mgDOC*m,2468
+<=1m,None,30
+<=1m,RFU,81
+<=1m,RU,223
+<=1m,nm-1,162
+<=1m,ug/L,1303
+<=1m,ug/l QSE,226
+<=5m,AU/m,1216
+<=5m,L/mgDOC*m,127
+<=5m,None,16
+<=5m,RFU,201
+<=5m,RU,116
+<=5m,nm-1,64
+<=5m,ug/L,326
+<=5m,ug/l QSE,210
+>5m,AU/m,1455
+>5m,L/mgDOC*m,795
+>5m,None,17
+>5m,RFU,146
+>5m,RU,133
+>5m,nm-1,68
+>5m,ug/L,439
+>5m,ug/l QSE,57
+No or inconsistent depth,AU/m,83307
+No or inconsistent depth,L/mgDOC*m,42112
+No or inconsistent depth,None,2602
+No or inconsistent depth,RFU,2527
+No or inconsistent depth,RU,17957
+No or inconsistent depth,nm-1,11745
+No or inconsistent depth,ug/L,284
+No or inconsistent depth,ug/l QSE,1851

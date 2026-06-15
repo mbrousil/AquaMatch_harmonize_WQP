@@ -4,6 +4,15 @@ units/cm,100
 #/cm,100
 cm,100
 None,1
-nm,1e-9
+nm,100
 NA,1
 m,1
+L/mg-cm,100
+L/mgDOC*m,1
+mg/l,1000
+ug/L,1
+ug/l QSE,1
+RFU,1
+RU,1
+per m,1
+nm-1,1

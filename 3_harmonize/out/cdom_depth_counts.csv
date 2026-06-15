@@ -1,0 +1,5 @@
+depth_agg_flag,harmonized_units,n
+<=1m,AU/m,3292
+<=5m,AU/m,289
+>5m,AU/m,1415
+No or inconsistent depth,AU/m,76335

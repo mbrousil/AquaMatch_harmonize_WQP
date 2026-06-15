@@ -1,7 +1,7 @@
 three_cols_present,only_discrete,discrete_partial_integ,only_top,only_bottom,fully_integrated,no_depths,depth_flag,n
-0,0,0,0,0,0,1,0,1185045
-0,1,0,0,0,0,0,1,902156
-0,0,0,0,0,1,0,2,32613
+0,0,0,0,0,0,1,0,1177311
+0,1,0,0,0,0,0,1,901249
+0,0,0,0,0,1,0,2,32305
 0,0,0,0,1,0,0,2,44
 0,0,0,1,0,0,0,2,220
 0,0,1,0,0,0,0,3,117368

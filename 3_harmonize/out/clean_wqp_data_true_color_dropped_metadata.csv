@@ -1,0 +1,4 @@
+reason,short_reason,number_dropped,n_rows,order,step
+Starting dataset,Start,0,1150343,0,true_color pre-harmonization
+Removed missing results,Remove missing,16924,1133419,1,true_color pre-harmonization
+Keep only status = accepted/final/historical/validated/preliminary/NA,Finalized statuses,15807,1117612,2,true_color pre-harmonization

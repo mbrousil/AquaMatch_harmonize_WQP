@@ -67,98 +67,24 @@ harmonize_tc <- function(raw_tc, p_codes){
     # Add an index to control for cases where there's not enough identifying info
     # to track a unique record
     rowid_to_column(., "index") %>%
-    # Use the parameter column to hold info about the types of CDOM methods being
-    # handled (it will survive summarizing at the end of the process). The options
-    # below are based on what's actually present in the dataset, so all conceivable
-    # options are not included
+    # Remove unrelated pcode (and keep NAs)
+    filter(USGSPCode != "70516" | is.na(USGSPCode)) %>%
+    # Use the parameter column to reassign based on p-code where necessary.
     mutate(
       parameter = case_when(
-        
-        # Absorbance at 254 nm
-        CharacteristicName %in% c("Specific UV Absorbance at 254 nm", "UV 254") &
-          !(ResultMeasure.MeasureUnitCode %in% c("L/mg-cm", "L/mgDOC*m")) ~ "Absorbance at 254 nm",
-        
-        CharacteristicName == "UV Absorption, relative conc. of organic constituents" &
-          ResultAnalyticalMethod.MethodIdentifier == "5910-B" ~ "Absorbance at 254 nm",
-        
-        # Absorbance at 280 nm
-        CharacteristicName == "Absorbance at 280 nanometers" ~ "Absorbance at 280 nm",
-        
-        # Absorbance at 370 nm
-        CharacteristicName == "Absorbance at 370 nanometers" ~ "Absorbance at 370 nm",
-        
-        # Absorbance at 412 nm
-        CharacteristicName == "Absorbance at 412 nm" ~ "Absorbance at 412 nm",
-        
-        # Absorbance at 440 nm
-        CharacteristicName %in% c("Absorption coefficient at 440 nm",
-                                  "Absorbance at 440 nm") &
-          (StatisticalBaseCode != "Slope" | is.na(StatisticalBaseCode)) ~ "Absorbance at 440 nm",
-        
-        CharacteristicName == "Colored dissolved organic matter (CDOM)"	&
-          ResultAnalyticalMethod.MethodName == "CDOM absorption (440nm)" ~ "Absorbance at 440 nm",
-        
-        # Absorption spectral slope 275-295
-        CharacteristicName == "Absorption spectral slope (Sag)" & 
-          USGSPCode == 32300 ~ "Absorption spectral slope, 275 to 295 nm",
-        
-        # Absorption spectral slope 290-350
-        CharacteristicName == "Absorption spectral slope (Sag)" & 
-          USGSPCode == 32301 ~ "Absorption spectral slope, 290 to 350 nm",
-        
-        # Absorption spectral slope 350-400
-        CharacteristicName == "Absorption spectral slope (Sag)" & 
-          USGSPCode == 32302 ~ "Absorption spectral slope, 350 to 400 nm",
-        
-        # Absorption spectral slope 400-500
-        ResultAnalyticalMethod.MethodName == "Slope Of CDOM Absorption Coefficient Spectrum (400 To 500 Nm)" &
-          StatisticalBaseCode == "Slope" ~ "Absorption spectral slope, 400 to 500 nm",
-        
-        # Absorption spectral slope 412-600
-        CharacteristicName == "Absorption spectral slope (Sag)" & 
-          USGSPCode == 32331 ~ "Absorption spectral slope, 412 to 600 nm",
-        
-        # Absorption spectral slope 412-676
-        CharacteristicName == "Absorption spectral slope (Sag)" & 
-          USGSPCode == 32303 ~ "Absorption spectral slope, 412 to 676 nm",
-        
-        # FDOM
-        CharacteristicName == "Colored dissolved organic matter (CDOM)" &
-          (ResultAnalyticalMethod.MethodName %in% c(
-            "Turner Designs Trilogy Fluorometer with CDOM specific excitation/emission filters for monitoring CDOM in natural waters",
-            "Turner Designs fluoro.,365/470nm", "YSI EXO fluorometer, 365/480 nm",
-            "YSI EXO, 365/480/80 nm") |
-             is.na(ResultAnalyticalMethod.MethodName) |
-             ResultAnalyticalMethod.MethodIdentifier == "FLUORO") &
-          ResultMeasure.MeasureUnitCode %in% c("RFU", "ug/l QSE", "mg/l", "ug/L") ~ "FDOM",
-        
-        # FDOM: A Few different char names with different excitation/emission nums
-        grepl(pattern = "Fluorescence, excitation", x = CharacteristicName) ~ "FDOM",
-        
-        # Fluorescence index
-        CharacteristicName == "Fluorescence index" ~ "Fluorescence index",
-        
-        # SUVA
-        ResultMeasure.MeasureUnitCode %in% c("L/mg-cm", "L/mgDOC*m") |
-          USGSPCode == 63162 ~ "SUVA",
-        
-        CharacteristicName == "UV Absorption, relative conc. of organic constituents" &
-          ResultAnalyticalMethod.MethodIdentifier == "415.3" ~ "SUVA",
-        
+        # USGS P Code for True Color
+        USGSPCode == "00080" ~ "True color",
+        USGSPCode == "00081" ~ "Apparent color",
+        .default = CharacteristicName
         # Fill note to come back to other options later
-        .default = "Unknown"
       )
     )
+  
+  
   
   if(any(is.na(tc_narrowed$parameter))){
     stop("Unexpected values generated when classifying parameters by CharacteristicName.")
   }
-  
-  # Drop (but document) "unknown" parameters
-  tc <- tc_narrowed %>%
-    filter(parameter != "Unknown")
-  
-  param_drop_record_out_path <- "3_harmonize/out/tc_param_drop_record.csv"
   
   # Produce a bar chart of the current parameter counts
   stack_param_chart <- tc %>%

@@ -76,11 +76,19 @@ harmonize_tc <- function(raw_tc, p_codes){
         USGSPCode == "00080" ~ "True color",
         USGSPCode == "00081" ~ "Apparent color",
         .default = CharacteristicName
-        # Fill note to come back to other options later
       )
     )
   
+  tc_param_changes <- tc_narrowed %>%
+    filter(tc_narrowed$parameter != tc_narrowed$CharacteristicName) %>%
+    count(CharacteristicName, parameter) %>%
+    rename(CharacteristicName_old = CharacteristicName,
+           parameter_new = parameter)
   
+  param_change_table_out_path <- "3_harmonize/out/tc_param_changes_table.csv"
+  
+  write_csv(x = param_change_table_out_path,
+            file = tc_param_changes)  
   
   if(any(is.na(tc_narrowed$parameter))){
     stop("Unexpected values generated when classifying parameters by CharacteristicName.")
@@ -124,15 +132,6 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   ggsave(filename = "3_harmonize/out/tc_stacked_param_names.png",
          plot = stack_param_chart, width = 6.5, height = 7.5, units = "in", device = "png")
-  
-  
-  write_csv(x = tc_narrowed %>%
-              filter(parameter == "Unknown") %>%
-              count(CharacteristicName,	ResultAnalyticalMethod.MethodName,
-                    USGSPCode,	ResultAnalyticalMethod.MethodIdentifier,
-                    ResultAnalyticalMethod.MethodIdentifierContext,
-                    ResultMeasure.MeasureUnitCode, ResultSampleFractionText),
-            file = param_drop_record_out_path)
   
   # Record info on any dropped rows  
   dropped_media <- tibble(
@@ -1384,7 +1383,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   )
   
   return(list(
-    tc_param_drop_record_path = param_drop_record_out_path,
+    tc_param_change_table_path = param_change_table_out_path,
     tc_tiering_record_path = tiering_record_out_path,
     tc_grouped_preagg_path = grouped_tc_out_path,
     tc_harmonized_path = data_out_path,

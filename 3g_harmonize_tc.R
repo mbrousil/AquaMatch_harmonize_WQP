@@ -60,9 +60,132 @@ p3_tc_targets_list <- list(
     command = p3_wqp_data_aoi_ready_tc$wqp_data_clean_path,
     read = read_feather(path = !!.x),
     cue = tar_cue("always"),
-    packages = "feather")#,
+    packages = "feather"),
   
   
   # Harmonization -----------------------------------------------------------
+  
+  tar_target(
+    name = p3_tc_harmonized,
+    command = harmonize_tc(raw_tc = p3_cleaned_wqp_data_tc,
+                             p_codes = p3_p_codes),
+    packages = c("tidyverse", "feather", "ggrepel", "scales", "snakecase",
+                 "sf", "sfheaders")
+  ),
+  
+  # Record of rows that were dropped early in harmonization for not being part
+  # of True Color params of interest
+  tar_file_read(
+    name = p3_tc_param_change_table,
+    command = p3_tc_harmonized$tc_param_change_table_path,
+    read = read_csv(file = !!.x)
+  ),
+  
+  tar_file_read(
+    name = p3_tc_tiering_record,
+    command = p3_tc_harmonized$tc_tiering_record_path,
+    read = read_csv(file = !!.x)
+  ),
+  
+  # Harmonized True Color data containing grouping IDs for simultaneous
+  # records, but not aggregated
+  tar_file_read(
+    name = p3_tc_preagg_grouped,
+    command = p3_tc_harmonized$tc_grouped_preagg_path,
+    read = read_feather(path = !!.x),
+    packages = "feather"),
+  
+  # Harmonized True Color data after simultaneous record aggregation (i.e.,
+  # final product)
+  tar_file_read(
+    name = p3_tc_agg_harmonized,
+    command = p3_tc_harmonized$tc_harmonized_path,
+    read = read_csv(file = !!.x)),
+  
+  # Create a copy of the csv in feather format
+  tar_file_read(
+    name = p3_tc_agg_harmonized_feather,
+    command = {
+      out_path <- gsub(x = p3_tc_harmonized$tc_harmonized_path,
+                       pattern = ".csv",
+                       replacement = ".feather")
+      
+      write_feather(x = p3_tc_agg_harmonized,
+                    path = out_path)
+      
+      out_path
+    },
+    packages = c("targets", "feather"),
+    read = read_feather(path = !!.x)
+  ),
+  
+  # Export
+  tar_target(
+    name = p3_tc_agg_harmonized_feather_drive_file,
+    command = {
+      p0_check_tc_drive
+      export_single_file(target = p3_tc_agg_harmonized_feather,
+                         drive_path = p0_tc_output_path,
+                         stable = p0_harmonization_config$tc_use_stable,
+                         google_email = p0_harmonization_config$google_email,
+                         date_stamp = p0_harmonization_config$tc_stable_date)
+    },
+    packages = c("tidyverse", "googledrive"),
+    error = "stop"
+  ),
+  
+  
+  # Site info ---------------------------------------------------------------
+  
+  # Generate site metadata after harmonization is complete
+  tar_file_read(
+    name = p3_tc_harmonized_site_info,
+    command = {
+      # Pull and clean data
+      tc_sites <- get_site_info(dataset = p3_tc_preagg_grouped)
+      
+      out_path <- "3_harmonize/out/tc_harmonized_site_info.feather"
+      
+      tc_sites %>%
+        write_feather(path = out_path)
+      
+      out_path
+    },
+    read = read_feather(path = !!.x),
+    packages = c("tidyverse", "dataRetrieval", "feather")
+  ),
+  
+  # Export
+  tar_target(
+    name = p3_tc_site_info_drive_file,
+    command = {
+      p0_check_tc_drive
+      export_single_file(target = p3_tc_harmonized_site_info,
+                         drive_path = p0_tc_output_path,
+                         stable = p0_harmonization_config$tc_use_stable,
+                         google_email = p0_harmonization_config$google_email,
+                         date_stamp = p0_harmonization_config$tc_stable_date)
+    },
+    packages = c("tidyverse", "googledrive"),
+    error = "stop"
+  ),
+  
+  # Get file IDs ------------------------------------------------------------
+  
+  # In order to access "stable" versions of the dataset created by the pipeline,
+  # we get their Google Drive file IDs and store those in the repo so that
+  # the harmonization pipeline can retrieve them more easily. The targets below
+  # will include all file IDs in the Drive location, not just stable ones
+  
+  tar_file_read(
+    name = p3_tc_drive_ids,
+    command = get_file_ids(google_email = p0_harmonization_config$google_email,
+                           drive_folder = p0_tc_output_path,
+                           file_path = "3_harmonize/out/tc_drive_ids.csv",
+                           depend = p3_tc_site_info_drive_file
+    ),
+    read = read_csv(file = !!.x),
+    packages = c("tidyverse", "googledrive")
+  )
   
 )

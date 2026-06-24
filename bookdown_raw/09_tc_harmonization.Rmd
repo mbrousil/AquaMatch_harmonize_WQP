@@ -25,7 +25,7 @@ documented_drops <- params$documented_drops %>%
          !((step == "tc harmonization") & short_reason == "Start"))
 cdom_chars <- params$cdom_chars
 tiering_record <- params$tiering_record
-param_drop_record <- params$param_drop_record
+param_change_table <- params$param_change_table
 ```
 
 Following the completion of the {dataRetrieval} download process described previously, the pipeline contains raw WQP data for each parameter of interest. Before we harmonize each parameter we run through a series of universal "pre-harmonization" steps, which ensure that the datasets are appropriately formatted when entering their harmonization routines.
@@ -237,39 +237,13 @@ step_4_dropped <-  filter(step_data,
   paste0(., " thousand")
 ```
 
-We next ensure that the media type for all CDOM data is `"Surface Water"`, `"Water"`, `"Estuary"`, or `NA`. Any records not meeting these criteria are dropped.
+We next ensure that the media type for all True Color data is `"Surface Water"`, `"Water"`, `"Estuary"`, or `NA`. Any records not meeting these criteria are dropped.
 
-We then assign each record to one of the `parameter` values in the table below, based on its values for `CharacteristicName`, `ResultAnalyticalMethod.MethodName`, and `ResultMeasure.MeasureUnitCode`. This helps us to group comparable measurements throughout the rest of the process and generally simplify the way the dataset is organized:
+We then assign each record to a value in a new `parameter` column, which aims to basically clarify the categories of the `CharacteristicName` column using `USGSPCode` values: If `USGSPCode` is "00080" we assign it to the "True color" parameter,if `USGSPCode` is "00081" it becomes "Apparent color". Records with `USGSPCode` of "70516" are dropped because they are not relevant to the dataset. And for the majority of records, which don't have a `USGSPCode`, the `parameter` value is simply the same as the `CharacteristicName`. Records with `parameter` names that are different from their `CharacteristicName` are identified in the table below:
 
-<br>
-
-<!-- Table created with https://www.tablesgenerator.com/markdown_tables -->
-
-| Parameter | Definition |
-|---|---|
-| Absorbance at 254 nm | `CharacteristicName` is either "Specific UV Absorbance at 254 nm" or "UV 254" and `ResultMeasure.MeasureUnitCode` is **not** "L/mg-cm" or "L/mgDOC*m". Alternatively, `CharacteristicName` is "UV Absorption, relative conc. of organic constituents" and `ResultAnalyticalMethod.MethodIdentifier` is "5910-B" |
-| Absorbance at 280 nm | `CharacteristicName` is "Absorbance at 280 nanometers" |
-| Absorbance at 370 nm | `CharacteristicName` is "Absorbance at 370 nanometers" |
-| Absorbance at 412 nm | `CharacteristicName` is "Absorbance at 412 nm" |
-| Absorbance at 440 nm | `CharacteristicName` is "Absorption coefficient at 440 nm" OR "Absorbance at 440 nm" OR `CharacteristicName` is "Colored dissolved organic matter (CDOM)" and `ResultAnalyticalMethod.MethodName` is "CDOM absorption (440nm)" |
-| Absorption spectral slope, 275 to 295 nm | `CharacteristicName` is "Absorption spectral slope (Sag)" and `USGSPCode` is 32300 |
-| Absorption spectral slope, 290 to 350 nm | `CharacteristicName` is "Absorption spectral slope (Sag)" and `USGSPCode` is 32301 |
-| Absorption spectral slope, 350 to 400 nm | `CharacteristicName` is "Absorption spectral slope (Sag)" and `USGSPCode` is 32302 |
-|Absorption spectral slope, 400 to 500 nm  | `ResultAnalyticalMethod.MethodName` is "Slope Of CDOM Absorption Coefficient Spectrum (400 To 500 Nm)" and `StatisticalBaseCode` is "Slope"|
-| Absorption spectral slope, 412 to 600 nm | `CharacteristicName` is "Absorption spectral slope (Sag)" and `USGSPCode` is 32331 |
-| Absorption spectral slope, 412 to 676 nm | `CharacteristicName` is "Absorption spectral slope (Sag)" and `USGSPCode` is 32303 |
-| FDOM | `CharacteristicName` is "Colored dissolved organic matter (CDOM)" AND `ResultAnalyticalMethod.MethodName` is NA or mentions a fluorometer AND `ResultMeasure.MeasureUnitCode` is one of "RFU", "ug/l QSE", "mg/l", or "ug/L". Alternatively, `CharacteristicName` is formatted like "Fluorescence, excitation 275 emission 304" but exact numbers will vary. |
-| Fluorescence Index | `CharacteristicName` is "Fluorescence index" |
-| SUVA | `ResultMeasure.MeasureUnitCode` is "L/mg-cm" or "L/mgDOC*m" OR `CharacteristicName` is "UV Absorption, relative conc. of organic constituents" and `ResultAnalyticalMethod.MethodIdentifier` is "415.3"|
-
-<br> 
-
-Records that do not meet the criteria of one of the `parameter` entries above are dropped (n = `r comma(sum(param_drop_record$n))`). A summary of the types of dropped records and their row counts is below:
-
-```{r fig.alt="Table containing combinations of CDOM record summary information that were dropped while categorizing by parameter."}
-
-param_drop_record %>%
-kable() %>%
+```{r fig.alt="Table containing True Color summary information for records that were changed because of their USGSPCode value."}
+param_change_table %>%
+  kable() %>%
   kable_paper() %>%
   scroll_box(width = "750px", height = "500px")
 ```
@@ -278,9 +252,9 @@ kable() %>%
 
 Below is a stacked barplot of the dataset organized by the new `parameter` column:
 
-<img src="3_harmonize/out/cdom_stacked_param_names.png" alt="Stacked bar chart with counts of parameter records" width="650"/>
+<img src="3_harmonize/out/tc_stacked_param_names.png" alt="Stacked bar chart with counts of parameter records" width="650"/>
 
-`r step_4_dropped` rows are removed. The final row count after this is `r step_4_rows`.
+`r step_4_dropped` rows are removed because they had `USGSPCode` "70516". The final row count after this is `r step_4_rows`.
 
 ```{r, fig.cap= "Bar plot showing the row count update for the current harmonization step.", echo = FALSE}
 step_data %>%

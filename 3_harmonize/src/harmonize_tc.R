@@ -87,12 +87,15 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   param_change_table_out_path <- "3_harmonize/out/tc_param_changes_table.csv"
   
-  write_csv(x = param_change_table_out_path,
-            file = tc_param_changes)  
+  write_csv(x = tc_param_changes,
+            file = param_change_table_out_path)  
   
   if(any(is.na(tc_narrowed$parameter))){
     stop("Unexpected values generated when classifying parameters by CharacteristicName.")
   }
+  
+  # Catch up to naming that follows
+  tc <- tc_narrowed
   
   # Produce a bar chart of the current parameter counts
   stack_param_chart <- tc %>%

@@ -438,20 +438,7 @@ harmonize_tc <- function(raw_tc, p_codes){
     filter(
       !is.na(harmonized_value),
       # Some negative values can be introduced by the previous NA parsing steps:
-      (
-        (!grepl(pattern = "Absorption spectral slope", x = parameter) &
-           harmonized_value >= 0) |
-          grepl(pattern = "Absorption spectral slope", x = parameter)
-      )
-    ) %>%
-    # Take absolute value of any negative slopes
-    mutate(
-      harmonized_value = ifelse(
-        test = grepl(pattern = "Absorption spectral slope", x = parameter) &
-          harmonized_value < 0,
-        yes = abs(harmonized_value),
-        no = harmonized_value
-      )
+      harmonized_value >= 0
     )
   
   dropped_na <- tibble(
@@ -471,36 +458,17 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   # Harmonize value units ---------------------------------------------------
   
-  # Matchup table for expected tc units in the dataset
+  # Matchup table for expected True Color units in the dataset
   unit_conversion_table <- tribble(
     ~ResultMeasure.MeasureUnitCode, ~conversion,
-    "AU/cm",                                100,
-    "units/cm",                             100,
-    "#/cm",                                 100,
-    "cm",                                   100,
-    "None",                                   1,
-    # "nm" records show evidence that they are meant to be cm-1 units, see below
-    "nm",                                   100,
-    NA,                                       1,
-    "m",                                      1,
-    "L/mg-cm",                              100,
-    "L/mgDOC*m",                              1,
-    "mg/l",                                1000,
-    "ug/L",                                   1,
-    "ug/l QSE",                               1,
-    "RFU",                                    1,
-    "RU",                                     1,
-    "per m",                                  1,
-    "nm-1",                                   1
+    # Assume these are the same: Platinum-Cobalt Units (PCU)
+    "PCU",                                1,
+    "CU",                                 1, 
+    "pt",                                 1,
+    # Others to keep
+    "ADMI value",                         1,
+    "None",                               1
   )
-  
-  # Per KR: UV 254 param with "ResultMeasure.MeasureUnitCode" == "nm" has 
-  # "DetectionQuantitationLimitMeasure.MeasureUnitCode" == "units/cm". Values
-  # for these records are in the range of what would be expected for natural
-  # waters for A254 reported in cm-1 units and the detection limit listed as
-  # 0.005 also aligns with A/cm measurements. So there is solid evidence these
-  # records can be treated as per cm and harmonized to per meter like other
-  # UV 254 records.
   
   # Export a record of unit conversions
   unit_table_out_path <- "3_harmonize/out/tc_unit_table.csv"
@@ -515,21 +483,21 @@ harmonize_tc <- function(raw_tc, p_codes){
                by = "ResultMeasure.MeasureUnitCode") %>%
     mutate(
       harmonized_value = harmonized_value * conversion,
-      # Units will vary based on the exact tc parameter
       harmonized_units = case_when(
-        parameter == "SUVA" ~ "L/mgDOC*m",
-        parameter == "FDOM" & ResultMeasure.MeasureUnitCode == "RFU" ~ "RFU",
-        parameter == "FDOM" & ResultMeasure.MeasureUnitCode == "RU" ~ "RU",
-        # P Code says RU but NA provided, fill but will flag as tier 2
-        parameter == "FDOM" &
-          is.na(ResultMeasure.MeasureUnitCode) &
-          USGSPCode == 32305 ~ "RU",
-        parameter == "FDOM" & ResultMeasure.MeasureUnitCode %in% c("mg/l", "ug/L") ~ "ug/L",
-        parameter == "FDOM" & ResultMeasure.MeasureUnitCode == "ug/l QSE" ~ "ug/l QSE",
-        parameter == "Fluorescence index" ~ "None",
-        grepl(pattern = "Absorption spectral slope", x = parameter) ~ "nm-1",
-        .default = "AU/m")
+        # Assume these are the same: Platinum-Cobalt Units (PCU)
+        ResultMeasure.MeasureUnitCode %in% c("PCU", "CU", "pt") ~ "PCU",
+        # ADMI
+        ResultMeasure.MeasureUnitCode == "ADMI value" ~ "ADMI value",
+        # Other
+        ResultMeasure.MeasureUnitCode == "None" ~ "None",
+        .default = "Unexpected")
     )
+  
+  # Check for unexpected units in the "harmonized_units" column
+  if ("Unexpected" %in% converted_units_tc$harmonized_units) {
+    cli_abort("True color unit harmonization has encountered an {cli::col_red('unexpected unit')}.")
+  }
+  
   
   # Plot and export unit codes that didn't make it through joining
   tryCatch({

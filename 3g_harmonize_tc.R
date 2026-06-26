@@ -69,7 +69,7 @@ p3_tc_targets_list <- list(
     name = p3_tc_harmonized,
     command = harmonize_tc(raw_tc = p3_cleaned_wqp_data_tc,
                              p_codes = p3_p_codes),
-    packages = c("tidyverse", "feather", "ggrepel", "scales", "snakecase",
+    packages = c("cli", "tidyverse", "feather", "ggrepel", "scales", "snakecase",
                  "sf", "sfheaders")
   ),
   

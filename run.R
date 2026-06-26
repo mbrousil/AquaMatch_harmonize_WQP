@@ -9,6 +9,7 @@
 required_pkgs <- c(
   "arrow",
   "bookdown",
+  "cli",
   "config",
   "dataRetrieval",
   "devtools",

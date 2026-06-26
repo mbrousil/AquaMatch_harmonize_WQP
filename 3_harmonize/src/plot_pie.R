@@ -33,11 +33,11 @@ plot_fail_pie <- function(dataset, col_name, text_size = 3){
     coord_polar(theta = "y") +
     # Label with grepl text and record count
     geom_label_repel(
-      aes(x = 1.4,
+      aes(x = 1.2,
           label = paste0(word, "\n n = ", record_count),
           y = text_y), 
-      nudge_x = 0.3,
-      nudge_y = 0.6,
+      nudge_x = 0.2,
+      nudge_y = 0.2,
       size = text_size,
       max.overlaps = 25,
       show.legend = F) +

@@ -17,13 +17,13 @@ knitr::opts_chunk$set(dev = "png",
                       dpi = 300)
 ```
 
-# CDOM harmonization process
+# True Color harmonization process
 
 ```{r echo=FALSE}
 documented_drops <- params$documented_drops %>%
   filter(grepl(pattern = "tc", x = step, ignore.case = TRUE),
          !((step == "tc harmonization") & short_reason == "Start"))
-cdom_chars <- params$cdom_chars
+tc_chars <- params$tc_chars
 tiering_record <- params$tiering_record
 param_change_table <- params$param_change_table
 ```
@@ -309,25 +309,25 @@ Below are pie charts that break down the number of failure detections by column.
 
 #### ActivityCommentText fail detects
 
-<img src="3_harmonize/out/cdom_ActivityCommentText_fail_pie.png" alt="ActivityCommentText failure detects" width="650"/>
+<img src="3_harmonize/out/tc_ActivityCommentText_fail_pie.png" alt="ActivityCommentText failure detects" width="650"/>
 
 #### ResultCommentText fail detects
 
-<img src="3_harmonize/out/cdom_ResultCommentText_fail_pie.png" alt="ResultCommentText failure detects" width="650"/>
+<img src="3_harmonize/out/tc_ResultCommentText_fail_pie.png" alt="ResultCommentText failure detects" width="650"/>
 
 #### ResultLaboratoryCommentText fail detects
 
-<img src="3_harmonize/out/cdom_ResultLaboratoryCommentText_fail_pie.png" alt="ResultLaboratoryCommentText failure detects" width="650"/>
+<img src="3_harmonize/out/tc_ResultLaboratoryCommentText_fail_pie.png" alt="ResultLaboratoryCommentText failure detects" width="650"/>
 
 <br>
 
 #### ResultDetectionConditionText fail detects
 
-<img src="3_harmonize/out/cdom_ResultDetectionConditionText_fail_pie.png" alt="ResultDetectionConditionText failure detects" width="650"/>
+<img src="3_harmonize/out/tc_ResultDetectionConditionText_fail_pie.png" alt="ResultDetectionConditionText failure detects" width="650"/>
 
 #### ResultMeasureValue_original fail detects
 
-<img src="3_harmonize/out/cdom_ResultMeasureValue_original_fail_pie.png" alt="ResultMeasureValue_original failure detects" width="650"/>
+<img src="3_harmonize/out/tc_ResultMeasureValue_original_fail_pie.png" alt="ResultMeasureValue_original failure detects" width="650"/>
 
 <br>
 
@@ -535,7 +535,7 @@ step_9_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-The goal of the preceding three steps was to prevent records with seemingly missing measurement data from being dropped if there was still a chance of recovering a usable value. At this point we've finished with that process and we proceed to check for remaining records with `NA` values in their `harmonized_value` column. If they exist, they are dropped. We also filter out any negative values in the dataset at this point because CDOM cannot be negative. The exception to this is for the "Absorption spectral slope" parameters, which we take the absolute value of instead of removing.
+The goal of the preceding three steps was to prevent records with seemingly missing measurement data from being dropped if there was still a chance of recovering a usable value. At this point we've finished with that process and we proceed to check for remaining records with `NA` values in their `harmonized_value` column. If they exist, they are dropped. We also filter out any negative values in the dataset at this point because True Color cannot be negative. The exception to this is for the "Absorption spectral slope" parameters, which we take the absolute value of instead of removing.
 
 `r step_9_dropped` rows are removed. The final row count after this is `r step_9_rows`.
 
@@ -582,10 +582,10 @@ step_10_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-The next step in CDOM harmonization is converting the units of WQP records. Records that don't make sense for CDOM or can't be converted to a standardized unit dropped. We standardize units to "AU/m" unless the `parameter` is "SUVA" ("L/mgDOC*m"), "FDOM" ("RFU", "RU", "ug/l QSE"), "Fluorescence index" ("None"), or one of the "Absorption spectral slope" variants ("nm-1"). We use the unit conversion table below for this. 
+The next step in True Color harmonization is converting the units of WQP records. Records that don't make sense for True Color or can't be converted to a standardized unit dropped. We standardize units to "AU/m" unless the `parameter` is "SUVA" ("L/mgDOC*m"), "FDOM" ("RFU", "RU", "ug/l QSE"), "Fluorescence index" ("None"), or one of the "Absorption spectral slope" variants ("nm-1"). We use the unit conversion table below for this. 
 
 ```{r echo=FALSE, message = FALSE}
-read_csv("../3_harmonize/out/cdom_unit_table.csv") %>%
+read_csv("../3_harmonize/out/tc_unit_table.csv") %>%
   mutate(conversion = as.character(conversion)) %>%
   kable() %>%
   kable_paper() %>%
@@ -607,7 +607,7 @@ Below is a pie chart that breaks down the different unit codes that were dropped
 
 <br>
 
-<img src="3_harmonize/out/cdom_unit_drop_pie.png" alt="ResultMeasure.MeasureUnitCode mismatched codes" width="650"/>
+<img src="3_harmonize/out/tc_unit_drop_pie.png" alt="ResultMeasure.MeasureUnitCode mismatched codes" width="650"/>
 
 <br>
 
@@ -704,14 +704,14 @@ step_12_dropped <- filter(step_data,
 
 We next review information related to the analytical methods, sample fraction, and result units for each record to construct hierarchical tiers as described in the *Method tiering* section of the *Tiering, flagging, and quality control philosophy* chapter.
 
-In preparation for tiering, we check the `ResultAnalyticalMethod.MethodName` column for names that indicate non-CDOM measurements. 
+In preparation for tiering, we check the `ResultAnalyticalMethod.MethodName` column for names that indicate non-True Color measurements. 
 
 Finally, we group the data into three tiers as described in *Tiering, flagging, and quality control philosophy*. Broadly, these tiers are:
 
 <br>
 
 <!-- Table created with https://www.tablesgenerator.com/markdown_tables -->
-| Tier | Name | Description | CDOM Details |
+| Tier | Name | Description | True Color Details |
 |---|---|---|---|
 | 0 | Restrictive | Data that are verifiably self-similar across organizations and  time-periods and can be considered highly reliable and interoperable | Has appropriate (and consistent) information in `CharacteristicName`, methods columns, and `ResultMeasure.MeasureUnitCode`. `ResultSampleFractionText` is filtered |
 | 1 | Narrowed | Data that we have good reason to believe are self-similar, but for which  we can’t verify full interoperability across data providers | There is a mismatch in information, e.g., between the methods columns |
@@ -719,9 +719,9 @@ Finally, we group the data into three tiers as described in *Tiering, flagging, 
 
 <br>
 
-At this point we create a file (`3_harmonize/out/cdom_tiering_record.csv`) that contains a record of how specific method text was tiered and how many row counts corresponded to each method. This file is also included as an interactive HTML table below, in order to illustrate how the specifics of each tiering decision in the table above are carried out.
+At this point we create a file (`3_harmonize/out/tc_tiering_record.csv`) that contains a record of how specific method text was tiered and how many row counts corresponded to each method. This file is also included as an interactive HTML table below, in order to illustrate how the specifics of each tiering decision in the table above are carried out.
 
-```{r fig.alt="Table containing combinations of CDOM record summary information and corresponding tiers."}
+```{r fig.alt="Table containing combinations of True Color record summary information and corresponding tiers."}
 
 tiering_record %>%
 kable() %>%
@@ -783,7 +783,7 @@ Next, we use the `field_flag` column to flag records based on the type of sampli
 + `field_flag` = `1` when integrated sampling methods were used. Indicated by detection of "integrated", "multiple", or "pump" in `SampleCollectionEquipmentName`
 + `field_flag` = `2` for all other records
 
-No records should be removed by this process and so there are `r step_13_dropped` rows dropped leaving `r step_13_rows` remaining in the harmonized CDOM dataset.
+No records should be removed by this process and so there are `r step_13_dropped` rows dropped leaving `r step_13_rows` remaining in the harmonized True Color dataset.
 
 ```{r, fig.cap= "Bar plot showing the row count update for the current harmonization step.", echo = FALSE}
 step_data %>%
@@ -827,38 +827,13 @@ step_14_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-Next, we populate the miscellaneous flag (`misc_flag`) column. The miscellaneous flag is used in this dataset to mark measurements that fall outside published minimum and maximum records based on a review of the relevant literature. We do this instead of filtering the records out, but a depth-related filter still occurs in the next harmonization step.
+Next we add a placeholder for the miscellaneous flag column, `misc_flag`.
 
-For this flag column, values are as follows: 0 = does not exceed published range, 1 = below published minimum, and 2 = above published maximum. Absorption spectral slope parameters, SUVA, and Fluorescence index are checked for values below minimum **or** above maximum published records, while the rest of the parameter options are just checked for values above published maximums. We use the absolute value of absorption spectral slope when testing against thresholds. "True" minimum and maximum values for absorption spectral slope depend upon the specific wavelength region being analyzed, but we are not aware of any standardized, region-specific limits in the literature. Therefore, we use a single, global minimum and maximum based on Korak and McKay (2024) to flag extreme outliers rather than provide region-specific quality control.
-
-Thresholds used and citations are below, followed by a table with counts by parameters, unit, and flag value:
-
-| **Parameter** | **Units** | **Min value** | **Max value** | **Source** |
-|---|---|---|---|---|
-| Absorbance at 254 nm | AU/m | - | 450 | Yates et al. 2023 |
-| Absorbance at 280 nm | AU/m | - | 36.1 | Korak and McKay 2024 |
-| Absorbance at 370 nm | AU/m | - | 11 | Korak and McKay 2024 |
-| Absorbance at 412 nm | AU/m | - | 14 | We use the threshold for 440 nm (below) as a conservative estimate |
-| Absorbance at 440 nm | AU/m | - | 14 | Brezonik et al. 2019 |
-| Absorption spectral slope (multiple) | nm-1 | 0.0026 | 0.0473 | Korak and McKay 2024 |
-| FDOM | RU | - | 4.38 | Korak and McKay 2024 |
-| FDOM | ug/L, ug/l QSE | - | 84.4 | Avouris et al. 2025 |
-| Fluorescence index | None | 1.31 | 2.18 | Korak and McKay 2024 |
-| SUVA | L/mgDOC*m | 0.651 | 6.83 | Korak and McKay 2024 |
+Some parameters will have additional flagging requirements that True Color does not, so we include this placeholder to maintain the same columns across all parameter data products.
 
 <br>
 
-```{r echo=FALSE, message = FALSE}
-read_csv("../3_harmonize/out/cdom_misc_flag_table.csv") %>%
-  kable() %>%
-  kable_paper() %>%
-  kable_styling(full_width = FALSE)
-```
-
-
-<br>
-
-No records should be removed by this process and so there are `r step_14_dropped` rows dropped leaving `r step_14_rows` remaining in the harmonized CDOM dataset.
+No records should be removed by this process and so there are `r step_14_dropped` rows dropped leaving `r step_14_rows` remaining in the harmonized True Color dataset.
 
 ```{r, fig.cap= "Bar plot showing the row count update for the current harmonization step.", echo = FALSE}
 step_data %>%
@@ -949,17 +924,17 @@ step_16_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-The final step of CDOM harmonization is to aggregate simultaneous observations.
+The final step of True Color harmonization is to aggregate simultaneous observations.
 
 **The aggregation process**: Any group of samples determined to be simultaneous are simplified into a single record containing the mean and coefficient of variation (CV) of the group. These can be either true duplicate entries in the WQP or records with non-identical values recorded at the same time and place and by the same organization (field and/or lab replicates/duplicates). The CV can be used to filter the dataset based on the amount of variability that is tolerable to specific use cases. Note, however, that many entries will have a CV that is `NA` because there are no simultaneous records or 0 because the records are duplicates and all entries have the same `harmonized_value`.
 
-We identify simultaneous records to aggregate by creating identical subgroups (`subgroup_id`) from the following columns: `parameter`, `OrganizationIdentifier`, `MonitoringLocationIdentifier`, `MonitoringLocationTypeName`, `ResolvedMonitoringLocationTypeName`, `ActivityStartDate`, `ActivityStartTime.Time`, `ActivityStartTime.TimeZoneCode`, `harmonized_tz`, `harmonized_local_time`, `harmonized_utc`, `ActivityStartDateTime`, `harmonized_top_depth_value`, `harmonized_top_depth_unit`, `harmonized_bottom_depth_value`, `harmonized_bottom_depth_unit`, `harmonized_discrete_depth_value`, `harmonized_discrete_depth_unit`, `depth_flag`, `mdl_flag`, `approx_flag`, `greater_flag`, `tier`, `field_flag`, `misc_flag`, `harmonized_units`. This selection limits the columns included in the final dataset, but we also provide a copy of the AquaMatch dataset prior to its aggregation (pipeline target `p3_cdom_preagg_grouped`; available as an RDS file in the data release: AquaMatch_harmonize_WQP/_targets/objects/p3_cdom_preagg_grouped), and include the `subgroup_id` column, so that users can use the disaggregated data as well and match make joins between dataset versions.
+We identify simultaneous records to aggregate by creating identical subgroups (`subgroup_id`) from the following columns: `parameter`, `OrganizationIdentifier`, `MonitoringLocationIdentifier`, `MonitoringLocationTypeName`, `ResolvedMonitoringLocationTypeName`, `ActivityStartDate`, `ActivityStartTime.Time`, `ActivityStartTime.TimeZoneCode`, `harmonized_tz`, `harmonized_local_time`, `harmonized_utc`, `ActivityStartDateTime`, `harmonized_top_depth_value`, `harmonized_top_depth_unit`, `harmonized_bottom_depth_value`, `harmonized_bottom_depth_unit`, `harmonized_discrete_depth_value`, `harmonized_discrete_depth_unit`, `depth_flag`, `mdl_flag`, `approx_flag`, `greater_flag`, `tier`, `field_flag`, `misc_flag`, `harmonized_units`. This selection limits the columns included in the final dataset, but we also provide a copy of the AquaMatch dataset prior to its aggregation (pipeline target `p3_tc_preagg_grouped`; available as an RDS file in the data release: AquaMatch_harmonize_WQP/_targets/objects/p3_tc_preagg_grouped), and include the `subgroup_id` column, so that users can use the disaggregated data as well and match make joins between dataset versions.
 
-**Note**: We hold out any records where `misc_flag` is 1 or 2 from the aggregation step above, and as a result those records are *not* included in the `p3_cdom_preagg_grouped` object, nor its RDS export. The records are added back into the final dataset once the aggregation is complete, but they have `NA` for `subgroup_id`, `harmonized_value_cv`, and `harmonized_row_count` because they are never grouped or aggregated. A small number of duplicate records are also included where misc_flag is 1 or 2 since no aggregation takes place. We do this to allow end users to decide how they want to handle values that exceed published maximums.
+**Note**: We hold out any records where `misc_flag` is 1 or 2 from the aggregation step above, and as a result those records are *not* included in the `p3_tc_preagg_grouped` object, nor its RDS export. The records are added back into the final dataset once the aggregation is complete, but they have `NA` for `subgroup_id`, `harmonized_value_cv`, and `harmonized_row_count` because they are never grouped or aggregated. A small number of duplicate records are also included where misc_flag is 1 or 2 since no aggregation takes place. We do this to allow end users to decide how they want to handle values that exceed published maximums.
 
 The final values are presented in the `harmonized_value` and `harmonized_value_cv` columns. The number of rows used per group is recorded in the `harmonized_row_count` column.
 
-`r step_16_dropped` rows dropped leaving `r step_16_rows` remaining in the final harmonized and aggregated CDOM dataset.
+`r step_16_dropped` rows dropped leaving `r step_16_rows` remaining in the final harmonized and aggregated True Color dataset.
 
 ```{r, fig.cap= "Bar plot showing the row count update for the current harmonization step.", echo = FALSE}
 step_data %>%
@@ -986,9 +961,9 @@ step_data %>%
 
 <br>
 
-### Harmonized CDOM
+### Harmonized True Color
 
-At this point the harmonization of the CDOM data from the WQP is complete and we export the final dataset for use later in the workflow.
+At this point the harmonization of the True Color data from the WQP is complete and we export the final dataset for use later in the workflow.
 
 Below are several sets of figures illustrating different qualities of the dataset: 
 
@@ -996,35 +971,35 @@ Below are several sets of figures illustrating different qualities of the datase
 
 <br>
 
-<img src="3_harmonize/out/cdom_tier_dists_postagg.png" alt="Distribution of CDOM values by tier" width="650"/>
+<img src="3_harmonize/out/tc_tier_dists_postagg.png" alt="Distribution of True Color values by tier" width="650"/>
 
 
-<img src="3_harmonize/out/cdom_tier_cv_dists_postagg.png" alt="Distribution of CDOM CVs by tier" width="650"/>
+<img src="3_harmonize/out/tc_tier_cv_dists_postagg.png" alt="Distribution of True Color CVs by tier" width="650"/>
 
 <br>
 
 2. Maps showing the geographic distribution of records by tier within the US:
 
-<img src="3_harmonize/out/cdom_tier_hex_map.png" alt="Geographic distribution of CDOM records by tier in the conterminous US" width="650"/>
+<img src="3_harmonize/out/tc_tier_hex_map.png" alt="Geographic distribution of True Color records by tier in the conterminous US" width="650"/>
 
 <br>
 
 3. Bar charts showing the distribution of values by tier across years, months, and days of the week:
 
-<img src="3_harmonize/out/cdom_year_tier_chart.png" alt="Temporal distribution of CDOM records by tier across years" width="650"/>
+<img src="3_harmonize/out/tc_year_tier_chart.png" alt="Temporal distribution of True Color records by tier across years" width="650"/>
 
-<img src="3_harmonize/out/cdom_month_tier_chart.png" alt="Temporal distribution of CDOM records by tier across months" width="650"/>
+<img src="3_harmonize/out/tc_month_tier_chart.png" alt="Temporal distribution of True Color records by tier across months" width="650"/>
 
-<img src="3_harmonize/out/cdom_wday_tier_chart.png" alt="Temporal distribution of CDOM records by tier across days of the week" width="650"/>
+<img src="3_harmonize/out/tc_wday_tier_chart.png" alt="Temporal distribution of True Color records by tier across days of the week" width="650"/>
 
 <br>
 
 4. Lastly, bar charts showing the distribution of depth values by parameter, location type, and tier:
 
-<img src="3_harmonize/out/cdom_tier_top_depth_dist_postagg.png" alt="Distribution of harmonized_top_top_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
+<img src="3_harmonize/out/tc_tier_top_depth_dist_postagg.png" alt="Distribution of harmonized_top_top_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
 
-<img src="3_harmonize/out/cdom_tier_bottom_depth_dist_postagg.png" alt="Distribution of harmonized_top_bottom_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
+<img src="3_harmonize/out/tc_tier_bottom_depth_dist_postagg.png" alt="Distribution of harmonized_top_bottom_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
 
-<img src="3_harmonize/out/cdom_tier_discrete_depth_dist_postagg.png" alt="Distribution of harmonized_discrete_depth_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
+<img src="3_harmonize/out/tc_tier_discrete_depth_dist_postagg.png" alt="Distribution of harmonized_discrete_depth_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
 
 <br>

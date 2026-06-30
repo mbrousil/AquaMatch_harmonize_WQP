@@ -91,7 +91,7 @@ harmonize_tc <- function(raw_tc, p_codes){
             file = param_change_table_out_path)  
   
   if(any(is.na(tc_narrowed$parameter))){
-    stop("Unexpected values generated when classifying parameters by CharacteristicName.")
+    cli_abort("Unexpected values generated when classifying parameters by CharacteristicName.")
   }
   
   # Catch up to naming that follows
@@ -773,8 +773,15 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   # Before creating tiers remove records that have clearly unrelated or unreliable
   # data based on their method.
-  # (None currently)
-  tc_relevant <- flagged_depth_tc
+  unrelated_text <- paste0(c("2320", "alkalin"),
+                           collapse = "|")
+  
+  tc_relevant <- flagged_depth_tc %>%
+    filter(
+      !grepl(pattern = unrelated_text,
+             x = ResultAnalyticalMethod.MethodName,
+             ignore.case = TRUE)
+    )
   
   # How many records removed due to irrelevant analytical methods?
   print(
@@ -789,89 +796,98 @@ harmonize_tc <- function(raw_tc, p_codes){
   tiered_methods_tc <- tc_relevant %>%
     mutate(
       tier = case_when(
-        # Tier 0: Has appropriate (and consistent) CharacteristicName, methods cols,
-        #         ResultMeasure.MeasureUnitCode, and ResultSampleFractionText is
-        #         filtered
-        
-        # Absorbance at 254 nm Tier 0
-        parameter == "Absorbance at 254 nm" &
-          ResultMeasure.MeasureUnitCode %in% c("#/cm", "units/cm", "cm") &
-          ResultSampleFractionText == "Dissolved" ~ 0,
-        
-        # Absorbance at 280 nm Tier 0
-        (
-          parameter == "Absorbance at 280 nm" &
-            (
-              # Method name checks out, has units, is dissolved
-              (ResultAnalyticalMethod.MethodName %in%
-                 c("Absorbance, 200 to 800 nm", "UV Absorb, 280 nm, GFF (NWQL)",
-                   "UV Absorb, 280 nm, Supor (annon)", "UV Absorb, 280 nm,silver (annon)")) &
-                ResultMeasure.MeasureUnitCode %in% c("units/cm", "AU/cm") &
-                ResultSampleFractionText == "Dissolved"
-              # OR...
+        # Tier 0:      
+        # Apparent color: Total fraction, units not "none", 2120 C methods or
+        # EPA 110.3, HACH 8025
+        parameter == "Apparent color" & 
+          ResultSampleFractionText %in% c("Total", "Non-Filterable", 
+                                          "Non-Filterable (Particle)", 
+                                          "None", "Suspended", "Unfiltered")  &
+          ResultMeasure.MeasureUnitCode != "None" &
+          ( 
+            grepl(
+              x = ResultAnalyticalMethod.MethodName,
+              pattern = "2120C|2120-C|110.3|8025"
             ) |
-            # NA methods with relevant USGSPCode
-            (
-              is.na(ResultAnalyticalMethod.MethodName) &
-                (USGSPCode == "61726")
-            )
-        ) ~ 0,
+              grepl(
+                x = ResultAnalyticalMethod.MethodIdentifier,
+                pattern = "2120C|2120-C|110.3|8025"
+              ) 
+          ) ~ 0,
         
-        # Absorbance at 370 nm Tier 0
-        parameter == "Absorbance at 370 nm" &
-          ResultMeasure.MeasureUnitCode == "AU/cm" ~ 0,
+        # True Color : Same as Apparent, but "Dissolved" fraction
+        parameter == "True color" & 
+          ResultSampleFractionText %in% c("Dissolved", "Acid Soluble", "Filterable",
+                                          "Filtered, field", "Filtered, lab") &
+          ResultMeasure.MeasureUnitCode != "None" &
+          ( 
+            grepl(
+              x = ResultAnalyticalMethod.MethodName,
+              pattern = "2120C|2120-C|110.3|8025"
+            ) |
+              grepl(
+                x = ResultAnalyticalMethod.MethodIdentifier,
+                pattern = "2120C|2120-C|110.3|8025"
+              ) 
+          ) ~ 0,
         
-        # Absorbance at 412 nm Tier 0
-        parameter == "Absorbance at 412 nm" &
-          ResultMeasure.MeasureUnitCode == "AU/cm" &
-          ResultSampleFractionText == "Dissolved" ~ 0,
+        # Tier 1: Same as above with 2120B and 110.2 methods
+        # Apparent color
+        parameter == "Apparent color" & 
+          ResultSampleFractionText %in% c("Total", "Non-Filterable", 
+                                          "Non-Filterable (Particle)", 
+                                          "None", "Suspended", "Unfiltered")  &
+          ResultMeasure.MeasureUnitCode != "None" &
+          ( 
+            grepl(
+              x = ResultAnalyticalMethod.MethodName,
+              pattern = "2120B|2120-B|110.2|visual|CC003",
+              ignore.case = TRUE
+            ) |
+              grepl(
+                x = ResultAnalyticalMethod.MethodIdentifier,
+                pattern = "2120B|2120-B|110.2|visual|CC003",
+                ignore.case = TRUE
+              ) 
+          ) ~ 1,
         
-        # Absorbance at 440 nm Tier 0
-        parameter == "Absorbance at 440 nm" &
-          ResultMeasure.MeasureUnitCode == "AU/cm" &
-          ResultSampleFractionText == "Dissolved" ~ 0,
+        # True Color
+        parameter == "True color" & 
+          ResultSampleFractionText %in% c("Dissolved", "Acid Soluble", "Filterable",
+                                          "Filtered, field", "Filtered, lab") &
+          ResultMeasure.MeasureUnitCode != "None" &
+          ( 
+            grepl(
+              x = ResultAnalyticalMethod.MethodName,
+              pattern = "2120B|2120-B|110.2|visual|CC003",
+              ignore.case = TRUE
+            ) |
+              grepl(
+                x = ResultAnalyticalMethod.MethodIdentifier,
+                pattern = "2120B|2120-B|110.2|visual|CC003",
+                ignore.case = TRUE
+              ) 
+          ) ~ 1,
         
-        # Absorption spectral slope variations
-        grepl(pattern = "Absorption spectral slope", x = parameter) & 
-          ( is.na(ResultMeasure.MeasureUnitCode) | ResultMeasure.MeasureUnitCode == "None" ) &
-          ResultSampleFractionText == "Dissolved" ~ 0,
+        # Some additional True Color samples with a non-standard wavelength
+        parameter == "True color" & 
+          ResultSampleFractionText =="Dissolved" &
+          ResultMeasure.MeasureUnitCode == "PCU" &
+          ( 
+            grepl(
+              x = ResultAnalyticalMethod.MethodName,
+              pattern = "345|440"
+            ) |
+              grepl(
+                x = ResultAnalyticalMethod.MethodIdentifier,
+                pattern = "345|440"
+              ) 
+          ) ~ 1,
         
-        # FDOM Tier 0:
-        parameter == "FDOM" &
-          USGSPCode == 32295 &
-          ResultMeasure.MeasureUnitCode == "ug/l QSE" &
-          ResultSampleFractionText == "Dissolved" ~ 0,
-        
-        parameter == "FDOM" &
-          ResultMeasure.MeasureUnitCode == "RU" &
-          ResultSampleFractionText == "Dissolved" ~ 0,
-        
-        # Fluorescence Index Tier 0:
-        parameter == "Fluorescence index" &
-          grepl(pattern = "nm", x = ResultAnalyticalMethod.MethodName) ~ 0,
-        
-        # SUVA Tier 0:
-        parameter == "SUVA" &
-          # Method options
-          (
-            USGSPCode == 63162 |
-              ResultAnalyticalMethod.MethodIdentifier %in% c("5910-B", "415.3") |
-              ResultAnalyticalMethod.MethodName == "UV absorbance, 254 nm"
-          ) &
-          ResultSampleFractionText == "Dissolved" ~ 0,
-        
-        # Tier 1: Mismatch in methods, etc.
-        
-        # Tier 2: Fraction is total, important information missing, etc.
-        is.na(ResultMeasure.MeasureUnitCode) |
-          ResultMeasure.MeasureUnitCode %in% c("None", "nm") |
-          is.na(ResultSampleFractionText) |
-          ResultSampleFractionText %in% c("Total", "None") ~ 2,
-        
-        # Default is Tier 2
+        # Default to inclusive tier (2)
         .default = 2
       )
-    ) 
+    )
   
   # Export a record of how methods were tiered and their respective row counts
   tier_group_cols <- c(
@@ -896,7 +912,7 @@ harmonize_tc <- function(raw_tc, p_codes){
     mutate(min_value = min(harmonized_value),
            max_value = max(harmonized_value)) %>%
     ungroup() %>%
-    select(tier_group_cols, min_value, max_value, n) %>%
+    select(all_of(tier_group_cols), min_value, max_value, n) %>%
     distinct() %>%
     arrange(desc(n)) 
   
@@ -906,7 +922,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   # Confirm that no rows were lost during tiering
   if(nrow(tc_relevant) != nrow(tiered_methods_tc)){
-    stop("Rows were lost during analytical method tiering. This is not expected.")
+    cli_abort("Rows were lost during analytical method tiering. This is not expected.")
   }  
   
   dropped_methods <- tibble(

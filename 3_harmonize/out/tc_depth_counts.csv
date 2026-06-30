@@ -1,0 +1,13 @@
+depth_agg_flag,harmonized_units,n
+<=1m,ADMI value,14834
+<=1m,None,4023
+<=1m,PCU,691663
+<=5m,ADMI value,40
+<=5m,None,363
+<=5m,PCU,58520
+>5m,ADMI value,10
+>5m,None,334
+>5m,PCU,13400
+No or inconsistent depth,ADMI value,815
+No or inconsistent depth,None,18773
+No or inconsistent depth,PCU,276872

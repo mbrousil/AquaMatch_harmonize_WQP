@@ -1,0 +1,210 @@
+parameter,CharacteristicName,ResultAnalyticalMethod.MethodName,USGSPCode,ResultAnalyticalMethod.MethodIdentifier,ResultAnalyticalMethod.MethodIdentifierContext,ResultMeasure.MeasureUnitCode,ResultSampleFractionText,tier,min_value,max_value,n
+True color,Color,NA,00080,NA,NA,PCU,Dissolved,2,0,100000,130788
+True color,True color,NA,NA,WQ-1,21FLSFWM,PCU,Total,2,1,9892,95390
+True color,True color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,Total,2,0,38000,93389
+True color,True color,2120 C ~ Color in Water by Spectrophotometry,NA,2120-C,APHA,PCU,NA,2,0,1400,76690
+True color,True color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,NA,2,0.5,1400,54650
+Apparent color,Apparent color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,Total,1,0.03358575107995421,2322,40716
+True color,True color,NA,NA,2120-B,APHA,PCU,Total,2,1.51,6400,40358
+True color,True color,NA,NA,110.2,USEPA,PCU,Total,2,0,1700,32162
+Apparent color,Apparent color,Color Analysis Using Platinum/Cobalt,NA,110.2,USEPA,PCU,Total,1,0,10000,26348
+True color,Color,"Color, wf, visual comparison",00080,CC003,USGS,PCU,Dissolved,1,1,4000,22247
+Apparent color,Apparent color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,NA,2,0,1000,21379
+Apparent color,Apparent color,NA,00081,NA,NA,PCU,Total,2,1,1900,21346
+True color,True color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,Dissolved,1,0,1588,20801
+True color,True color,Color Analysis Using Platinum/Cobalt,NA,110.2,USEPA,PCU,Total,2,0,15500,18904
+Apparent color,Apparent color,Color Analysis Using Platinum/Cobalt,NA,110.2,USEPA,PCU,NA,2,0,6400,18589
+Apparent color,Apparent color,NA,NA,NA,NA,None,NA,2,1,260,16569
+True color,True color,2120 C ~ Color in Water by Spectrophotometry,NA,2120-C,APHA,PCU,Total,2,0,839.6,16479
+Apparent color,Apparent color,NA,NA,110.2,USEPA,PCU,Total,1,2,2000,14167
+True color,True color,Color Analysis Using Platinum/Cobalt,NA,110.2,USEPA,PCU,NA,2,0,1460,13521
+True color,True color,NA,NA,2120-B,APHA,PCU,NA,2,0,3400,13278
+True color,True color,Other or Unknown Procedure,NA,OTHER/UNKNOWN,21FLSJWM_WQX,PCU,Total,2,0,1406.67761,13275
+Apparent color,Apparent color,NA,NA,110.2,USEPA,PCU,NA,2,3,5000,12401
+True color,True color,COLOR 345 F .45,NA,COLOR345F_.45,21FLHILL_WQX,PCU,Dissolved,1,1.4,581.4,12223
+Apparent color,Apparent color,COLOR (PLATINUM-COBALT UNITS),NA,LEG_P00080,MNPCA,PCU,Dissolved,2,0,888,10929
+Apparent color,Apparent color,2120 C ~ Color in Water by Spectrophotometry,NA,2120-C,APHA,PCU,Total,0,0.002053406205959618,4480,8885
+True color,True color,Color in Water by Spectrophotometry Modified,NA,2120-B(M),21FLORAN_WQX,PCU,Total,2,0.3,1168,8009
+True color,True color,NA,NA,2120-C,APHA,PCU,Total,2,0,2140,7808
+True color,True color,Color - Spectrophotometric Single Wavelength Method,NA,0030,21NEV1_WQX,PCU,NA,2,0.0013092340668663383,300,6912
+True color,True color,NA,NA,110.2,USEPA,PCU,NA,2,0.5,930,6884
+True color,True color,Not Available,NA,Not Available,OREGONDEQ,PCU,NA,2,0.0020405693212524056,1380,6817
+Apparent color,Apparent color,NA,NA,2120-B,APHA,PCU,Total,1,0,600,5924
+True color,True color,Color - Pt/Co units,NA,COLOR,21FLHILL_WQX,PCU,Dissolved,2,1,484,5326
+True color,True color,Color Analysis Using Platinum/Cobalt,NA,110.2,USEPA,PCU,Filterable,1,0,15500,5326
+True color,True color,2120 C ~ Color in Water by Spectrophotometry,NA,2120-C,APHA,PCU,Dissolved,0,0,670,5264
+True color,True color,Color - Visual Comparison Method,NA,0029,21NEV1_WQX,PCU,NA,2,0.02738485229201615,120,5147
+Apparent color,Apparent color,NA,NA,GENERIC,21FLMANA,PCU,Total,2,0,800,5118
+Apparent color,Apparent color,General Listing of Field and Lab Analytical Procedures for Manatee County,NA,GENERIC,21FLMANA_WQX,PCU,Total,2,0,800,5117
+True color,True color,SM2120C,NA,SM2120C,21FLSFWM_WQX,PCU,Total,2,1,833,5038
+Apparent color,Apparent color,LEGACY,NA,NPS_LEGACY,11NPSWRD_WQX,PCU,NA,2,0,110000,4771
+True color,True color,COLOR 345 C,NA,COLOR345C,21FLHILL_WQX,PCU,Dissolved,1,1,647.8,4769
+True color,True color,2120 E ~ Color in Water Using the ADMI Method,NA,2120-E,APHA,ADMI value,Total,2,10,300,4585
+True color,True color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,None,Total,2,0.02586849848739803,5000,4346
+True color,True color,Color Analysis Using Platinum/Cobalt,NA,110.2,USEPA,PCU,Dissolved,1,1.35,1000,4181
+True color,True color,NA,NA,NA,NA,PCU,Filterable,2,0,500,4144
+Apparent color,Apparent color,QA Plan #900456,NA,900456,21FLGW_WQX,PCU,Total,2,0.019089860725216568,1000,4102
+True color,True color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,Non-Filterable (Particle),2,5,750,4040
+Apparent color,Apparent color,NA,NA,2120-B,APHA,PCU,NA,2,0.02,1000,3881
+True color,True color,NA,NA,110.2,USEPA,PCU,Filterable,1,0,2334.36945,3870
+Apparent color,Apparent color,Color,NA,COLOR,21FLMANA_WQX,PCU,Total,2,0,868,3710
+True color,True color,Laboratory Procedures for Water Quality Chemical Analysis,NA,WQ-1,21FLSFWM_WQX,PCU,Total,2,1,749,3539
+True color,True color,"Color, APHA Platinum-Cobalt",NA,8025,HACH,PCU,Total,2,0,512,3525
+True color,True color,COLOR,NA,SM2120B,21FLLCPC_WQX,PCU,Total,2,1.4,1044,3475
+True color,True color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,None,2,0.011713856365531683,490,3364
+Apparent color,Apparent color,2120 C ~ Color in Water by Spectrophotometry,NA,2120-C,APHA,PCU,Dissolved,2,0,248,3200
+True color,True color,NA,NA,UNKNOWN,21NC01WQ,PCU,NA,2,0,4000,3002
+True color,True color,DEP-SOP-NU-094,NA,DEP-SOP-NU-094,21FLGW_WQX,PCU,NA,2,2.5,1000,2972
+True color,True color,Color,NA,COLOR,21FLMANA_WQX,PCU,Total,2,0,509,2832
+True color,True color,COLOR (PLATINUM-COBALT UNITS),NA,LEG_P00080,MNPCA,PCU,Dissolved,2,5,540,2802
+True color,True color,STANDARD METHODS 2120B COLOR BY VISUAL,NA,2120B,21FLWPB_WQX,PCU,Filterable,1,0.1060385110322386,1200,2753
+Apparent color,Apparent color,"Color, APHA Platinum-Cobalt",NA,8025,HACH,PCU,Total,0,0,918,2610
+True color,True color,USEPA Methods for Chemical Analysis or Water and Wastewater; EPA 600/4-79-020,NA,CHEM,21FLCMP_WQX,PCU,Total,2,0,200,2410
+Apparent color,Apparent color,NA,NA,SOP-2,21FLSARA,PCU,Total,2,2,560,2362
+Apparent color,Apparent color,Standard Methods for the Examination of Water and Wastewater,NA,STANDMETH,21FLPNS_WQX,PCU,Total,2,0.08680277620442212,800,2279
+True color,True color,NA,NA,I1250,USDOI/USGS,PCU,NA,2,0,325,2193
+True color,True color,NA,NA,CLR_PHSAMP,21NC01WQ,ADMI value,NA,2,1,1000,2138
+True color,True color,2120 C ~ Color in Water by Spectrophotometry,NA,2120-C,APHA,PCU,None,2,0.008940888801589608,1040,2098
+True color,True color,NA,NA,CLR_PH76,21NC01WQ,ADMI value,NA,2,1,1100,2078
+Apparent color,Apparent color,Standard Methods for the Examination of Water and Wastewater,NA,STANDMETH,21FLPNS_WQX,PCU,NA,2,1,600,1918
+True color,True color,"Color, APHA Platinum-Cobalt",NA,8025,HACH,PCU,NA,2,0,87,1865
+Apparent color,Apparent color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,None,1,0.0013898365432396531,400,1863
+Apparent color,Apparent color,NA,NA,COLOR,21FLMANA,PCU,Total,2,1.4,780,1842
+True color,True color,NA,NA,COLOR_SAMPLE PH,21NC02WQ,ADMI value,NA,2,0,1000,1819
+True color,True color,NA,NA,COLOR_PH7.6,21NC02WQ,ADMI value,NA,2,2,1100,1818
+Color,Color,Color Analysis Using Platinum/Cobalt,NA,110.2,USEPA,PCU,NA,2,0,350,1734
+Apparent color,Apparent color,Standard Methods for the Examination of Water and Wastewater,NA,STANDARDMETH,21FLBFA_WQX,PCU,Total,2,3,1000,1685
+True color,True color,Color by Calculating ADMI Values,NA,110.1,USEPA,PCU,NA,2,0,105,1490
+True color,True color,NA,NA,SOP-1,21FLMCGL,PCU,NA,2,2,840,1475
+True color,True color,NA,NA,NA,NA,PCU,NA,2,0,400,1465
+Color,Color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,None,2,10,1120,1408
+True color,True color,NA,NA,NA,NA,PCU,Total,2,1,130,1240
+True color,True color,Measurement of Water Color,NA,TB_253,NCASI,PCU,Total,2,4,225,1220
+True color,True color,SM2120C,NA,SM2120C,21FLSFWM_WQX,PCU,NA,2,2,460,1219
+Apparent color,Apparent color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,pt,NA,2,0.0046622115187346935,550,1144
+True color,True color,2120 E ~ Color in Water Using the ADMI Method,NA,2120-E,APHA,ADMI value,NA,2,10,130,1099
+True color,True color,Color - Visual Comparison Method,NA,0029,21NEV1_WQX,None,NA,2,0.013540374930016696,120,1037
+Apparent color,Apparent color,2120 C ~ Color in Water by Spectrophotometry,NA,2120-C,APHA,PCU,NA,2,0,154,1029
+True color,True color,DEP-SOP-NU-094,NA,DEP-SOP-NU-094,21FLCEN_WQX,PCU,NA,2,2.5,660,966
+True color,True color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,None,NA,2,0,100,939
+True color,True color,DEP-SOP-NU-094,NA,DEP-SOP-NU-094,21FLPNS_WQX,PCU,NA,2,2.5,510,928
+True color,True color,DEP-SOP-NU-094,NA,DEP-SOP-NU-094,21FLTPA_WQX,PCU,NA,2,2.5,750,896
+True color,True color,DEP-SOP-NU-094,NA,DEP-SOP-NU-094,21FLWPB_WQX,PCU,NA,2,2.5,810,883
+Apparent color,Apparent color,LAKE COUNTY QUALITY SYSTEMS MANUAL,NA,LCQSM,21FLLCPC_WQX,PCU,Total,2,1,1750,874
+Apparent color,Apparent color,"Color, APHA Platinum-Cobalt",NA,8025,HACH,PCU,NA,2,0,874,856
+True color,True color,DEP-SOP-NU-094,NA,DEP-SOP-NU-094,21FLFTM_WQX,PCU,NA,2,2.5,1000,851
+True color,True color,NA,NA,SOP-2,21FLVEMD,PCU,Filterable,2,0,798,832
+True color,True color,NA,NA,110.2,USEPA,PCU,Dissolved,1,2,600,822
+True color,True color,DEP-SOP-NU-094,NA,DEP-SOP-NU-094,21FLCHAR_WQX,PCU,NA,2,2.5,230,781
+Apparent color,Apparent color,NA,NA,8025,HACH,PCU,Total,0,0,550,759
+True color,True color,NA,NA,8025,HACH,PCU,Total,2,0,500,756
+True color,True color,"Color, True",NA,SM 2120 B,21FLPDEM_WQX,PCU,Total,2,15,250,705
+True color,True color,Estero Bay Aquatic Preserve tributary sampling,NA,EBAP,21FLEECO_WQX,PCU,Total,2,2.19,175,692
+True color,True color,NA,NA,2120-B,APHA,PCU,Dissolved,1,2,800,690
+True color,True color,Other of Unknown Procedure,NA,OTHER/UNKNOWN,21FLSUW_WQX,PCU,Total,2,0.53919,920.72223,656
+True color,True color,NA,NA,I-1250-85,FLPRMRWS,PCU,NA,2,5,360,650
+Apparent color,Apparent color,NA,NA,NA,NA,PCU,NA,2,0,700,646
+True color,True color,DEP-SOP-NU-094,NA,DEP-SOP-NU-094,21FLA_WQX,PCU,NA,2,2.5,780,616
+True color,True color,NA,NA,2120-B,APHA,PCU,Non-filterable,2,7,625,606
+True color,True color,NA,NA,COLOR_PH7.6,21NC02WQ,ADMI value,Total,2,25,214,594
+True color,True color,NA,NA,COLOR_SAMPLE PH,21NC02WQ,ADMI value,Total,2,25,213,592
+Apparent color,Apparent color,"Apparent Color, Hach Color Wheel Method",NA,HACH COLOR,MNPCA,PCU,Dissolved,2,5.5,450,587
+Apparent color,Apparent color,Color by Calculating ADMI Values,NA,110.1,USEPA,PCU,Total,2,5,600,569
+True color,True color,NA,NA,SM 2120 B,21FLPDEM,PCU,Total,2,20,1300,555
+True color,True color,Historic Procedure,NA,HISTORIC-MONT-DEQ,MONT_DEQ_WQX,PCU,Total,2,0,75,533
+True color,True color,NA,NA,2120-B,APHA,PCU,Filterable,1,1.6,272,529
+True color,True color,2120 E ~ Color in Water Using the ADMI Method,NA,2120-E,APHA,ADMI value,"Filtered, lab",2,0.0039062186842784286,396,504
+True color,True color,Color Analysis Using Platinum/Cobalt,NA,110.2,USEPA,PCU,Non-Filterable (Particle),2,0.5,215.2,493
+Apparent color,Apparent color,"COLOR,APPARENT(UNFILTERED SAMPLE) PLAT-COB UNITS",NA,LEG_P00081,MNPCA,PCU,Dissolved,2,5,471,489
+True color,Color,Color (EPA),00080,CL014,USGS,PCU,Dissolved,2,5,600,421
+True color,True color,COLOR 440 F .22,NA,COLOR440F_.22,21FLHILL_WQX,PCU,Dissolved,1,4.9,1402.1,394
+Apparent color,Apparent color,Harrel's Apparent Color Procedure at BITH,NA,BITH_HAR_COLOR,11NPSWRD_WQX,PCU,Total,2,10,600,390
+True color,True color,NA,NA,110.3,USEPA,PCU,Total,2,13,105,341
+True color,True color,SM182120B,NA,SM182120B,21FLSFWM_WQX,PCU,Total,2,10,400,335
+Apparent color,Apparent color,Field Office procedures,NA,MDE,MDEDAT06_WQX,None,NA,2,2,60,323
+Apparent color,Apparent color,"Color, APHA Platinum-Cobalt",NA,8025,KAWNATON_WQX,PCU,NA,2,0,550,322
+True color,True color,"Color, APHA Platinum-Cobalt",NA,8025,KAWNATON_WQX,PCU,Total,2,0,1471,318
+True color,True color,NA,NA,2120-C,APHA,PCU,NA,2,1.1,288,292
+True color,True color,DEP-SOP-NU-094,NA,DEP-SOP-NU-094,21FLGTM_WQX,PCU,NA,2,2.5,640,274
+True color,True color,Color by Calculating ADMI Values,NA,110.1,USEPA,ADMI value,Dissolved,2,0.3,53,270
+True color,True color,LEGACY,NA,NPS_LEGACY,11NPSWRD_WQX,PCU,Total,2,0,75,269
+True color,True color,DEP-SOP-NU-094,NA,DEP-SOP-NU-094,21FLWQA_WQX,PCU,NA,2,2.5,530,261
+True color,True color,Standard Methods for the Examination of Water and Wastewater,NA,STANDARDMETH,21FLBFA_WQX,PCU,Total,2,5,250,240
+True color,True color,Standard Operation Procedure,NA,HISTORICAL,21FLCEN_WQX,PCU,Total,2,1,700,236
+True color,True color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,CU,NA,2,0.3075125941541046,100,230
+True color,True color,Color by Spectrophotometric Analysis,NA,110.3,USEPA,PCU,Dissolved,0,1,289,222
+True color,True color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,Filterable,1,4,450,215
+True color,True color,Lake Trafford,NA,LKTRAFF,21FLCOLL_WQX,PCU,Total,2,15,300,213
+Apparent color,Apparent color,Apparent color (StdMeth /DODEC),00081,CC004,USGS,PCU,Total,2,1,669,208
+True color,True color,To be updated,NA,SOP-2,21FLTPA_WQX,PCU,Filterable,2,5,550,200
+True color,True color,Legacy STORET migration; analytical procedure not specified,NA,LEG_UNKNOWN,MNPCA,PCU,Dissolved,2,5,50,194
+True color,True color,NA,NA,2120B,21FLVEMD,PCU,Dissolved,1,5,640,172
+Apparent color,Apparent color,"Color, APHA Platinum-Cobalt",NA,8025,HACH,CU,NA,2,14,547,171
+True color,True color,For determination of Copper by the Bicinchoninate method.,NA,8026,HACH,CU,NA,2,12,436,171
+True color,True color,DEP-SOP-NU-094,NA,DEP-SOP-NU-094,21FLWQSP_WQX,PCU,NA,2,2.5,1000,166
+True color,True color,EPA110.2,NA,EPA110.2,21FLSFWM_WQX,PCU,Total,2,5,82,163
+True color,True color,LAKE COUNTY QUALITY SYSTEMS MANUAL,NA,LCQSM,21FLLCPC_WQX,PCU,Dissolved,2,8.1,621,139
+True color,True color,NA,NA,NA,NA,None,Total,2,1,15,124
+True color,True color,NA,NA,SOP-2,21FLVEMD,PCU,NA,2,3,583,112
+True color,True color,For determination of Copper by the Bicinchoninate method.,NA,8026,HACH,PCU,NA,2,11,760,101
+Apparent color,Apparent color,LAKE COUNTY QUALITY SYSTEMS MANUAL,NA,LCQSM,21FLLCPC_WQX,PCU,NA,2,40,450,98
+True color,True color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,CU,Total,2,4,340,93
+Apparent color,Apparent color,HACH KIT,NA,HK,MEDEP_WQX,PCU,Total,2,5,125,92
+Apparent color,Apparent color,Legacy STORET migration; analytical procedure not specified,NA,LEG_UNKNOWN,MNPCA,PCU,Dissolved,2,9,240,84
+Apparent color,Apparent color,Apparent color (EPA110.2 /DODEC),00081,CC001,USGS,PCU,Total,1,5,200,82
+Apparent color,Apparent color,LaMotte Smart 2 Colorimeter,NA,NPS_LAM_SMARTC2,11NPSWRD_WQX,PCU,Total,2,0,746,68
+True color,True color,Laboratory Procedures for Water Quality Chemical Analysis,NA,WQ-1,21FLSFWM_WQX,PCU,NA,2,1,188,65
+Apparent color,Apparent color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,Dissolved,2,2,280,64
+True color,True color,Field Office procedures,NA,MDE,MDEDAT06_WQX,ADMI value,Total,2,3,10,64
+True color,True color,NA,NA,SM 2120 B,21FLPDEM,PCU,NA,2,35,140,61
+True color,True color,2120 C ~ Color in Water by Spectrophotometry,NA,2120-C,APHA,PCU,"Filtered, field",0,1.3662239089184,78.76,57
+True color,True color,Standard Methods for the Examination of Water and Wastewater,NA,STANDARDMETH,21FLBFA_WQX,PCU,Filterable,2,20,250,54
+True color,True color,MA Department of Environmental Quality Engineering Unspecified,NA,SAIR_MADEQE_UNSPEC,11NPSWRD_WQX,PCU,Unfiltered,2,0,50,54
+True color,True color,Color Analysis Using Platinum/Cobalt,NA,110.2,USEPA,ADMI value,Total,2,15,100,50
+True color,True color,N/A Calculation,NA,N/A Calculation,TCEQMAIN,None,Total,2,3,3,45
+True color,True color,Color by Calculating ADMI Values,NA,110.1,USEPA,ADMI value,Total,2,4.02,331,41
+True color,True color,NA,NA,COLOR,21FLSCCF,PCU,NA,2,2.85,24,39
+Apparent color,Apparent color,Color in Water by Visual Comparison,NA,I1250,USDOI/USGS,None,NA,2,1,1,38
+Apparent color,Apparent color,Other of Unknown Procedure,NA,OTHER/UNKNOWN,21FLSUW_WQX,PCU,Total,2,5,1080,38
+Apparent color,Apparent color,I1250,NA,I1250,WYDEQ_WQX,None,NA,2,1,1,38
+Apparent color,Apparent color,"Field measurement/observation, generic method",NA,FLD,MNPCA,PCU,Total,2,30,140,35
+Color,Color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,Total,2,0,160,34
+True color,True color,NA,NA,HISTORIC,21COL001,PCU,NA,2,5,70,34
+True color,True color,"Field measurement/observation, generic method",NA,FLD,MNPCA,PCU,Total,2,20,100,33
+True color,True color,10-308-00-1 A ~ Determination of Color in Water,NA,10-308-00-1-A,LACHAT,PCU,Total,2,3,250,32
+Apparent color,Apparent color,Color by APHA Standard Methods (13th Ed.) Method 118,NA,NPS_SM13_118,11NPSWRD_WQX,CU,NA,2,5,100,31
+Apparent color,Apparent color,Color in the Field by Unknown Limnology Color Chart,NA,PINN_LIMNUN_CLR,11NPSWRD_WQX,None,NA,2,56,111,31
+True color,True color,Standard Analytical Procedure,NA,SOP-ANALY,21FLCEN_WQX,PCU,Total,2,5,400,28
+True color,True color,NA,NA,110.1,USEPA,PCU,Total,2,5,50,27
+True color,True color,N/A Calculation,NA,N/A Calculation,TCEQMAIN,PCU,Total,2,60,200,24
+True color,True color,Color by Spectrophotometric Analysis,NA,110.3,USEPA,PCU,Total,2,12,63,24
+Apparent color,Apparent color,2120 E ~ Color in Water Using the ADMI Method,NA,2120-E,APHA,ADMI value,Total,2,5,23,24
+Apparent color,Apparent color,Color by Calculating ADMI Values,NA,110.1,USEPA,ADMI value,NA,2,1.69,79.7,23
+Apparent color,Apparent color,"Apparent Color, Hach Color Wheel Method",NA,HACH COLOR,MNPCA,PCU,Total,2,10,75,20
+True color,True color,LAKE COUNTY QUALITY SYSTEMS MANUAL,NA,LCQSM,21FLLCPC_WQX,PCU,Total,2,110,605,15
+True color,True color,NA,NA,COLOR,CITYOFPG,PCU,NA,2,23,106,13
+Color,Color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,CU,NA,2,0.5659699701936916,160,9
+Apparent color,Apparent color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,CU,Total,1,15,225,8
+True color,True color,To be updated,NA,SOP-2,21FLTPA_WQX,PCU,Total,2,100,500,7
+Apparent color,Apparent color,Color in Water by Spectrophotometry,NA,2120-C,MEDEP_WQX,PCU,Total,0,48.8,228,5
+Apparent color,Apparent color,Multiple Analyses by Standard Methods or EPA-Approved Procedures,NA,BELA_SMEPA_ALL,11NPSWRD_WQX,PCU,NA,2,2.8,12.3,5
+Color,Color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,PCU,NA,2,25,50,4
+True color,True color,NA,NA,SM2120B,21FLORAN,PCU,Total,2,75,300,4
+True color,True color,FIIR - NPHL,NA,FIIR,FIIR,CU,NA,2,2.4670841736951843,5,3
+True color,Color,NA,00080,2,USGS,PCU,Dissolved,2,20,40,3
+True color,True color,Analytical procedure not specified,NA,UNKNOWN,MNPCA,PCU,Total,2,26,38,3
+Apparent color,Apparent color,Color Analysis Using Platinum/Cobalt,NA,110.2,USEPA,PCU,Dissolved,2,42,55,3
+True color,True color,DEP-SOP-NU-094,NA,DEP-SOP-NU-094,21FLGWMS_WQX,PCU,NA,2,60,120,3
+Apparent color,Apparent color,NA,NA,NA,NA,PCU,Total,2,15,64,2
+True color,True color,USEPA Methods for Chemical Analysis or Water and Wastewater; EPA 600/4-79-020,NA,CHEM,21FLCMP_WQX,PCU,Filterable,2,1,1,2
+Apparent color,Apparent color,2120 B ~ Color in Water by Visual Comparison,NA,2120-B,APHA,None,Total,2,16,16,2
+Apparent color,Apparent color,DEP Field Analytical Procedures,NA,DEPSOP 001/01,21FLFTM_WQX,PCU,Total,2,80,100,2
+True color,True color,NA,NA,160.3,USEPA,PCU,Total,2,129,151,2
+Apparent color,Apparent color,Color Analysis Using Platinum/Cobalt,NA,110.2,USEPA,None,NA,2,0,0,1
+Apparent color,Apparent color,General Listing of Field and Lab Analytical Procedures for Manatee County,NA,GENERIC,21FLMANA_WQX,PCU,NA,2,120,120,1
+True color,Color,NA,00080,O,USGS,PCU,Dissolved,2,120,120,1
+True color,True color,NA,NA,4500-F-C,APHA,PCU,Total,2,40,40,1
+True color,True color,Color Analysis Using Platinum/Cobalt,NA,110.2,USEPA,PCU,Suspended,2,120,120,1
+True color,True color,NA,NA,110.2,USEPA,PCU,Acid Soluble,1,40,40,1
+True color,True color,Color in Water by Visual Comparison,NA,I1250,USDOI/USGS,PCU,Dissolved,1,1,1,1
+True color,True color,Measurement of Water Color,NA,TB_253,NCASI,PCU,NA,2,4,4,1

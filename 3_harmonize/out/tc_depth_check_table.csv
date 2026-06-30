@@ -1,0 +1,13 @@
+three_cols_present,only_discrete,discrete_partial_integ,only_top,only_bottom,fully_integrated,no_depths,depth_flag,harmonized_units,n
+0,0,0,0,0,0,1,0,ADMI value,815
+0,0,0,0,0,0,1,0,None,18773
+0,0,0,0,0,0,1,0,PCU,276719
+0,1,0,0,0,0,0,1,ADMI value,14844
+0,1,0,0,0,0,0,1,None,4720
+0,1,0,0,0,0,0,1,PCU,746688
+0,0,0,0,0,1,0,2,ADMI value,40
+0,0,0,0,0,1,0,2,PCU,16714
+0,0,0,0,1,0,0,2,PCU,181
+0,0,0,1,0,0,0,2,PCU,140
+0,0,1,0,0,0,0,3,PCU,1
+1,0,0,0,0,0,0,3,PCU,12

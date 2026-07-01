@@ -983,56 +983,15 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   # Miscellaneous flag ------------------------------------------------------
   
-  # The miscellaneous flag for CDOM is used to flag measurements that exceed
-  # published ranges based on a review of relevant literature. We do this 
-  # instead of filtering them out, but a depth-related filter still occurs in
-  # the next step. 0 = does not exceed published range, 1 = below published minimum,
-  # 2 = above published maximum
-  
+  # Flag values over 1500 as potentially unrealistic (instead of removing them
+  # in the next section)
   
   misc_flagged_tc <- field_flagged_tc %>%
     mutate(
-      misc_flag = case_when(
-        # Minimums (code 1)
-        # Korak and McKay 2024
-        grepl(pattern = "Absorption spectral slope", x = parameter) & 
-          harmonized_value < 0.0026 ~ 1,
-        parameter == "SUVA" &
-          harmonized_value < 0.651 ~ 1,
-        parameter == "Fluorescence index" &
-          harmonized_value < 1.31 ~ 1,
-        
-        # Maximums (code 2)
-        # Yates et al. 2023
-        parameter == "Absorbance at 254 nm" &
-          harmonized_value > 450 ~ 2,
-        # Korak and McKay 2024
-        parameter == "Absorbance at 280 nm" &
-          harmonized_value > 36.1 ~ 2,
-        parameter == "Absorbance at 370 nm" &
-          harmonized_value > 11 ~ 2,
-        parameter == "SUVA" &
-          harmonized_value > 6.83 ~ 2,
-        parameter == "FDOM" &
-          harmonized_units == "RU" &
-          harmonized_value > 4.38 ~ 2,
-        parameter == "Fluorescence index" &
-          harmonized_value > 2.18 ~ 2,
-        grepl(pattern = "Absorption spectral slope", x = parameter) & 
-          harmonized_value > 0.0473 ~ 2,
-        # Brezonik et al. 2019
-        parameter == "Absorbance at 440 nm" &
-          harmonized_value > 14 ~ 2,
-        # Using 440 threshold as conservative max for 412
-        parameter == "Absorbance at 412 nm" &
-          harmonized_value > 14 ~ 2,
-        # Avouris et al. 2025
-        parameter == "FDOM" &
-          grepl(pattern = "ug/L", x = harmonized_units, ignore.case = TRUE) &
-          harmonized_value > 84.4 ~ 2,
-        
-        # Default (code 0)
-        .default = 0
+      misc_flag = if_else(
+        condition = harmonized_value >= 1500,
+        true = 1, 
+        false = 0
       )
     )
   
@@ -1084,8 +1043,6 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   # First tag aggregate subgroups with group IDs
   grouped_tc <- realistic_tc %>%
-    # Don't group records flagged for having high or low values
-    filter(misc_flag == 0) %>%
     group_by(parameter, OrganizationIdentifier, MonitoringLocationIdentifier,
              MonitoringLocationTypeName, ResolvedMonitoringLocationTypeName,
              ActivityStartDate, ActivityStartTime.Time,
@@ -1113,7 +1070,7 @@ harmonize_tc <- function(raw_tc, p_codes){
     write_feather(path = grouped_tc_out_path)
   
   # Now aggregate at the subgroup level to take care of simultaneous observations
-  no_simul_tc_partial <- grouped_tc %>%
+  no_simul_tc <- grouped_tc %>%
     # Make sure we don't drop subgroup ID
     group_by(subgroup_id, .add = TRUE) %>%
     summarize(
@@ -1139,14 +1096,6 @@ harmonize_tc <- function(raw_tc, p_codes){
       .after = misc_flag
     ) 
   
-  # "full" version will add back flagged values
-  no_simul_tc <- no_simul_tc_partial  %>%
-    bind_rows(.,
-              realistic_tc %>%
-                filter(misc_flag != 0) %>%
-                select(any_of(names(no_simul_tc_partial)))
-    )
-  
   rm(grouped_tc)
   gc()
   
@@ -1164,26 +1113,12 @@ harmonize_tc <- function(raw_tc, p_codes){
         x = tier_label,
         levels = c("Restrictive (Tier 0)", "Narrowed (Tier 1)", "Inclusive (Tier 2)"),
         ordered = TRUE
-      ),
-      param_label = case_when(
-        parameter == "Absorbance at 254 nm" ~ "Abs 254 nm",
-        parameter == "Absorbance at 280 nm" ~ "Abs 280 nm",
-        parameter == "Absorbance at 370 nm" ~ "Abs 370 nm", 
-        parameter == "Absorbance at 412 nm" ~ "Abs 412 nm",
-        parameter == "Absorbance at 440 nm" ~ "Abs 440 nm",
-        parameter == "Absorption spectral slope, 275 to 295 nm" ~ "Slope 275-295 nm", 
-        parameter == "Absorption spectral slope, 290 to 350 nm" ~ "Slope 290-350 nm",
-        parameter == "Absorption spectral slope, 350 to 400 nm" ~ "Slope 350-400 nm", 
-        parameter == "Absorption spectral slope, 400 to 500 nm" ~ "Slope 400-500 nm",
-        parameter == "Absorption spectral slope, 412 to 600 nm" ~ "Slope 412-600 nm", 
-        parameter == "Absorption spectral slope, 412 to 676 nm" ~ "Slope 412-676 nm",
-        .default = parameter
       )
     )
   
   tier_dists <- no_simul_tc_tier_label %>%
     select(parameter, tier_label, harmonized_value, harmonized_units) %>%
-    mutate(plot_value = harmonized_value) %>%
+    mutate(plot_value = harmonized_value + 0.001) %>%
     ggplot() +
     geom_histogram(aes(plot_value, fill = parameter),
                    color = "black", alpha = 0.85) +
@@ -1191,7 +1126,8 @@ harmonize_tc <- function(raw_tc, p_codes){
     facet_wrap(harmonized_units ~ tier_label, ncol = 3, scales = "free") +
     xlab(expression("Harmonized values")) +
     ylab("Record count") +
-    ggtitle(label = "Distribution of harmonized values by parameter, tier, and unit") +
+    ggtitle(label = "Distribution of harmonized values by parameter, tier, and unit",
+            subtitle = "0.001 added to each value for the purposes of visualization only") +
     scale_x_log10(label = label_scientific()) +
     scale_y_continuous(label = label_number(scale_cut = cut_short_scale())) +
     scale_fill_viridis_d() +
@@ -1205,6 +1141,36 @@ harmonize_tc <- function(raw_tc, p_codes){
          plot = tier_dists,
          width = 8, height = 10, units = "in", device = "png")
   
+  
+  # 1(b): Harmonized values by location, param, unit (not tier, but uses the 
+  # dataset made for tiers)
+  
+  location_tier_dists <- no_simul_tc_tier_label %>%
+    select(parameter, ResolvedMonitoringLocationTypeName, harmonized_value, harmonized_units) %>%
+    mutate(plot_value = harmonized_value + 0.001) %>%
+    ggplot() +
+    geom_histogram(aes(plot_value, fill = parameter),
+                   color = "black", alpha = 0.85) +
+    # facet_wrap allows each facet to have its own axes; grid doesn't
+    facet_wrap(harmonized_units ~ ResolvedMonitoringLocationTypeName, ncol = 3, scales = "free") +
+    xlab(expression("Harmonized values")) +
+    ylab("Record count") +
+    ggtitle(label = "Distribution of harmonized values by location type, tier, and unit",
+            subtitle = "0.001 added to each value for the purposes of visualization only") +
+    scale_x_log10(label = label_scientific()) +
+    scale_y_continuous(label = label_number(scale_cut = cut_short_scale())) +
+    scale_fill_viridis_d() +
+    theme_bw() +
+    theme(
+      strip.text = element_text(size = 7),
+      legend.position = "bottom") +
+    guides(fill = guide_legend(nrow = 5))
+  
+  ggsave(filename = "3_harmonize/out/tc_tier_dists_location_postagg.png",
+         plot = location_tier_dists,
+         width = 8, height = 10, units = "in", device = "png")
+  
+  
   # 2: Harmonized CVs
   
   # There are very few non-NA rows
@@ -1214,7 +1180,6 @@ harmonize_tc <- function(raw_tc, p_codes){
     na.omit() %>%
     nrow()
   
-  # Only tier 0 has non-NAs
   tier_cv_dist <- no_simul_tc_tier_label %>%
     select(parameter, tier_label, harmonized_value_cv) %>%
     mutate(plot_value = harmonized_value_cv + 0.001) %>%
@@ -1261,7 +1226,7 @@ harmonize_tc <- function(raw_tc, p_codes){
       aes(harmonized_top_depth_value, fill = tier_label),
       color = "black") +
     facet_grid(
-      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(param_label),
+      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(parameter),
       scales = "free_y"
     ) +
     scale_fill_viridis_d("Tier", direction = -1) +
@@ -1281,7 +1246,7 @@ harmonize_tc <- function(raw_tc, p_codes){
       aes(harmonized_bottom_depth_value, fill = tier_label),
       color = "black") +
     facet_grid(
-      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(param_label),
+      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(parameter),
       scales = "free_y"
     ) +
     scale_fill_viridis_d("Tier", direction = -1) +
@@ -1301,7 +1266,7 @@ harmonize_tc <- function(raw_tc, p_codes){
       aes(harmonized_discrete_depth_value, fill = tier_label),
       color = "black") +
     facet_grid(
-      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(param_label),
+      cols = vars(ResolvedMonitoringLocationTypeName), rows = vars(parameter),
       scales = "free_y"
     ) +
     scale_fill_viridis_d("Tier", direction = -1) +

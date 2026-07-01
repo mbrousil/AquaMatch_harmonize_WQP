@@ -59,6 +59,9 @@ chapters/
 3_harmonize/out/doc_harmonized_final.csv
 3_harmonize/out/chla_harmonized_final.csv
 3_harmonize/out/sdd_harmonized_final.csv
+3_harmonize/out/tss_harmonized_final.csv
+3_harmonize/out/cdom_harmonized_final.csv
+3_harmonize/out/tc_harmonized_final.csv
 
 # scratch directories
 scratch.R

@@ -1,0 +1,15 @@
+step,reason,short_reason,number_dropped,n_rows,order
+tc harmonization,Starting dataset,Start,0,1117612,0
+tc harmonization,Filtered for only specific water media & relevant parameters,Target water media & parameters,1531,1116081,1
+tc harmonization,Dropped rows containing fail-related language,"Fails, etc.",11132,1104949,2
+tc harmonization,Dropped rows while cleaning MDLs,Clean MDLs,0,1104949,3
+tc harmonization,Dropped rows while cleaning approximate values,Clean approximates,0,1104949,4
+tc harmonization,Dropped rows while cleaning 'greater than' values,Greater thans,0,1104949,5
+tc harmonization,Dropped unresolved NAs,Unresolved NAs,9169,1095780,6
+tc harmonization,Dropped rows while harmonizing units,Harmonize units,16133,1079647,7
+tc harmonization,Dropped rows while cleaning depths,Clean depths,0,1079647,8
+tc harmonization,Dropped rows while tiering analytical methods,Analytical methods,8,1079639,9
+tc harmonization,Dropped rows while assigning field flags,Field flagging,0,1079639,10
+tc harmonization,Dropped rows while assigning misc flags,Misc flagging,0,1079639,11
+tc harmonization,Dropped rows with unrealistic values,Unrealistic values,9,1079630,12
+tc harmonization,Dropped rows while aggregating simultaneous records,Simultaneous records,46593,1033037,13

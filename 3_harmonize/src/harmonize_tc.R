@@ -3,7 +3,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   # Starting values for dataset
   starting_data <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Starting dataset",
     short_reason = "Start",
     number_dropped = 0,
@@ -138,7 +138,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   # Record info on any dropped rows  
   dropped_media <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Filtered for only specific water media & relevant parameters",
     short_reason = "Target water media & parameters",
     number_dropped = nrow(raw_tc) - nrow(tc),
@@ -231,7 +231,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   )
   
   dropped_fails <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Dropped rows containing fail-related language",
     short_reason = "Fails, etc.",
     number_dropped = nrow(tc) - nrow(tc_fails_removed),
@@ -311,7 +311,7 @@ harmonize_tc <- function(raw_tc, p_codes){
            ))
   
   dropped_mdls <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Dropped rows while cleaning MDLs",
     short_reason = "Clean MDLs",
     number_dropped = nrow(tc_fails_removed) - nrow(tc_mdls_added),
@@ -364,7 +364,7 @@ harmonize_tc <- function(raw_tc, p_codes){
            approx_flag = ifelse(index %in% tc_approx$index, 1, 0))
   
   dropped_approximates <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Dropped rows while cleaning approximate values",
     short_reason = "Clean approximates",
     number_dropped = nrow(tc_mdls_added) - nrow(tc_approx_added),
@@ -415,7 +415,7 @@ harmonize_tc <- function(raw_tc, p_codes){
            greater_flag = ifelse(index %in% greater_vals$index, 1, 0))
   
   dropped_greater_than <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Dropped rows while cleaning 'greater than' values",
     short_reason = "Greater thans",
     number_dropped = nrow(tc_approx_added) - nrow(tc_harmonized_values),
@@ -442,7 +442,7 @@ harmonize_tc <- function(raw_tc, p_codes){
     )
   
   dropped_na <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Dropped unresolved NAs",
     short_reason = "Unresolved NAs",
     number_dropped = nrow(tc_harmonized_values) - nrow(tc_no_na),
@@ -522,7 +522,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   )
   
   dropped_harmonization <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Dropped rows while harmonizing units",
     short_reason = "Harmonize units",
     number_dropped = nrow(tc_no_na) - nrow(converted_units_tc),
@@ -748,7 +748,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   )
   
   dropped_depths <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Dropped rows while cleaning depths",
     short_reason = "Clean depths",
     number_dropped = nrow(converted_units_tc) - nrow(flagged_depth_tc),
@@ -926,7 +926,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   }  
   
   dropped_methods <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Dropped rows while tiering analytical methods",
     short_reason = "Analytical methods",
     number_dropped = nrow(flagged_depth_tc) - nrow(tiered_methods_tc),
@@ -972,7 +972,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   )
   
   dropped_field <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Dropped rows while assigning field flags",
     short_reason = "Field flagging",
     number_dropped = nrow(tiered_methods_tc) - nrow(field_flagged_tc),
@@ -1003,7 +1003,7 @@ harmonize_tc <- function(raw_tc, p_codes){
             file = misc_flag_table_out_path)
   
   dropped_misc <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Dropped rows while assigning misc flags",
     short_reason = "Misc flagging",
     number_dropped = nrow(field_flagged_tc) - nrow(misc_flagged_tc),
@@ -1026,7 +1026,7 @@ harmonize_tc <- function(raw_tc, p_codes){
     )
   
   dropped_unreal <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Dropped rows with unrealistic values",
     short_reason = "Unrealistic values",
     number_dropped = nrow(misc_flagged_tc) - nrow(realistic_tc),
@@ -1207,7 +1207,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   # 3. Maps
   # Similarly, create maps of records counts by tier
-  plot_tier_maps(dataset = no_simul_tc, custom_width = 8, custom_height = 26,
+  plot_tier_maps(dataset = no_simul_tc, custom_width = 8, custom_height = 6,
                  n_bins = 15, param_name = "tc", flip_facets = TRUE,
                  legend_position = "bottom")
   
@@ -1238,7 +1238,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   ggsave(filename = "3_harmonize/out/tc_tier_top_depth_dist_postagg.png",
          plot = top_depth_dist,
-         width = 7, height = 18, units = "in", device = "png")
+         width = 8, height = 6, units = "in", device = "png")
   
   bottom_depth_dist <- no_simul_tc_tier_label %>%
     ggplot() +
@@ -1258,7 +1258,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   ggsave(filename = "3_harmonize/out/tc_tier_bottom_depth_dist_postagg.png",
          plot = bottom_depth_dist,
-         width = 8, height = 20, units = "in", device = "png")
+         width = 8, height = 6, units = "in", device = "png")
   
   discrete_depth_dist <- no_simul_tc_tier_label %>%
     ggplot() +
@@ -1278,7 +1278,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   ggsave(filename = "3_harmonize/out/tc_tier_discrete_depth_dist_postagg.png",
          plot = discrete_depth_dist,
-         width = 8, height = 20, units = "in", device = "png")
+         width = 8, height = 6, units = "in", device = "png")
   
   # Clean up
   rm(no_simul_tc_tier_label)
@@ -1294,7 +1294,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   )
   
   dropped_simul <- tibble(
-    step = "tc harmonization",
+    step = "true_color harmonization",
     reason = "Dropped rows while aggregating simultaneous records",
     short_reason = "Simultaneous records",
     number_dropped = nrow(realistic_tc) - nrow(no_simul_tc),

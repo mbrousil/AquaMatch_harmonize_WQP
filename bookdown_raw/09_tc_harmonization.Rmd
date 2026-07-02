@@ -21,8 +21,8 @@ knitr::opts_chunk$set(dev = "png",
 
 ```{r echo=FALSE}
 documented_drops <- params$documented_drops %>%
-  filter(grepl(pattern = "tc", x = step, ignore.case = TRUE),
-         !((step == "tc harmonization") & short_reason == "Start"))
+  filter(grepl(pattern = "true_color", x = step, ignore.case = TRUE),
+         !((step == "true_color harmonization") & short_reason == "Start"))
 tc_chars <- params$tc_chars
 tiering_record <- params$tiering_record
 param_change_table <- params$param_change_table
@@ -239,13 +239,13 @@ step_4_dropped <-  filter(step_data,
 
 We next ensure that the media type for all True Color data is `"Surface Water"`, `"Water"`, `"Estuary"`, or `NA`. Any records not meeting these criteria are dropped.
 
-We then assign each record to a value in a new `parameter` column, which aims to basically clarify the categories of the `CharacteristicName` column using `USGSPCode` values: If `USGSPCode` is "00080" we assign it to the "True color" parameter,if `USGSPCode` is "00081" it becomes "Apparent color". Records with `USGSPCode` of "70516" are dropped because they are not relevant to the dataset. And for the majority of records, which don't have a `USGSPCode`, the `parameter` value is simply the same as the `CharacteristicName`. Records with `parameter` names that are different from their `CharacteristicName` are identified in the table below:
+We then assign each record to a value in a new `parameter` column, which aims to basically clarify the categories of the `CharacteristicName` column using `USGSPCode` values: If `USGSPCode` is "00080" we assign it to the "True color" parameter, if `USGSPCode` is "00081" it becomes "Apparent color". Records with `USGSPCode` of "70516" are dropped because they are not relevant to the dataset. And for the majority of records, which don't have a `USGSPCode`, the `parameter` value is simply the same as the `CharacteristicName`. Records with `parameter` names that are different from their `CharacteristicName` are identified in the table below:
 
 ```{r fig.alt="Table containing True Color summary information for records that were changed because of their USGSPCode value."}
 param_change_table %>%
   kable() %>%
   kable_paper() %>%
-  scroll_box(width = "750px", height = "500px")
+  scroll_box(width = "750px", height = "250px")
 ```
 
 <br>
@@ -301,7 +301,7 @@ step_5_dropped <- filter(step_data,
 
 In this step we filter out records based on indications that they have failed data quality assurance or quality control for some reason given by the data provider (these instances are referred to here as "failures").
 
-After reviewing the contents of the `ActivityCommentText`, `ResultLaboratoryCommentText`, `ResultCommentText`, `ResultDetectionConditionText`, and `ResultMeasureValue_original` columns, we developed a list of terms that captured the majority of instances where records had failures or unacceptable measurements. (Note: `ResultMeasureValue_original` is a duplicate, character version of the `ResultMeasureValue` column that we use as a reference for the column's contents before it was converted to a numeric type.) We found the phrasing to be consistent across columns, so we searched for the same (case agnostic) text in all four locations. The terms are: "beyond accept", "cancelled", "contaminat", "error", "fail", "improper", "interference", "invalid", "no result", "no test", "not accept", "outside of accept", "problem", "questionable", "suspect", "unable", "violation", "reject", "no data", "time exceed", "value extrapolated", "exceeds", "biased", "parameter not required", "not visited", "warm", "broken".
+After reviewing the contents of the `ActivityCommentText`, `ResultLaboratoryCommentText`, `ResultCommentText`, `ResultDetectionConditionText`, and `ResultMeasureValue_original` columns, we developed a list of terms that captured the majority of instances where records had failures or unacceptable measurements. (Note: `ResultMeasureValue_original` is a duplicate, character version of the `ResultMeasureValue` column that we use as a reference for the column's contents before it was converted to a numeric type.) We found the phrasing to be consistent across columns, so we searched for the same (case agnostic) text in all four locations. The terms are: "beyond accept", "cancelled", "contaminat", "error", "fail", "improper", "interference", "invalid", "no result", "no test", "not accept", "outside of accept", "problem", "questionable", "suspect", "unable", "violation", "reject", "no data", "time exceed", "value extrapolated", "exceeds", "biased", "parameter not required", "not visited", "warm", "broken". Note that these terms are not all complete words: they are intended as input for checking using regular expression logic.
 
 Below are pie charts that break down the number of failure detections by column. **Note that the plotting below is automated so if one or more of the columns listed above are not plotted, this indicates that the column(s) did not return any matches for the failure phrases.** Also note that a single record can contain multiple failure phrases; therefore, failure phrases are not mutually exclusive.
 
@@ -535,7 +535,7 @@ step_9_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-The goal of the preceding three steps was to prevent records with seemingly missing measurement data from being dropped if there was still a chance of recovering a usable value. At this point we've finished with that process and we proceed to check for remaining records with `NA` values in their `harmonized_value` column. If they exist, they are dropped. We also filter out any negative values in the dataset at this point because True Color cannot be negative. The exception to this is for the "Absorption spectral slope" parameters, which we take the absolute value of instead of removing.
+The goal of the preceding three steps was to prevent records with seemingly missing measurement data from being dropped if there was still a chance of recovering a usable value. At this point we've finished with that process and we proceed to check for remaining records with `NA` values in their `harmonized_value` column. If they exist, they are dropped. We also filter out any negative values in the dataset at this point because True Color cannot be negative. 
 
 `r step_9_dropped` rows are removed. The final row count after this is `r step_9_rows`.
 
@@ -582,7 +582,7 @@ step_10_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-The next step in True Color harmonization is converting the units of WQP records. Records that don't make sense for True Color or can't be converted to a standardized unit dropped. We standardize units to "AU/m" unless the `parameter` is "SUVA" ("L/mgDOC*m"), "FDOM" ("RFU", "RU", "ug/l QSE"), "Fluorescence index" ("None"), or one of the "Absorption spectral slope" variants ("nm-1"). We use the unit conversion table below for this. 
+The next step in True Color harmonization is standardizing the units of WQP records. Records that don't make sense for True Color or can't be converted to a standardized unit are dropped. We use the unit conversion table below to filter the units. "PCU", "CU", and "pt" units are standardized as "PCU". "None" and "ADMI value" are left as-is.
 
 ```{r echo=FALSE, message = FALSE}
 read_csv("../3_harmonize/out/tc_unit_table.csv") %>%
@@ -594,14 +594,6 @@ read_csv("../3_harmonize/out/tc_unit_table.csv") %>%
 
 <br>
 
-**Notes**:
-
-+ Units normalized by path length indicate that the corresponding measurement is a decadic absorption coefficient.
-+ In the table above "nm" units are given a conversion factor of 100. This is because we assessed that these records are likely intended to use cm-1 units. For example: The `DetectionQuantitationLimitMeasure.MeasureUnitCode` for these records is "units/cm", their measured values fall within expected ranges for natural waters for absorbance at 254 nm reported in cm-1 units, and the detection limit listed as 0.005 also aligns with cm-1 measurements. 
-+ The table lists "None" with a conversion factor of 1, which allows it to be retained as-is for records with the “Fluorescence index” parameter. Records with parameter variants of “Absorption spectral slope” are often provided in the WQP with units of "None" as well, but we convert these to "nm-1" in this step. 
-+ Some FDOM records returned from the WQP had units of mg/L or ug/L. We suspect that they were intended to be "ug/l QSE" and were missing metadata that would allow us to reclassify them, so we've retained them with units "ug/L". We changed mg/L to ug/L because we felt it was likely that this small number of records (n = 539) was intended as ug/L and not mg/L. We retained these records in an effort to be conservative and allow end users the options to use or drop them as needed.
-
-<br>
 
 Below is a pie chart that breaks down the different unit codes that were dropped in the unit harmonization process, and how many records were lost with each code. **(Note that if there is no pie chart below that is because no unit codes were dropped).**
 
@@ -711,12 +703,11 @@ Finally, we group the data into three tiers as described in *Tiering, flagging, 
 <br>
 
 <!-- Table created with https://www.tablesgenerator.com/markdown_tables -->
-| Tier | Name | Description | True Color Details |
+| **Tier** | **Name** | **Description** | **Details** |
 |---|---|---|---|
-| 0 | Restrictive | Data that are verifiably self-similar across organizations and  time-periods and can be considered highly reliable and interoperable | Has appropriate (and consistent) information in `CharacteristicName`, methods columns, and `ResultMeasure.MeasureUnitCode`. `ResultSampleFractionText` is filtered |
-| 1 | Narrowed | Data that we have good reason to believe are self-similar, but for which  we can’t verify full interoperability across data providers | There is a mismatch in information, e.g., between the methods columns |
-| 2 | Inclusive | Data that are assumed to be reliable and are harmonized to our best  ability given the information available from the data provider. This  tier includes NA or non-resolvable descriptions for the analytical  method, which often make up the majority of methods descriptions for any  given parameter | `ResultSampleFractionText` is reported as total or important information is missing from one or more relevant columns |
-
+| 0 | Restrictive | Data that are verifiably self-similar across organizations and  time-periods and can be considered highly reliable and interoperable | For Apparent Color: Fraction is "Total", "Non-Filterable", "Non-Filterable (Particle)", "None", "Suspended", or "Unfiltered". Units are not "None". Methods use spectrophotometry (SM 2120-C, EPA 110.3, Hach 8025). For True Color: Fraction is "Dissolved", "Acid Soluble", "Filterable", "Filtered, field", or "Filtered, lab". Same unit and methods rules as Apparent Color. |
+| 1 | Narrowed | Data that we have good reason to believe are self-similar, but for which  we can’t verify full interoperability across data providers | For Apparent Color: Same as in Tier 0, but visual methods are used (SM 2120-B, EPA 110.2, mention of "visual", or "CC003".) For True Color: Same as in Tier 0, but visual methods are used as with Apparent Color in this Tier. Additionally, samples for True Color that use non-standard wavelengths (345, 440nm). |
+| 2 | Inclusive | Data that are assumed to be reliable and are harmonized to our best  ability given the information available from the data provider. This  tier includes NA or non-resolvable descriptions for the  analytical method, which often make up the majority of methods  descriptions for any given parameter | All other records not already categorized into Tier 0 or Tier 1 above. |
 <br>
 
 At this point we create a file (`3_harmonize/out/tc_tiering_record.csv`) that contains a record of how specific method text was tiered and how many row counts corresponded to each method. This file is also included as an interactive HTML table below, in order to illustrate how the specifics of each tiering decision in the table above are carried out.
@@ -827,9 +818,9 @@ step_14_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-Next we add a placeholder for the miscellaneous flag column, `misc_flag`.
+Next we add a flag column, `misc_flag`, which indicates whether the value in the `harmonized_value` column exceeds 1500. We use this as a check for whether or not a value is within the typical realistic range expected for natural waters.
 
-Some parameters will have additional flagging requirements that True Color does not, so we include this placeholder to maintain the same columns across all parameter data products.
+Some parameters in published AquaMatch products will have different flagging requirements for this column that True Color does not. Please keep this in mind and review the documentation for other harmonized WQP data products to ensure that the `misc_flag` column is used as intended for each product.
 
 <br>
 
@@ -929,8 +920,6 @@ The final step of True Color harmonization is to aggregate simultaneous observat
 **The aggregation process**: Any group of samples determined to be simultaneous are simplified into a single record containing the mean and coefficient of variation (CV) of the group. These can be either true duplicate entries in the WQP or records with non-identical values recorded at the same time and place and by the same organization (field and/or lab replicates/duplicates). The CV can be used to filter the dataset based on the amount of variability that is tolerable to specific use cases. Note, however, that many entries will have a CV that is `NA` because there are no simultaneous records or 0 because the records are duplicates and all entries have the same `harmonized_value`.
 
 We identify simultaneous records to aggregate by creating identical subgroups (`subgroup_id`) from the following columns: `parameter`, `OrganizationIdentifier`, `MonitoringLocationIdentifier`, `MonitoringLocationTypeName`, `ResolvedMonitoringLocationTypeName`, `ActivityStartDate`, `ActivityStartTime.Time`, `ActivityStartTime.TimeZoneCode`, `harmonized_tz`, `harmonized_local_time`, `harmonized_utc`, `ActivityStartDateTime`, `harmonized_top_depth_value`, `harmonized_top_depth_unit`, `harmonized_bottom_depth_value`, `harmonized_bottom_depth_unit`, `harmonized_discrete_depth_value`, `harmonized_discrete_depth_unit`, `depth_flag`, `mdl_flag`, `approx_flag`, `greater_flag`, `tier`, `field_flag`, `misc_flag`, `harmonized_units`. This selection limits the columns included in the final dataset, but we also provide a copy of the AquaMatch dataset prior to its aggregation (pipeline target `p3_tc_preagg_grouped`; available as an RDS file in the data release: AquaMatch_harmonize_WQP/_targets/objects/p3_tc_preagg_grouped), and include the `subgroup_id` column, so that users can use the disaggregated data as well and match make joins between dataset versions.
-
-**Note**: We hold out any records where `misc_flag` is 1 or 2 from the aggregation step above, and as a result those records are *not* included in the `p3_tc_preagg_grouped` object, nor its RDS export. The records are added back into the final dataset once the aggregation is complete, but they have `NA` for `subgroup_id`, `harmonized_value_cv`, and `harmonized_row_count` because they are never grouped or aggregated. A small number of duplicate records are also included where misc_flag is 1 or 2 since no aggregation takes place. We do this to allow end users to decide how they want to handle values that exceed published maximums.
 
 The final values are presented in the `harmonized_value` and `harmonized_value_cv` columns. The number of rows used per group is recorded in the `harmonized_row_count` column.
 

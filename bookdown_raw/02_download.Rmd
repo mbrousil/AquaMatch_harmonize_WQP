@@ -41,7 +41,8 @@ names_list <- tribble(
   "chlorophyll", "chlorophyll a",
   "doc", "dissolved organic carbon",
   "sdd", "Secchi disk depth",
-  "tss", "total suspended solids"
+  "tss", "total suspended solids",
+  "tc", "true color"
 )
 
 # List of params included in the current document:

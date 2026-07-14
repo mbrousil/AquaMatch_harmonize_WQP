@@ -1,20 +1,20 @@
 
-harmonize_tc <- function(raw_tc, p_codes){
+harmonize_wc <- function(raw_wc, p_codes){
   
   # Starting values for dataset
   starting_data <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Starting dataset",
     short_reason = "Start",
     number_dropped = 0,
-    n_rows = nrow(raw_tc),
+    n_rows = nrow(raw_wc),
     order = 0
   )
   
   # Minor data prep ---------------------------------------------------------
   
   # Produce a bar chart of the current CharacteristicName counts
-  stack_chart <- raw_tc %>%
+  stack_chart <- raw_wc %>%
     count(CharacteristicName) %>% 
     # Alpha order
     arrange(desc(CharacteristicName)) %>%
@@ -49,14 +49,14 @@ harmonize_tc <- function(raw_tc, p_codes){
       axis.text.x = element_blank(),
       axis.ticks.x = element_blank())
   
-  ggsave(filename = "3_harmonize/out/tc_stacked_char_names.png",
+  ggsave(filename = "3_harmonize/out/wc_stacked_char_names.png",
          plot = stack_chart, width = 6.5, height = 7.5, units = "in", device = "png")
   
   # Grab the column names of the dataset coming in
-  raw_names <- names(raw_tc)
+  raw_names <- names(raw_wc)
   
   # First step is to read in the data and do basic formatting and filtering
-  tc_narrowed <- raw_tc %>%
+  wc_narrowed <- raw_wc %>%
     # Link up USGS p-codes. and their common names can be useful for method lumping:
     left_join(x = ., y = p_codes, by = c("USGSPCode" = "parm_cd")) %>%
     filter(
@@ -72,33 +72,33 @@ harmonize_tc <- function(raw_tc, p_codes){
     # Use the parameter column to reassign based on p-code where necessary.
     mutate(
       parameter = case_when(
-        # USGS P Code for True Color
+        # USGS P Codes for Water Color
         USGSPCode == "00080" ~ "True color",
         USGSPCode == "00081" ~ "Apparent color",
         .default = CharacteristicName
       )
     )
   
-  tc_param_changes <- tc_narrowed %>%
-    filter(tc_narrowed$parameter != tc_narrowed$CharacteristicName) %>%
+  wc_param_changes <- wc_narrowed %>%
+    filter(wc_narrowed$parameter != wc_narrowed$CharacteristicName) %>%
     count(CharacteristicName, parameter) %>%
     rename(CharacteristicName_old = CharacteristicName,
            parameter_new = parameter)
   
-  param_change_table_out_path <- "3_harmonize/out/tc_param_changes_table.csv"
+  param_change_table_out_path <- "3_harmonize/out/wc_param_changes_table.csv"
   
-  write_csv(x = tc_param_changes,
+  write_csv(x = wc_param_changes,
             file = param_change_table_out_path)  
   
-  if(any(is.na(tc_narrowed$parameter))){
+  if(any(is.na(wc_narrowed$parameter))){
     cli_abort("Unexpected values generated when classifying parameters by CharacteristicName.")
   }
   
   # Catch up to naming that follows
-  tc <- tc_narrowed
+  wc <- wc_narrowed
   
   # Produce a bar chart of the current parameter counts
-  stack_param_chart <- tc %>%
+  stack_param_chart <- wc %>%
     count(parameter) %>% 
     # Alpha order
     arrange(desc(parameter)) %>%
@@ -133,20 +133,20 @@ harmonize_tc <- function(raw_tc, p_codes){
       axis.text.x = element_blank(),
       axis.ticks.x = element_blank())
   
-  ggsave(filename = "3_harmonize/out/tc_stacked_param_names.png",
+  ggsave(filename = "3_harmonize/out/wc_stacked_param_names.png",
          plot = stack_param_chart, width = 6.5, height = 7.5, units = "in", device = "png")
   
   # Record info on any dropped rows  
   dropped_media <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Filtered for only specific water media & relevant parameters",
     short_reason = "Target water media & parameters",
-    number_dropped = nrow(raw_tc) - nrow(tc),
-    n_rows = nrow(tc),
+    number_dropped = nrow(raw_wc) - nrow(wc),
+    n_rows = nrow(wc),
     order = 1
   )
   
-  rm(raw_tc, tc_narrowed)
+  rm(raw_wc, wc_narrowed)
   gc()
   
   
@@ -178,7 +178,7 @@ harmonize_tc <- function(raw_tc, p_codes){
         # Check each string pattern separately and count instances
         map_df(.x = fail_text,
                .f = ~{
-                 hit_count <- tc %>%
+                 hit_count <- wc %>%
                    filter(grepl(pattern = .x,
                                 x = !!sym(col_name),
                                 ignore.case = TRUE)) %>%
@@ -202,7 +202,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   # Plot and export the plots as png files
   walk2(.x = fail_counts,
         .y = names(fail_counts),
-        .f = ~ ggsave(filename = paste0("3_harmonize/out/tc_",
+        .f = ~ ggsave(filename = paste0("3_harmonize/out/wc_",
                                         .y,
                                         "_fail_pie.png"),
                       plot = plot_fail_pie(dataset = .x, col_name = .y),
@@ -210,7 +210,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   
   # Now that the fails have been documented, remove them:
-  tc_fails_removed <- tc %>%
+  wc_fails_removed <- wc %>%
     filter(
       if_all(.cols = c(ActivityCommentText, ResultLaboratoryCommentText,
                        ResultCommentText, ResultMeasureValue_original,
@@ -226,16 +226,16 @@ harmonize_tc <- function(raw_tc, p_codes){
   print(
     paste0(
       "Rows removed due to fail-related language: ",
-      nrow(tc) - nrow(tc_fails_removed)
+      nrow(wc) - nrow(wc_fails_removed)
     )
   )
   
   dropped_fails <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Dropped rows containing fail-related language",
     short_reason = "Fails, etc.",
-    number_dropped = nrow(tc) - nrow(tc_fails_removed),
-    n_rows = nrow(tc_fails_removed),
+    number_dropped = nrow(wc) - nrow(wc_fails_removed),
+    n_rows = nrow(wc_fails_removed),
     order = 2)
   
   
@@ -244,7 +244,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   non_detect_text <- "non-detect|not detect|non detect|undetect|below|Present <QL"
   
   # Find MDLs and make them usable as numeric data
-  mdl_updates <- tc_fails_removed %>%
+  mdl_updates <- wc_fails_removed %>%
     # only want NAs and character value data:
     filter(is.na(ResultMeasureValue)) %>%
     # if the value is NA BUT there is non detect language in the comments...  
@@ -289,13 +289,13 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   print(
     paste(
-      round((nrow(mdl_updates)) / nrow(tc_fails_removed) * 100, 1),
+      round((nrow(mdl_updates)) / nrow(wc_fails_removed) * 100, 1),
       "% of samples had values listed as being below a detection limit"
     )
   )
   
   # Replace "harmonized_value" field with these new values
-  tc_mdls_added <- tc_fails_removed %>%
+  wc_mdls_added <- wc_fails_removed %>%
     left_join(x = ., y = mdl_updates, by = "index") %>%
     mutate(harmonized_value = ifelse(index %in% mdl_updates$index, std_value, ResultMeasureValue),
            harmonized_units = ifelse(index %in% mdl_updates$index, mdl_units, ResultMeasure.MeasureUnitCode),
@@ -311,11 +311,11 @@ harmonize_tc <- function(raw_tc, p_codes){
            ))
   
   dropped_mdls <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Dropped rows while cleaning MDLs",
     short_reason = "Clean MDLs",
-    number_dropped = nrow(tc_fails_removed) - nrow(tc_mdls_added),
-    n_rows = nrow(tc_mdls_added),
+    number_dropped = nrow(wc_fails_removed) - nrow(wc_mdls_added),
+    n_rows = nrow(wc_mdls_added),
     order = 3
   )
   
@@ -328,7 +328,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   approx_text <- "result approx|RESULT IS APPROX|value approx"
   
-  tc_approx <- tc_mdls_added %>%
+  wc_approx <- wc_mdls_added %>%
     # First, remove the samples that we've already approximated using the EPA method:
     filter(!index %in% mdl_updates$index,
            # Then select fields where the numeric value column is NA....
@@ -340,35 +340,35 @@ harmonize_tc <- function(raw_tc, p_codes){
                 grepl(approx_text, ResultCommentText, ignore.case = T )|
                 grepl(approx_text, ResultDetectionConditionText, ignore.case = T)))
   
-  tc_approx$approx_value <- as.numeric(str_replace_all(tc_approx$ResultMeasureValue_original, c("\\*" = "")))
-  tc_approx$approx_value[is.nan(tc_approx$approx_value)] <- NA
+  wc_approx$approx_value <- as.numeric(str_replace_all(wc_approx$ResultMeasureValue_original, c("\\*" = "")))
+  wc_approx$approx_value[is.nan(wc_approx$approx_value)] <- NA
   
   # Keep important data
-  tc_approx <- tc_approx %>%
+  wc_approx <- wc_approx %>%
     select(approx_value, index)
   
   print(
     paste(
-      round((nrow(tc_approx)) / nrow(tc_mdls_added) * 100, 3),
+      round((nrow(wc_approx)) / nrow(wc_mdls_added) * 100, 3),
       "% of samples had values listed as approximated"
     )
   )
   
   # Replace harmonized_value field with these new values
-  tc_approx_added <- tc_mdls_added %>%
-    left_join(x = ., y = tc_approx, by = "index") %>%
-    mutate(harmonized_value = ifelse(index %in% tc_approx$index,
+  wc_approx_added <- wc_mdls_added %>%
+    left_join(x = ., y = wc_approx, by = "index") %>%
+    mutate(harmonized_value = ifelse(index %in% wc_approx$index,
                                      approx_value,
                                      harmonized_value),
            # Flag: 1 = used approximate adjustment, 0 = value not adjusted
-           approx_flag = ifelse(index %in% tc_approx$index, 1, 0))
+           approx_flag = ifelse(index %in% wc_approx$index, 1, 0))
   
   dropped_approximates <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Dropped rows while cleaning approximate values",
     short_reason = "Clean approximates",
-    number_dropped = nrow(tc_mdls_added) - nrow(tc_approx_added),
-    n_rows = nrow(tc_approx_added),
+    number_dropped = nrow(wc_mdls_added) - nrow(wc_approx_added),
+    n_rows = nrow(wc_approx_added),
     order = 4
   )
   
@@ -379,9 +379,9 @@ harmonize_tc <- function(raw_tc, p_codes){
   # approach to the previous two flags, we can identify results that 
   # contain values greater than some amount
   
-  greater_vals <- tc_approx_added %>%
+  greater_vals <- wc_approx_added %>%
     # First, remove the samples that we've already approximated:
-    filter((!index %in% mdl_updates$index) & (!index %in% tc_approx$index)) %>%
+    filter((!index %in% mdl_updates$index) & (!index %in% wc_approx$index)) %>%
     # Then select fields where the NUMERIC value column is NA....
     filter(is.na(ResultMeasureValue) & 
              # ... AND the original value column has numeric characters...
@@ -401,13 +401,13 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   print(
     paste(
-      round((nrow(greater_vals)) / nrow(tc_approx_added) * 100, 9),
+      round((nrow(greater_vals)) / nrow(wc_approx_added) * 100, 9),
       "% of samples had values listed as being above a detection limit//greater than"
     )
   )
   
   # Replace harmonized_value field with these new values
-  tc_harmonized_values <- tc_approx_added %>%
+  wc_harmonized_values <- wc_approx_added %>%
     left_join(x = ., y = greater_vals, by = "index") %>%
     mutate(harmonized_value = ifelse(index %in% greater_vals$index,
                                      greater_value, harmonized_value),
@@ -415,16 +415,16 @@ harmonize_tc <- function(raw_tc, p_codes){
            greater_flag = ifelse(index %in% greater_vals$index, 1, 0))
   
   dropped_greater_than <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Dropped rows while cleaning 'greater than' values",
     short_reason = "Greater thans",
-    number_dropped = nrow(tc_approx_added) - nrow(tc_harmonized_values),
-    n_rows = nrow(tc_harmonized_values),
+    number_dropped = nrow(wc_approx_added) - nrow(wc_harmonized_values),
+    n_rows = nrow(wc_harmonized_values),
     order = 5
   )
   
   # Free up memory
-  rm(tc)
+  rm(wc)
   gc()
   
   
@@ -434,7 +434,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   # symbols like ">". If there are still remaining NAs in the numeric measurement
   # column then it's time to drop them, unless they are slopes.
   
-  tc_no_na <- tc_harmonized_values %>%
+  wc_no_na <- wc_harmonized_values %>%
     filter(
       !is.na(harmonized_value),
       # Some negative values can be introduced by the previous NA parsing steps:
@@ -442,23 +442,23 @@ harmonize_tc <- function(raw_tc, p_codes){
     )
   
   dropped_na <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Dropped unresolved NAs",
     short_reason = "Unresolved NAs",
-    number_dropped = nrow(tc_harmonized_values) - nrow(tc_no_na),
-    n_rows = nrow(tc_no_na),
+    number_dropped = nrow(wc_harmonized_values) - nrow(wc_no_na),
+    n_rows = nrow(wc_no_na),
     order = 6
   )
   
   # Free up memory
-  rm(tc_harmonized_values, tc_approx_added, tc_mdls_added,
-     tc_fails_removed)
+  rm(wc_harmonized_values, wc_approx_added, wc_mdls_added,
+     wc_fails_removed)
   gc()
   
   
   # Harmonize value units ---------------------------------------------------
   
-  # Matchup table for expected True Color units in the dataset
+  # Matchup table for expected water Color units in the dataset
   unit_conversion_table <- tribble(
     ~ResultMeasure.MeasureUnitCode, ~conversion,
     # Assume these are the same: Platinum-Cobalt Units (PCU)
@@ -471,13 +471,13 @@ harmonize_tc <- function(raw_tc, p_codes){
   )
   
   # Export a record of unit conversions
-  unit_table_out_path <- "3_harmonize/out/tc_unit_table.csv"
+  unit_table_out_path <- "3_harmonize/out/wc_unit_table.csv"
   
   write_csv(x = unit_conversion_table,
             file = unit_table_out_path)
   
   # Do the conversion
-  converted_units_tc <- tc_no_na %>%
+  converted_units_wc <- wc_no_na %>%
     inner_join(x = .,
                y = unit_conversion_table,
                by = "ResultMeasure.MeasureUnitCode") %>%
@@ -494,20 +494,20 @@ harmonize_tc <- function(raw_tc, p_codes){
     )
   
   # Check for unexpected units in the "harmonized_units" column
-  if ("Unexpected" %in% converted_units_tc$harmonized_units) {
-    cli_abort("True color unit harmonization has encountered an {cli::col_red('unexpected unit')}.")
+  if ("Unexpected" %in% converted_units_wc$harmonized_units) {
+    cli_abort("water color unit harmonization has encountered an {cli::col_red('unexpected unit')}.")
   }
   
   
   # Plot and export unit codes that didn't make it through joining
   tryCatch({
-    tc_no_na %>%
+    wc_no_na %>%
       anti_join(x = .,
                 y = unit_conversion_table,
                 by = "ResultMeasure.MeasureUnitCode")  %>%
       count(ResultMeasure.MeasureUnitCode, name = "record_count") %>%
       plot_unit_pie() %>%
-      ggsave(filename = "3_harmonize/out/tc_unit_drop_pie.png",
+      ggsave(filename = "3_harmonize/out/wc_unit_drop_pie.png",
              plot = .,
              width = 6, height = 6, units = "in", device = "png")
   }, error = function(e) NULL
@@ -517,16 +517,16 @@ harmonize_tc <- function(raw_tc, p_codes){
   print(
     paste0(
       "Rows removed while harmonizing units: ",
-      nrow(tc_no_na) - nrow(converted_units_tc)
+      nrow(wc_no_na) - nrow(converted_units_wc)
     )
   )
   
   dropped_harmonization <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Dropped rows while harmonizing units",
     short_reason = "Harmonize units",
-    number_dropped = nrow(tc_no_na) - nrow(converted_units_tc),
-    n_rows = nrow(converted_units_tc),
+    number_dropped = nrow(wc_no_na) - nrow(converted_units_wc),
+    n_rows = nrow(converted_units_wc),
     order = 7
   )
   
@@ -534,7 +534,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   # Clean and flag depth data -----------------------------------------------
   
   # Recode any error-related character values to NAs
-  recode_depth_na_tc <- converted_units_tc %>%
+  recode_depth_na_wc <- converted_units_wc %>%
     mutate(
       across(.cols = c(ActivityDepthHeightMeasure.MeasureValue,
                        ResultDepthHeightMeasure.MeasureValue,
@@ -555,7 +555,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   # There are four columns with potential depth data that we need to convert
   # into meters:
-  converted_depth_units_tc <- recode_depth_na_tc %>%
+  converted_depth_units_wc <- recode_depth_na_wc %>%
     # 1. Activity depth col
     left_join(x = .,
               y = depth_unit_conversion_table,
@@ -593,7 +593,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   # Now combine the two columns with single point depth data into one and clean
   # up values generally:
-  harmonized_depth_tc <- converted_depth_units_tc %>%
+  harmonized_depth_wc <- converted_depth_units_wc %>%
     rowwise() %>%
     mutate(
       # New harmonized discrete column:
@@ -620,7 +620,7 @@ harmonize_tc <- function(raw_tc, p_codes){
     ungroup()
   
   # Create a flag system based on depth data presence/completion
-  flagged_depth_tc <- harmonized_depth_tc %>%
+  flagged_depth_wc <- harmonized_depth_wc %>%
     mutate(
       depth_flag = case_when(
         # No depths (including because of recoding above)
@@ -654,7 +654,7 @@ harmonize_tc <- function(raw_tc, p_codes){
               depth_conversion))
   
   # Sanity check that flags are matching up with their intended qualities:
-  depth_check_table <- flagged_depth_tc %>%
+  depth_check_table <- flagged_depth_wc %>%
     mutate(
       # Everything present
       three_cols_present = if_else(
@@ -709,13 +709,13 @@ harmonize_tc <- function(raw_tc, p_codes){
     arrange(depth_flag, harmonized_units)
   
   
-  depth_check_out_path <- "3_harmonize/out/tc_depth_check_table.csv"
+  depth_check_out_path <- "3_harmonize/out/wc_depth_check_table.csv"
   
   write_csv(x = depth_check_table,
             file = depth_check_out_path)
   
   # Depth category counts:
-  depth_counts <- flagged_depth_tc %>%
+  depth_counts <- flagged_depth_wc %>%
     # Using a temporary flag to aggregate depth values for count output
     mutate(depth_agg_flag = case_when(
       depth_flag == 1 &
@@ -735,7 +735,7 @@ harmonize_tc <- function(raw_tc, p_codes){
     bind_rows() %>%
     count(depth_agg_flag, harmonized_units)
   
-  depth_counts_out_path <- "3_harmonize/out/tc_depth_counts.csv"
+  depth_counts_out_path <- "3_harmonize/out/wc_depth_counts.csv"
   
   write_csv(x = depth_counts, file = depth_counts_out_path)
   
@@ -743,16 +743,16 @@ harmonize_tc <- function(raw_tc, p_codes){
   print(
     paste0(
       "Rows removed due to non-target depths: ",
-      nrow(converted_units_tc) - nrow(flagged_depth_tc)
+      nrow(converted_units_wc) - nrow(flagged_depth_wc)
     )
   )
   
   dropped_depths <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Dropped rows while cleaning depths",
     short_reason = "Clean depths",
-    number_dropped = nrow(converted_units_tc) - nrow(flagged_depth_tc),
-    n_rows = nrow(flagged_depth_tc),
+    number_dropped = nrow(converted_units_wc) - nrow(flagged_depth_wc),
+    n_rows = nrow(flagged_depth_wc),
     order = 8
   )
   
@@ -762,8 +762,8 @@ harmonize_tc <- function(raw_tc, p_codes){
   # Get an idea of how many analytical methods exist:
   print(
     paste0(
-      "Number of true color analytical methods present: ",
-      flagged_depth_tc %>%
+      "Number of water color analytical methods present: ",
+      flagged_depth_wc %>%
         bind_rows() %>%
         pull(ResultAnalyticalMethod.MethodName) %>%
         unique() %>%
@@ -776,7 +776,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   unrelated_text <- paste0(c("2320", "alkalin"),
                            collapse = "|")
   
-  tc_relevant <- flagged_depth_tc %>%
+  wc_relevant <- flagged_depth_wc %>%
     filter(
       !grepl(pattern = unrelated_text,
              x = ResultAnalyticalMethod.MethodName,
@@ -787,13 +787,13 @@ harmonize_tc <- function(raw_tc, p_codes){
   print(
     paste0(
       "Rows removed due to unrelated analytical methods: ",
-      nrow(flagged_depth_tc) - nrow(tc_relevant)
+      nrow(flagged_depth_wc) - nrow(wc_relevant)
     )
   )
   
   # NOTE: The options below are based on what's actually present in the dataset,
   # so all conceivable options are NOT included
-  tiered_methods_tc <- tc_relevant %>%
+  tiered_methods_wc <- wc_relevant %>%
     mutate(
       tier = case_when(
         # Tier 0:      
@@ -906,7 +906,7 @@ harmonize_tc <- function(raw_tc, p_codes){
     "tier"
   )
   
-  tiering_record <- tiered_methods_tc %>%
+  tiering_record <- tiered_methods_wc %>%
     group_by(across(all_of(tier_group_cols))) %>%
     add_count() %>%
     mutate(min_value = min(harmonized_value),
@@ -916,28 +916,28 @@ harmonize_tc <- function(raw_tc, p_codes){
     distinct() %>%
     arrange(desc(n)) 
   
-  tiering_record_out_path <- "3_harmonize/out/tc_tiering_record.csv"
+  tiering_record_out_path <- "3_harmonize/out/wc_tiering_record.csv"
   
   write_csv(x = tiering_record, file = tiering_record_out_path)
   
   # Confirm that no rows were lost during tiering
-  if(nrow(tc_relevant) != nrow(tiered_methods_tc)){
+  if(nrow(wc_relevant) != nrow(tiered_methods_wc)){
     cli_abort("Rows were lost during analytical method tiering. This is not expected.")
   }  
   
   dropped_methods <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Dropped rows while tiering analytical methods",
     short_reason = "Analytical methods",
-    number_dropped = nrow(flagged_depth_tc) - nrow(tiered_methods_tc),
-    n_rows = nrow(tiered_methods_tc),
+    number_dropped = nrow(flagged_depth_wc) - nrow(tiered_methods_wc),
+    n_rows = nrow(tiered_methods_wc),
     order = 9
   )
   
   
   # Flag field methods ------------------------------------------------------
   
-  field_flagged_tc <- tiered_methods_tc %>%
+  field_flagged_wc <- tiered_methods_wc %>%
     mutate(
       field_flag = case_when(
         # Discrete sampling methods are given a field_flag of 0
@@ -967,16 +967,16 @@ harmonize_tc <- function(raw_tc, p_codes){
   print(
     paste0(
       "Rows removed while assigning field flags: ",
-      nrow(tiered_methods_tc) - nrow(field_flagged_tc)
+      nrow(tiered_methods_wc) - nrow(field_flagged_wc)
     )
   )
   
   dropped_field <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Dropped rows while assigning field flags",
     short_reason = "Field flagging",
-    number_dropped = nrow(tiered_methods_tc) - nrow(field_flagged_tc),
-    n_rows = nrow(field_flagged_tc),
+    number_dropped = nrow(tiered_methods_wc) - nrow(field_flagged_wc),
+    n_rows = nrow(field_flagged_wc),
     order = 10
   )
   
@@ -986,7 +986,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   # Flag values over 1500 as potentially unrealistic (instead of removing them
   # in the next section)
   
-  misc_flagged_tc <- field_flagged_tc %>%
+  misc_flagged_wc <- field_flagged_wc %>%
     mutate(
       misc_flag = if_else(
         condition = harmonized_value >= 1500,
@@ -996,18 +996,18 @@ harmonize_tc <- function(raw_tc, p_codes){
     )
   
   # Export a record of flag counts
-  misc_flag_table_out_path <- "3_harmonize/out/tc_misc_flag_table.csv"
+  misc_flag_table_out_path <- "3_harmonize/out/wc_misc_flag_table.csv"
   
-  write_csv(x = misc_flagged_tc %>%
+  write_csv(x = misc_flagged_wc %>%
               count(parameter, harmonized_units, misc_flag),
             file = misc_flag_table_out_path)
   
   dropped_misc <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Dropped rows while assigning misc flags",
     short_reason = "Misc flagging",
-    number_dropped = nrow(field_flagged_tc) - nrow(misc_flagged_tc),
-    n_rows = nrow(misc_flagged_tc),
+    number_dropped = nrow(field_flagged_wc) - nrow(misc_flagged_wc),
+    n_rows = nrow(misc_flagged_wc),
     order = 11
   )
   
@@ -1018,7 +1018,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   # We remove any depths > 592m, the deepest point in a lake in the U.S.
   
-  realistic_tc <- misc_flagged_tc %>%
+  realistic_wc <- misc_flagged_wc %>%
     filter(
       harmonized_top_depth_value <= 592 | is.na(harmonized_top_depth_value),
       harmonized_bottom_depth_value <= 592 | is.na(harmonized_bottom_depth_value),
@@ -1026,11 +1026,11 @@ harmonize_tc <- function(raw_tc, p_codes){
     )
   
   dropped_unreal <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Dropped rows with unrealistic values",
     short_reason = "Unrealistic values",
-    number_dropped = nrow(misc_flagged_tc) - nrow(realistic_tc),
-    n_rows = nrow(realistic_tc),
+    number_dropped = nrow(misc_flagged_wc) - nrow(realistic_wc),
+    n_rows = nrow(realistic_wc),
     order = 12
   )
   
@@ -1042,12 +1042,12 @@ harmonize_tc <- function(raw_tc, p_codes){
   # (field and/or lab replicates/duplicates). We take the mean of those values here
   
   # First tag aggregate subgroups with group IDs
-  grouped_tc <- realistic_tc %>%
+  grouped_wc <- realistic_wc %>%
     group_by(parameter, OrganizationIdentifier, MonitoringLocationIdentifier,
              MonitoringLocationTypeName, ResolvedMonitoringLocationTypeName,
              ActivityStartDate, ActivityStartTime.Time,
              ActivityStartTime.TimeZoneCode, harmonized_tz,
-             harmonized_local_time, harmonized_utc, ActivityStartDateTime,
+             harmonized_local_time, harmonized_uwc, ActivityStartDateTime,
              harmonized_top_depth_value, harmonized_top_depth_unit,
              harmonized_bottom_depth_value, harmonized_bottom_depth_unit,
              harmonized_discrete_depth_value, harmonized_discrete_depth_unit,
@@ -1057,9 +1057,9 @@ harmonize_tc <- function(raw_tc, p_codes){
   
   # Export the dataset with subgroup IDs for joining future aggregated product
   # back to original raw data (Excludes data with flagged high values)
-  grouped_tc_out_path <- "3_harmonize/out/tc_harmonized_grouped.feather"
+  grouped_wc_out_path <- "3_harmonize/out/wc_harmonized_grouped.feather"
   
-  grouped_tc %>%
+  grouped_wc %>%
     select(
       all_of(c(raw_names,
                "parameter_code", "group_name", "parameter_name_description",
@@ -1067,10 +1067,10 @@ harmonize_tc <- function(raw_tc, p_codes){
       group_cols(),
       harmonized_value
     ) %>%
-    write_feather(path = grouped_tc_out_path)
+    write_feather(path = grouped_wc_out_path)
   
   # Now aggregate at the subgroup level to take care of simultaneous observations
-  no_simul_tc <- grouped_tc %>%
+  no_simul_wc <- grouped_wc %>%
     # Make sure we don't drop subgroup ID
     group_by(subgroup_id, .add = TRUE) %>%
     summarize(
@@ -1096,13 +1096,13 @@ harmonize_tc <- function(raw_tc, p_codes){
       .after = misc_flag
     ) 
   
-  rm(grouped_tc)
+  rm(grouped_wc)
   gc()
   
   # Plot harmonized measurements by Tier:
   
   # 1. Harmonized values
-  no_simul_tc_tier_label <- no_simul_tc %>%
+  no_simul_wc_tier_label <- no_simul_wc %>%
     mutate(
       tier_label = case_when(
         tier == 0 ~ "Restrictive (Tier 0)",
@@ -1116,7 +1116,7 @@ harmonize_tc <- function(raw_tc, p_codes){
       )
     )
   
-  tier_dists <- no_simul_tc_tier_label %>%
+  tier_dists <- no_simul_wc_tier_label %>%
     select(parameter, tier_label, harmonized_value, harmonized_units) %>%
     mutate(plot_value = harmonized_value + 0.001) %>%
     ggplot() +
@@ -1137,7 +1137,7 @@ harmonize_tc <- function(raw_tc, p_codes){
       legend.position = "bottom") +
     guides(fill = guide_legend(nrow = 5))
   
-  ggsave(filename = "3_harmonize/out/tc_tier_dists_postagg.png",
+  ggsave(filename = "3_harmonize/out/wc_tier_dists_postagg.png",
          plot = tier_dists,
          width = 8, height = 10, units = "in", device = "png")
   
@@ -1145,7 +1145,7 @@ harmonize_tc <- function(raw_tc, p_codes){
   # 1(b): Harmonized values by location, param, unit (not tier, but uses the 
   # dataset made for tiers)
   
-  location_tier_dists <- no_simul_tc_tier_label %>%
+  location_tier_dists <- no_simul_wc_tier_label %>%
     select(parameter, ResolvedMonitoringLocationTypeName, harmonized_value, harmonized_units) %>%
     mutate(plot_value = harmonized_value + 0.001) %>%
     ggplot() +
@@ -1166,7 +1166,7 @@ harmonize_tc <- function(raw_tc, p_codes){
       legend.position = "bottom") +
     guides(fill = guide_legend(nrow = 5))
   
-  ggsave(filename = "3_harmonize/out/tc_tier_dists_location_postagg.png",
+  ggsave(filename = "3_harmonize/out/wc_tier_dists_location_postagg.png",
          plot = location_tier_dists,
          width = 8, height = 10, units = "in", device = "png")
   
@@ -1174,13 +1174,13 @@ harmonize_tc <- function(raw_tc, p_codes){
   # 2: Harmonized CVs
   
   # There are very few non-NA rows
-  non_na_rows <- no_simul_tc_tier_label %>%
+  non_na_rows <- no_simul_wc_tier_label %>%
     select(parameter, tier_label, harmonized_value_cv) %>%
     mutate(plot_value = harmonized_value_cv + 0.001) %>%
     na.omit() %>%
     nrow()
   
-  tier_cv_dist <- no_simul_tc_tier_label %>%
+  tier_cv_dist <- no_simul_wc_tier_label %>%
     select(parameter, tier_label, harmonized_value_cv) %>%
     mutate(plot_value = harmonized_value_cv + 0.001) %>%
     na.omit() %>%
@@ -1201,26 +1201,26 @@ harmonize_tc <- function(raw_tc, p_codes){
     theme_bw() +
     theme(strip.text = element_text(size = 7))
   
-  ggsave(filename = "3_harmonize/out/tc_tier_cv_dists_postagg.png",
+  ggsave(filename = "3_harmonize/out/wc_tier_cv_dists_postagg.png",
          plot = tier_cv_dist,
          width = 8.5, height = 10, units = "in", device = "png")
   
   # 3. Maps
   # Similarly, create maps of records counts by tier
-  plot_tier_maps(dataset = no_simul_tc, custom_width = 8, custom_height = 6,
-                 n_bins = 15, param_name = "tc", flip_facets = TRUE,
+  plot_tier_maps(dataset = no_simul_wc, custom_width = 8, custom_height = 6,
+                 n_bins = 15, param_name = "wc", flip_facets = TRUE,
                  legend_position = "bottom")
   
   # 4. Time
   # Year, month, day of week
-  plot_time_charts(dataset = no_simul_tc, custom_width = 7, custom_height = 8,
-                   year_seq = 5, param_name = "tc", legend_position = "bottom",
+  plot_time_charts(dataset = no_simul_wc, custom_width = 7, custom_height = 8,
+                   year_seq = 5, param_name = "wc", legend_position = "bottom",
                    scale_type = "free_y")
   
   # 5. Depths
   # And the three depth cols
   
-  top_depth_dist <- no_simul_tc_tier_label %>%
+  top_depth_dist <- no_simul_wc_tier_label %>%
     ggplot() +
     geom_histogram(
       aes(harmonized_top_depth_value, fill = tier_label),
@@ -1236,11 +1236,11 @@ harmonize_tc <- function(raw_tc, p_codes){
     theme_bw() +
     theme(legend.position = "bottom")
   
-  ggsave(filename = "3_harmonize/out/tc_tier_top_depth_dist_postagg.png",
+  ggsave(filename = "3_harmonize/out/wc_tier_top_depth_dist_postagg.png",
          plot = top_depth_dist,
          width = 8, height = 6, units = "in", device = "png")
   
-  bottom_depth_dist <- no_simul_tc_tier_label %>%
+  bottom_depth_dist <- no_simul_wc_tier_label %>%
     ggplot() +
     geom_histogram(
       aes(harmonized_bottom_depth_value, fill = tier_label),
@@ -1256,11 +1256,11 @@ harmonize_tc <- function(raw_tc, p_codes){
     theme_bw() +
     theme(legend.position = "bottom")
   
-  ggsave(filename = "3_harmonize/out/tc_tier_bottom_depth_dist_postagg.png",
+  ggsave(filename = "3_harmonize/out/wc_tier_bottom_depth_dist_postagg.png",
          plot = bottom_depth_dist,
          width = 8, height = 6, units = "in", device = "png")
   
-  discrete_depth_dist <- no_simul_tc_tier_label %>%
+  discrete_depth_dist <- no_simul_wc_tier_label %>%
     ggplot() +
     geom_histogram(
       aes(harmonized_discrete_depth_value, fill = tier_label),
@@ -1276,12 +1276,12 @@ harmonize_tc <- function(raw_tc, p_codes){
     theme_bw() +
     theme(legend.position = "bottom")
   
-  ggsave(filename = "3_harmonize/out/tc_tier_discrete_depth_dist_postagg.png",
+  ggsave(filename = "3_harmonize/out/wc_tier_discrete_depth_dist_postagg.png",
          plot = discrete_depth_dist,
          width = 8, height = 6, units = "in", device = "png")
   
   # Clean up
-  rm(no_simul_tc_tier_label)
+  rm(no_simul_wc_tier_label)
   gc()
   
   
@@ -1289,16 +1289,16 @@ harmonize_tc <- function(raw_tc, p_codes){
   print(
     paste0(
       "Rows removed while aggregating simultaneous records: ",
-      nrow(realistic_tc) - nrow(no_simul_tc)
+      nrow(realistic_wc) - nrow(no_simul_wc)
     )
   )
   
   dropped_simul <- tibble(
-    step = "true_color harmonization",
+    step = "water_color harmonization",
     reason = "Dropped rows while aggregating simultaneous records",
     short_reason = "Simultaneous records",
-    number_dropped = nrow(realistic_tc) - nrow(no_simul_tc),
-    n_rows = nrow(no_simul_tc),
+    number_dropped = nrow(realistic_wc) - nrow(no_simul_wc),
+    n_rows = nrow(no_simul_wc),
     order = 13
   )
   
@@ -1314,31 +1314,31 @@ harmonize_tc <- function(raw_tc, p_codes){
                                 dropped_field, dropped_misc, dropped_unreal,
                                 dropped_simul)
   
-  documented_drops_out_path <- "3_harmonize/out/tc_harmonize_dropped_metadata.csv"
+  documented_drops_out_path <- "3_harmonize/out/wc_harmonize_dropped_metadata.csv"
   
   write_csv(x = compiled_dropped,
             file = documented_drops_out_path)
   
   
   # Export in memory-friendly way
-  data_out_path <- "3_harmonize/out/tc_harmonized_final.csv"
+  data_out_path <- "3_harmonize/out/wc_harmonized_final.csv"
   
-  write_csv(no_simul_tc,
+  write_csv(no_simul_wc,
             data_out_path)
   
   # Final dataset length:
   print(
     paste0(
       "Final number of records: ",
-      nrow(no_simul_tc)
+      nrow(no_simul_wc)
     )
   )
   
   return(list(
-    tc_param_change_table_path = param_change_table_out_path,
-    tc_tiering_record_path = tiering_record_out_path,
-    tc_grouped_preagg_path = grouped_tc_out_path,
-    tc_harmonized_path = data_out_path,
+    wc_param_change_table_path = param_change_table_out_path,
+    wc_tiering_record_path = tiering_record_out_path,
+    wc_grouped_preagg_path = grouped_wc_out_path,
+    wc_harmonized_path = data_out_path,
     compiled_drops_path = documented_drops_out_path
   ))  
 }

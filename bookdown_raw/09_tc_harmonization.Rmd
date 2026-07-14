@@ -17,7 +17,7 @@ knitr::opts_chunk$set(dev = "png",
                       dpi = 300)
 ```
 
-# True Color harmonization process
+# Water Color harmonization process
 
 ```{r echo=FALSE}
 documented_drops <- params$documented_drops %>%
@@ -30,7 +30,7 @@ param_change_table <- params$param_change_table
 
 Following the completion of the {dataRetrieval} download process described previously, the pipeline contains raw WQP data for each parameter of interest. Before we harmonize each parameter we run through a series of universal "pre-harmonization" steps, which ensure that the datasets are appropriately formatted when entering their harmonization routines.
 
-The text below first walks through the pre-harmonization steps for the True Color dataset and then delves into the specifics of the harmonization process.
+The text below first walks through the pre-harmonization steps for the Water Color dataset and then delves into the specifics of the harmonization process.
 
 ```{r echo = FALSE}
 # Redo the ordering of the steps, conceptualizing the pre-harmonization and
@@ -60,7 +60,7 @@ step_data <- documented_drops %>%
                              " rows"))
 ```
 
-## Pre-harmonization of the raw True Color WQP dataset
+## Pre-harmonization of the raw Water Color WQP dataset
 
 ```{r echo=FALSE}
 step_counter <- 1
@@ -73,7 +73,7 @@ step_1_rows <- filter(step_data,
   paste0(., " thousand")
 ```
 
-At the start of the pre-harmonization process the raw True Color WQP dataset contains `r step_1_rows` rows.
+At the start of the pre-harmonization process the raw Water Color WQP dataset contains `r step_1_rows` rows.
 
 ```{r, fig.cap= "Bar plot showing the row count update for the current harmonization step.", echo = FALSE}
 step_data %>%
@@ -206,13 +206,13 @@ step_data %>%
 
 <br>
 
-## Harmonization-ready True Color dataset
+## Harmonization-ready Water Color dataset
 
-Once ready for harmonization, the True Color WQP dataset contains the following user-defined `CharacteristicNames`: `r tc_chars`.
+Once ready for harmonization, the Water Color WQP dataset contains the following user-defined `CharacteristicNames`: `r tc_chars`.
 
 <img src="3_harmonize/out/tc_stacked_char_names.png" alt="Stacked bar chart with counts of CharacteristicName records" width="650"/>
 
-These `CharacteristicNames` are chosen in order to select for only those measurements that pertain to True Color. We selected them by reviewing options in the `Characteristics` field of the [Water Quality Portal Filter Results](https://www.waterqualitydata.us/#advanced=true) page. 
+These `CharacteristicNames` are chosen in order to select for only those measurements that pertain to Water Color. We selected them by reviewing options in the `Characteristics` field of the [Water Quality Portal Filter Results](https://www.waterqualitydata.us/#advanced=true) page. 
 
 <br>
 
@@ -237,11 +237,11 @@ step_4_dropped <-  filter(step_data,
   paste0(., " thousand")
 ```
 
-We next ensure that the media type for all True Color data is `"Surface Water"`, `"Water"`, `"Estuary"`, or `NA`. Any records not meeting these criteria are dropped.
+We next ensure that the media type for all Water Color data is `"Surface Water"`, `"Water"`, `"Estuary"`, or `NA`. Any records not meeting these criteria are dropped.
 
 We then assign each record to a value in a new `parameter` column, which aims to basically clarify the categories of the `CharacteristicName` column using `USGSPCode` values: If `USGSPCode` is "00080" we assign it to the "True color" parameter, if `USGSPCode` is "00081" it becomes "Apparent color". Records with `USGSPCode` of "70516" are dropped because they are not relevant to the dataset. And for the majority of records, which don't have a `USGSPCode`, the `parameter` value is simply the same as the `CharacteristicName`. Records with `parameter` names that are different from their `CharacteristicName` are identified in the table below:
 
-```{r fig.alt="Table containing True Color summary information for records that were changed because of their USGSPCode value."}
+```{r fig.alt="Table containing Water Color summary information for records that were changed because of their USGSPCode value."}
 param_change_table %>%
   kable() %>%
   kable_paper() %>%
@@ -535,7 +535,7 @@ step_9_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-The goal of the preceding three steps was to prevent records with seemingly missing measurement data from being dropped if there was still a chance of recovering a usable value. At this point we've finished with that process and we proceed to check for remaining records with `NA` values in their `harmonized_value` column. If they exist, they are dropped. We also filter out any negative values in the dataset at this point because True Color cannot be negative. 
+The goal of the preceding three steps was to prevent records with seemingly missing measurement data from being dropped if there was still a chance of recovering a usable value. At this point we've finished with that process and we proceed to check for remaining records with `NA` values in their `harmonized_value` column. If they exist, they are dropped. We also filter out any negative values in the dataset at this point because Water Color cannot be negative. 
 
 `r step_9_dropped` rows are removed. The final row count after this is `r step_9_rows`.
 
@@ -582,7 +582,7 @@ step_10_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-The next step in True Color harmonization is standardizing the units of WQP records. Records that don't make sense for True Color or can't be converted to a standardized unit are dropped. We use the unit conversion table below to filter the units. "PCU", "CU", and "pt" units are standardized as "PCU". "None" and "ADMI value" are left as-is.
+The next step in Water Color harmonization is standardizing the units of WQP records. Records that don't make sense for Water Color or can't be converted to a standardized unit are dropped. We use the unit conversion table below to filter the units. "PCU", "CU", and "pt" units are standardized as "PCU". "None" and "ADMI value" are left as-is.
 
 ```{r echo=FALSE, message = FALSE}
 read_csv("../3_harmonize/out/tc_unit_table.csv") %>%
@@ -696,7 +696,7 @@ step_12_dropped <- filter(step_data,
 
 We next review information related to the analytical methods, sample fraction, and result units for each record to construct hierarchical tiers as described in the *Method tiering* section of the *Tiering, flagging, and quality control philosophy* chapter.
 
-In preparation for tiering, we check the `ResultAnalyticalMethod.MethodName` column for names that indicate non-True Color measurements. 
+In preparation for tiering, we check the `ResultAnalyticalMethod.MethodName` column for names that indicate non-Water Color measurements. 
 
 Finally, we group the data into three tiers as described in *Tiering, flagging, and quality control philosophy*. Broadly, these tiers are:
 
@@ -712,7 +712,7 @@ Finally, we group the data into three tiers as described in *Tiering, flagging, 
 
 At this point we create a file (`3_harmonize/out/tc_tiering_record.csv`) that contains a record of how specific method text was tiered and how many row counts corresponded to each method. This file is also included as an interactive HTML table below, in order to illustrate how the specifics of each tiering decision in the table above are carried out.
 
-```{r fig.alt="Table containing combinations of True Color record summary information and corresponding tiers."}
+```{r fig.alt="Table containing combinations of Water Color record summary information and corresponding tiers."}
 
 tiering_record %>%
 kable() %>%
@@ -774,7 +774,7 @@ Next, we use the `field_flag` column to flag records based on the type of sampli
 + `field_flag` = `1` when integrated sampling methods were used. Indicated by detection of "integrated", "multiple", or "pump" in `SampleCollectionEquipmentName`
 + `field_flag` = `2` for all other records
 
-No records should be removed by this process and so there are `r step_13_dropped` rows dropped leaving `r step_13_rows` remaining in the harmonized True Color dataset.
+No records should be removed by this process and so there are `r step_13_dropped` rows dropped leaving `r step_13_rows` remaining in the harmonized Water Color dataset.
 
 ```{r, fig.cap= "Bar plot showing the row count update for the current harmonization step.", echo = FALSE}
 step_data %>%
@@ -820,11 +820,11 @@ step_14_dropped <- filter(step_data,
 
 Next we add a flag column, `misc_flag`, which indicates whether the value in the `harmonized_value` column exceeds 1500. We use this as a check for whether or not a value is within the typical realistic range expected for natural waters.
 
-Some parameters in published AquaMatch products will have different flagging requirements for this column that True Color does not. Please keep this in mind and review the documentation for other harmonized WQP data products to ensure that the `misc_flag` column is used as intended for each product.
+Some parameters in published AquaMatch products will have different flagging requirements for this column that Water Color does not. Please keep this in mind and review the documentation for other harmonized WQP data products to ensure that the `misc_flag` column is used as intended for each product.
 
 <br>
 
-No records should be removed by this process and so there are `r step_14_dropped` rows dropped leaving `r step_14_rows` remaining in the harmonized True Color dataset.
+No records should be removed by this process and so there are `r step_14_dropped` rows dropped leaving `r step_14_rows` remaining in the harmonized Water Color dataset.
 
 ```{r, fig.cap= "Bar plot showing the row count update for the current harmonization step.", echo = FALSE}
 step_data %>%
@@ -915,7 +915,7 @@ step_16_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-The final step of True Color harmonization is to aggregate simultaneous observations.
+The final step of Water Color harmonization is to aggregate simultaneous observations.
 
 **The aggregation process**: Any group of samples determined to be simultaneous are simplified into a single record containing the mean and coefficient of variation (CV) of the group. These can be either true duplicate entries in the WQP or records with non-identical values recorded at the same time and place and by the same organization (field and/or lab replicates/duplicates). The CV can be used to filter the dataset based on the amount of variability that is tolerable to specific use cases. Note, however, that many entries will have a CV that is `NA` because there are no simultaneous records or 0 because the records are duplicates and all entries have the same `harmonized_value`.
 
@@ -923,7 +923,7 @@ We identify simultaneous records to aggregate by creating identical subgroups (`
 
 The final values are presented in the `harmonized_value` and `harmonized_value_cv` columns. The number of rows used per group is recorded in the `harmonized_row_count` column.
 
-`r step_16_dropped` rows dropped leaving `r step_16_rows` remaining in the final harmonized and aggregated True Color dataset.
+`r step_16_dropped` rows dropped leaving `r step_16_rows` remaining in the final harmonized and aggregated Water Color dataset.
 
 ```{r, fig.cap= "Bar plot showing the row count update for the current harmonization step.", echo = FALSE}
 step_data %>%
@@ -950,9 +950,9 @@ step_data %>%
 
 <br>
 
-### Harmonized True Color
+### Harmonized Water Color
 
-At this point the harmonization of the True Color data from the WQP is complete and we export the final dataset for use later in the workflow.
+At this point the harmonization of the Water Color data from the WQP is complete and we export the final dataset for use later in the workflow.
 
 Below are several sets of figures illustrating different qualities of the dataset: 
 
@@ -960,7 +960,7 @@ Below are several sets of figures illustrating different qualities of the datase
 
 <br>
 
-<img src="3_harmonize/out/tc_tier_dists_location_postagg.png" alt="Distribution of True Color values by location type" width="650"/>
+<img src="3_harmonize/out/tc_tier_dists_location_postagg.png" alt="Distribution of Water Color values by location type" width="650"/>
 
 <br>
 
@@ -968,26 +968,26 @@ Below are several sets of figures illustrating different qualities of the datase
 
 <br>
 
-<img src="3_harmonize/out/tc_tier_dists_postagg.png" alt="Distribution of True Color values by tier" width="650"/>
+<img src="3_harmonize/out/tc_tier_dists_postagg.png" alt="Distribution of Water Color values by tier" width="650"/>
 
 
-<img src="3_harmonize/out/tc_tier_cv_dists_postagg.png" alt="Distribution of True Color CVs by tier" width="650"/>
+<img src="3_harmonize/out/tc_tier_cv_dists_postagg.png" alt="Distribution of Water Color CVs by tier" width="650"/>
 
 <br>
 
 3. Maps showing the geographic distribution of records by tier within the US:
 
-<img src="3_harmonize/out/tc_tier_hex_map.png" alt="Geographic distribution of True Color records by tier in the conterminous US" width="650"/>
+<img src="3_harmonize/out/tc_tier_hex_map.png" alt="Geographic distribution of Water Color records by tier in the conterminous US" width="650"/>
 
 <br>
 
 4. Bar charts showing the distribution of values by tier across years, months, and days of the week:
 
-<img src="3_harmonize/out/tc_year_tier_chart.png" alt="Temporal distribution of True Color records by tier across years" width="650"/>
+<img src="3_harmonize/out/tc_year_tier_chart.png" alt="Temporal distribution of Water Color records by tier across years" width="650"/>
 
-<img src="3_harmonize/out/tc_month_tier_chart.png" alt="Temporal distribution of True Color records by tier across months" width="650"/>
+<img src="3_harmonize/out/tc_month_tier_chart.png" alt="Temporal distribution of Water Color records by tier across months" width="650"/>
 
-<img src="3_harmonize/out/tc_wday_tier_chart.png" alt="Temporal distribution of True Color records by tier across days of the week" width="650"/>
+<img src="3_harmonize/out/tc_wday_tier_chart.png" alt="Temporal distribution of Water Color records by tier across days of the week" width="650"/>
 
 <br>
 

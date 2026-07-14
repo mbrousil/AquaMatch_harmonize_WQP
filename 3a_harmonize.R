@@ -46,8 +46,8 @@ p3_targets_list <- list(
       # p3_wqp_data_aoi_ready_cdom$compiled_drops_path,
       # p3_cdom_harmonized$compiled_drops_path,
       # True Color
-      p3_wqp_data_aoi_ready_tc$compiled_drops_path,
-      p3_tc_harmonized$compiled_drops_path
+      p3_wqp_data_aoi_ready_wc$compiled_drops_path,
+      p3_wc_harmonized$compiled_drops_path
     ),
     .f = read_csv)
   )

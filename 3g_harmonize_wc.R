@@ -1,6 +1,6 @@
 # True color specific targets list for the harmonization step
 
-p3_tc_targets_list <- list(
+p3_wc_targets_list <- list(
   
   # Pre-harmonization data prep ---------------------------------------------
   
@@ -17,17 +17,17 @@ p3_tc_targets_list <- list(
   # undesired variables can also be dropped from the WQP dataset using the 
   # optional `drop_vars` argument. 
   tar_target(
-    name = p3_wqp_data_aoi_formatted_tc,
-    command = format_columns(p2_wqp_data_aoi_tc),
+    name = p3_wqp_data_aoi_formatted_wc,
+    command = format_columns(p2_wqp_data_aoi_wc),
     format = "feather"
   ),
   
   # Join in column containing site type info
   tar_target(
-    name = p3_wqp_data_aoi_sitetype_tc,
+    name = p3_wqp_data_aoi_sitetype_wc,
     command = left_join(
-      x = p3_wqp_data_aoi_formatted_tc,
-      y = p1_wqp_inventory_aoi_tc %>%
+      x = p3_wqp_data_aoi_formatted_wc,
+      y = p1_wqp_inventory_aoi_wc %>%
         select(OrganizationIdentifier, MonitoringLocationIdentifier,
                ResolvedMonitoringLocationTypeName, CharacteristicName,
                OrganizationFormalName, ProviderName, MonitoringLocationTypeName)
@@ -39,25 +39,25 @@ p3_tc_targets_list <- list(
   
   # Time and time zone fills
   tar_target(
-    name = p3_wqp_data_aoi_date_time_tc,
-    command = fill_date_time(dataset = p3_wqp_data_aoi_sitetype_tc,
-                             site_data = p2_site_counts_tc),
+    name = p3_wqp_data_aoi_date_time_wc,
+    command = fill_date_time(dataset = p3_wqp_data_aoi_sitetype_wc,
+                             site_data = p2_site_counts_wc),
     packages = c("tidyverse", "lutz", "sf", "sfheaders")
   ),
   
   tar_target(
-    name = p3_wqp_data_aoi_ready_tc,
-    command = clean_wqp_data(wqp_data = p3_wqp_data_aoi_date_time_tc,
-                             char_names_crosswalk = p1_char_names_crosswalk_tc,
-                             site_data = p2_site_counts_tc,
-                             wqp_metadata = p1_wqp_inventory_aoi_tc),
+    name = p3_wqp_data_aoi_ready_wc,
+    command = clean_wqp_data(wqp_data = p3_wqp_data_aoi_date_time_wc,
+                             char_names_crosswalk = p1_char_names_crosswalk_wc,
+                             site_data = p2_site_counts_wc,
+                             wqp_metadata = p1_wqp_inventory_aoi_wc),
     packages = c("tidyverse", "feather")
   ),
   
   # Connect cleaned data output to the pipeline
   tar_file_read(
-    name = p3_cleaned_wqp_data_tc,
-    command = p3_wqp_data_aoi_ready_tc$wqp_data_clean_path,
+    name = p3_cleaned_wqp_data_wc,
+    command = p3_wqp_data_aoi_ready_wc$wqp_data_clean_path,
     read = read_feather(path = !!.x),
     cue = tar_cue("always"),
     packages = "feather"),
@@ -66,8 +66,8 @@ p3_tc_targets_list <- list(
   # Harmonization -----------------------------------------------------------
   
   tar_target(
-    name = p3_tc_harmonized,
-    command = harmonize_tc(raw_tc = p3_cleaned_wqp_data_tc,
+    name = p3_wc_harmonized,
+    command = harmonize_wc(raw_wc = p3_cleaned_wqp_data_wc,
                              p_codes = p3_p_codes),
     packages = c("cli", "tidyverse", "feather", "ggrepel", "scales", "snakecase",
                  "sf", "sfheaders")
@@ -76,41 +76,41 @@ p3_tc_targets_list <- list(
   # Record of rows that were dropped early in harmonization for not being part
   # of True Color params of interest
   tar_file_read(
-    name = p3_tc_param_change_table,
-    command = p3_tc_harmonized$tc_param_change_table_path,
+    name = p3_wc_param_change_table,
+    command = p3_wc_harmonized$wc_param_change_table_path,
     read = read_csv(file = !!.x)
   ),
   
   tar_file_read(
-    name = p3_tc_tiering_record,
-    command = p3_tc_harmonized$tc_tiering_record_path,
+    name = p3_wc_tiering_record,
+    command = p3_wc_harmonized$wc_tiering_record_path,
     read = read_csv(file = !!.x)
   ),
   
   # Harmonized True Color data containing grouping IDs for simultaneous
   # records, but not aggregated
   tar_file_read(
-    name = p3_tc_preagg_grouped,
-    command = p3_tc_harmonized$tc_grouped_preagg_path,
+    name = p3_wc_preagg_grouped,
+    command = p3_wc_harmonized$wc_grouped_preagg_path,
     read = read_feather(path = !!.x),
     packages = "feather"),
   
   # Harmonized True Color data after simultaneous record aggregation (i.e.,
   # final product)
   tar_file_read(
-    name = p3_tc_agg_harmonized,
-    command = p3_tc_harmonized$tc_harmonized_path,
+    name = p3_wc_agg_harmonized,
+    command = p3_wc_harmonized$wc_harmonized_path,
     read = read_csv(file = !!.x)),
   
   # Create a copy of the csv in feather format
   tar_file_read(
-    name = p3_tc_agg_harmonized_feather,
+    name = p3_wc_agg_harmonized_feather,
     command = {
-      out_path <- gsub(x = p3_tc_harmonized$tc_harmonized_path,
+      out_path <- gsub(x = p3_wc_harmonized$wc_harmonized_path,
                        pattern = ".csv",
                        replacement = ".feather")
       
-      write_feather(x = p3_tc_agg_harmonized,
+      write_feather(x = p3_wc_agg_harmonized,
                     path = out_path)
       
       out_path
@@ -121,14 +121,14 @@ p3_tc_targets_list <- list(
   
   # Export
   tar_target(
-    name = p3_tc_agg_harmonized_feather_drive_file,
+    name = p3_wc_agg_harmonized_feather_drive_file,
     command = {
-      p0_check_tc_drive
-      export_single_file(target = p3_tc_agg_harmonized_feather,
-                         drive_path = p0_tc_output_path,
-                         stable = p0_harmonization_config$tc_use_stable,
+      p0_check_wc_drive
+      export_single_file(target = p3_wc_agg_harmonized_feather,
+                         drive_path = p0_wc_output_path,
+                         stable = p0_harmonization_config$wc_use_stable,
                          google_email = p0_harmonization_config$google_email,
-                         date_stamp = p0_harmonization_config$tc_stable_date)
+                         date_stamp = p0_harmonization_config$wc_stable_date)
     },
     packages = c("tidyverse", "googledrive"),
     error = "stop"
@@ -139,14 +139,14 @@ p3_tc_targets_list <- list(
   
   # Generate site metadata after harmonization is complete
   tar_file_read(
-    name = p3_tc_harmonized_site_info,
+    name = p3_wc_harmonized_site_info,
     command = {
       # Pull and clean data
-      tc_sites <- get_site_info(dataset = p3_tc_preagg_grouped)
+      wc_sites <- get_site_info(dataset = p3_wc_preagg_grouped)
       
-      out_path <- "3_harmonize/out/tc_harmonized_site_info.feather"
+      out_path <- "3_harmonize/out/wc_harmonized_site_info.feather"
       
-      tc_sites %>%
+      wc_sites %>%
         write_feather(path = out_path)
       
       out_path
@@ -157,14 +157,14 @@ p3_tc_targets_list <- list(
   
   # Export
   tar_target(
-    name = p3_tc_site_info_drive_file,
+    name = p3_wc_site_info_drive_file,
     command = {
-      p0_check_tc_drive
-      export_single_file(target = p3_tc_harmonized_site_info,
-                         drive_path = p0_tc_output_path,
-                         stable = p0_harmonization_config$tc_use_stable,
+      p0_check_wc_drive
+      export_single_file(target = p3_wc_harmonized_site_info,
+                         drive_path = p0_wc_output_path,
+                         stable = p0_harmonization_config$wc_use_stable,
                          google_email = p0_harmonization_config$google_email,
-                         date_stamp = p0_harmonization_config$tc_stable_date)
+                         date_stamp = p0_harmonization_config$wc_stable_date)
     },
     packages = c("tidyverse", "googledrive"),
     error = "stop"
@@ -178,11 +178,11 @@ p3_tc_targets_list <- list(
   # will include all file IDs in the Drive location, not just stable ones
   
   tar_file_read(
-    name = p3_tc_drive_ids,
+    name = p3_wc_drive_ids,
     command = get_file_ids(google_email = p0_harmonization_config$google_email,
-                           drive_folder = p0_tc_output_path,
-                           file_path = "3_harmonize/out/tc_drive_ids.csv",
-                           depend = p3_tc_site_info_drive_file
+                           drive_folder = p0_wc_output_path,
+                           file_path = "3_harmonize/out/wc_drive_ids.csv",
+                           depend = p3_wc_site_info_drive_file
     ),
     read = read_csv(file = !!.x),
     packages = c("tidyverse", "googledrive")

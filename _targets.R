@@ -21,7 +21,7 @@ tar_source(files = c(
   "3d_harmonize_sdd.R",
   "3e_harmonize_tss.R",
   "3f_harmonize_cdom.R",
-  "3g_harmonize_tc.R",
+  "3g_harmonize_wc.R",
   "create_bookdown.R"))
 
 # The list of targets/steps
@@ -69,9 +69,9 @@ config_targets <- list(
   ),
   
   tar_target(
-    name = p0_tc_output_path,
+    name = p0_wc_output_path,
     command = paste0(p0_harmonization_config$drive_project_folder,
-                     "true_color/")
+                     "water_color/")
   ), 
   
   # Check for Google Drive folder for harmonized file output, create it if it
@@ -199,21 +199,21 @@ config_targets <- list(
     error = "stop"
   ),
   
-  # Check for true color subfolder, create if not present
+  # Check for water color subfolder, create if not present
   tar_target(
-    name = p0_check_tc_drive,
+    name = p0_check_wc_drive,
     command = {
       p0_check_drive_parent_folder
       tryCatch({
         drive_auth(p0_harmonization_config$google_email)
-        drive_ls(p0_tc_output_path)
+        drive_ls(p0_wc_output_path)
       }, error = function(e) {
         # if the outpath doesn't exist, create it along with a "stable" subfolder
-        drive_mkdir(name = "true_color",
+        drive_mkdir(name = "water_color",
                     path = p0_harmonization_config$drive_project_folder)
         drive_mkdir(name = "stable",
                     path = paste0(p0_harmonization_config$drive_project_folder,
-                                  "true_color"))
+                                  "water_color"))
       })
     },
     packages = "googledrive",
@@ -293,9 +293,9 @@ config_targets <- list(
   ),
   
   tar_file_read(
-    name = p2_tc_drive_ids,
+    name = p2_wc_drive_ids,
     command = paste0(p0_AquaMatch_download_WQP_directory,
-                     "2_download/out/tc_drive_ids.csv"),
+                     "2_download/out/wc_drive_ids.csv"),
     cue = tar_cue("always"),
     read = read_csv(file = !!.x)
   ),
@@ -376,15 +376,15 @@ config_targets <- list(
     packages = c("tidyverse", "googledrive")
   ),  
   
-  # True color
+  # water color
   tar_target(
-    name = p1_wqp_params_tc,
-    command = retrieve_data(target = "p1_wqp_params_tc",
-                            id_df = p2_tc_drive_ids,
+    name = p1_wqp_params_wc,
+    command = retrieve_data(target = "p1_wqp_params_wc",
+                            id_df = p2_wc_drive_ids,
                             local_folder = "3_harmonize/in",
-                            stable = p0_harmonization_config$tc_use_stable, 
+                            stable = p0_harmonization_config$wc_use_stable, 
                             google_email = p0_harmonization_config$google_email,
-                            stable_date = p0_harmonization_config$tc_stable_date),
+                            stable_date = p0_harmonization_config$wc_stable_date),
     packages = c("tidyverse", "googledrive")
   ), 
   
@@ -449,15 +449,15 @@ config_targets <- list(
     packages = c("tidyverse", "googledrive")
   ),
   
-  # True color
+  # water color
   tar_target(
-    name = p1_char_names_crosswalk_tc,
-    command = retrieve_data(target = "p1_char_names_crosswalk_tc",
-                            id_df = p2_tc_drive_ids,
+    name = p1_char_names_crosswalk_wc,
+    command = retrieve_data(target = "p1_char_names_crosswalk_wc",
+                            id_df = p2_wc_drive_ids,
                             local_folder = "3_harmonize/in",
-                            stable = p0_harmonization_config$tc_use_stable, 
+                            stable = p0_harmonization_config$wc_use_stable, 
                             google_email = p0_harmonization_config$google_email,
-                            stable_date = p0_harmonization_config$tc_stable_date),
+                            stable_date = p0_harmonization_config$wc_stable_date),
     packages = c("tidyverse", "googledrive")
   ),
   
@@ -522,15 +522,15 @@ config_targets <- list(
     packages = c("tidyverse", "googledrive")
   ),
   
-  # True color
+  # water color
   tar_target(
-    name = p1_wqp_inventory_aoi_tc,
-    command = retrieve_data(target = "p1_wqp_inventory_aoi_tc",
-                            id_df = p2_tc_drive_ids,
+    name = p1_wqp_inventory_aoi_wc,
+    command = retrieve_data(target = "p1_wqp_inventory_aoi_wc",
+                            id_df = p2_wc_drive_ids,
                             local_folder = "3_harmonize/in",
-                            stable = p0_harmonization_config$tc_use_stable, 
+                            stable = p0_harmonization_config$wc_use_stable, 
                             google_email = p0_harmonization_config$google_email,
-                            stable_date = p0_harmonization_config$tc_stable_date),
+                            stable_date = p0_harmonization_config$wc_stable_date),
     packages = c("tidyverse", "googledrive")
   ),
   
@@ -595,15 +595,15 @@ config_targets <- list(
     packages = c("tidyverse", "googledrive")
   ),
   
-  # True color
+  # water color
   tar_target(
-    name = p2_site_counts_tc,
-    command = retrieve_data(target = "p2_site_counts_tc",
-                            id_df = p2_tc_drive_ids,
+    name = p2_site_counts_wc,
+    command = retrieve_data(target = "p2_site_counts_wc",
+                            id_df = p2_wc_drive_ids,
                             local_folder = "3_harmonize/in",
-                            stable = p0_harmonization_config$tc_use_stable, 
+                            stable = p0_harmonization_config$wc_use_stable, 
                             google_email = p0_harmonization_config$google_email,
-                            stable_date = p0_harmonization_config$tc_stable_date),
+                            stable_date = p0_harmonization_config$wc_stable_date),
     packages = c("tidyverse", "googledrive")
   ),
   
@@ -678,16 +678,16 @@ config_targets <- list(
     format = "feather"
   ),
   
-  # True color
+  # water color
   tar_target(
-    name = p2_wqp_data_aoi_tc,
-    command = retrieve_data(target = "p2_wqp_data_aoi_tc_anon",
-                            id_df = p2_tc_drive_ids,
+    name = p2_wqp_data_aoi_wc,
+    command = retrieve_data(target = "p2_wqp_data_aoi_wc_anon",
+                            id_df = p2_wc_drive_ids,
                             local_folder = "3_harmonize/in",
                             file_type = ".feather",
-                            stable = p0_harmonization_config$tc_use_stable, 
+                            stable = p0_harmonization_config$wc_use_stable, 
                             google_email = p0_harmonization_config$google_email,
-                            stable_date = p0_harmonization_config$tc_stable_date),
+                            stable_date = p0_harmonization_config$wc_stable_date),
     packages = c("tidyverse", "googledrive", "feather"),
     format = "feather"
   )
@@ -703,5 +703,5 @@ c(config_targets,
   p3_sdd_targets_list,
   p3_tss_targets_list,
   p3_cdom_targets_list,
-  p3_tc_targets_list,
+  p3_wc_targets_list,
   bookdown_targets_list)

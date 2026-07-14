@@ -4,7 +4,7 @@ output:
     html_preview: false
 params:
   documented_drops: NA
-  tc_chars: NA
+  wc_chars: NA
   tiering_record: NA
   param_change_table: NA
 always_allow_html: true
@@ -21,9 +21,9 @@ knitr::opts_chunk$set(dev = "png",
 
 ```{r echo=FALSE}
 documented_drops <- params$documented_drops %>%
-  filter(grepl(pattern = "true_color", x = step, ignore.case = TRUE),
-         !((step == "true_color harmonization") & short_reason == "Start"))
-tc_chars <- params$tc_chars
+  filter(grepl(pattern = "water_color", x = step, ignore.case = TRUE),
+         !((step == "water_color harmonization") & short_reason == "Start"))
+wc_chars <- params$wc_chars
 tiering_record <- params$tiering_record
 param_change_table <- params$param_change_table
 ```
@@ -208,9 +208,9 @@ step_data %>%
 
 ## Harmonization-ready Water Color dataset
 
-Once ready for harmonization, the Water Color WQP dataset contains the following user-defined `CharacteristicNames`: `r tc_chars`.
+Once ready for harmonization, the Water Color WQP dataset contains the following user-defined `CharacteristicNames`: `r wc_chars`.
 
-<img src="3_harmonize/out/tc_stacked_char_names.png" alt="Stacked bar chart with counts of CharacteristicName records" width="650"/>
+<img src="3_harmonize/out/wc_stacked_char_names.png" alt="Stacked bar chart with counts of CharacteristicName records" width="650"/>
 
 These `CharacteristicNames` are chosen in order to select for only those measurements that pertain to Water Color. We selected them by reviewing options in the `Characteristics` field of the [Water Quality Portal Filter Results](https://www.waterqualitydata.us/#advanced=true) page. 
 
@@ -252,7 +252,7 @@ param_change_table %>%
 
 Below is a stacked barplot of the dataset organized by the new `parameter` column:
 
-<img src="3_harmonize/out/tc_stacked_param_names.png" alt="Stacked bar chart with counts of parameter records" width="650"/>
+<img src="3_harmonize/out/wc_stacked_param_names.png" alt="Stacked bar chart with counts of parameter records" width="650"/>
 
 `r step_4_dropped` rows are removed because they had `USGSPCode` "70516". The final row count after this is `r step_4_rows`.
 
@@ -309,25 +309,25 @@ Below are pie charts that break down the number of failure detections by column.
 
 #### ActivityCommentText fail detects
 
-<img src="3_harmonize/out/tc_ActivityCommentText_fail_pie.png" alt="ActivityCommentText failure detects" width="650"/>
+<img src="3_harmonize/out/wc_ActivityCommentText_fail_pie.png" alt="ActivityCommentText failure detects" width="650"/>
 
 #### ResultCommentText fail detects
 
-<img src="3_harmonize/out/tc_ResultCommentText_fail_pie.png" alt="ResultCommentText failure detects" width="650"/>
+<img src="3_harmonize/out/wc_ResultCommentText_fail_pie.png" alt="ResultCommentText failure detects" width="650"/>
 
 #### ResultLaboratoryCommentText fail detects
 
-<img src="3_harmonize/out/tc_ResultLaboratoryCommentText_fail_pie.png" alt="ResultLaboratoryCommentText failure detects" width="650"/>
+<img src="3_harmonize/out/wc_ResultLaboratoryCommentText_fail_pie.png" alt="ResultLaboratoryCommentText failure detects" width="650"/>
 
 <br>
 
 #### ResultDetectionConditionText fail detects
 
-<img src="3_harmonize/out/tc_ResultDetectionConditionText_fail_pie.png" alt="ResultDetectionConditionText failure detects" width="650"/>
+<img src="3_harmonize/out/wc_ResultDetectionConditionText_fail_pie.png" alt="ResultDetectionConditionText failure detects" width="650"/>
 
 #### ResultMeasureValue_original fail detects
 
-<img src="3_harmonize/out/tc_ResultMeasureValue_original_fail_pie.png" alt="ResultMeasureValue_original failure detects" width="650"/>
+<img src="3_harmonize/out/wc_ResultMeasureValue_original_fail_pie.png" alt="ResultMeasureValue_original failure detects" width="650"/>
 
 <br>
 
@@ -585,7 +585,7 @@ step_10_dropped <- filter(step_data,
 The next step in Water Color harmonization is standardizing the units of WQP records. Records that don't make sense for Water Color or can't be converted to a standardized unit are dropped. We use the unit conversion table below to filter the units. "PCU", "CU", and "pt" units are standardized as "PCU". "None" and "ADMI value" are left as-is.
 
 ```{r echo=FALSE, message = FALSE}
-read_csv("../3_harmonize/out/tc_unit_table.csv") %>%
+read_csv("../3_harmonize/out/wc_unit_table.csv") %>%
   mutate(conversion = as.character(conversion)) %>%
   kable() %>%
   kable_paper() %>%
@@ -599,7 +599,7 @@ Below is a pie chart that breaks down the different unit codes that were dropped
 
 <br>
 
-<img src="3_harmonize/out/tc_unit_drop_pie.png" alt="ResultMeasure.MeasureUnitCode mismatched codes" width="650"/>
+<img src="3_harmonize/out/wc_unit_drop_pie.png" alt="ResultMeasure.MeasureUnitCode mismatched codes" width="650"/>
 
 <br>
 
@@ -710,7 +710,7 @@ Finally, we group the data into three tiers as described in *Tiering, flagging, 
 | 2 | Inclusive | Data that are assumed to be reliable and are harmonized to our best  ability given the information available from the data provider. This  tier includes NA or non-resolvable descriptions for the  analytical method, which often make up the majority of methods  descriptions for any given parameter | All other records not already categorized into Tier 0 or Tier 1 above. |
 <br>
 
-At this point we create a file (`3_harmonize/out/tc_tiering_record.csv`) that contains a record of how specific method text was tiered and how many row counts corresponded to each method. This file is also included as an interactive HTML table below, in order to illustrate how the specifics of each tiering decision in the table above are carried out.
+At this point we create a file (`3_harmonize/out/wc_tiering_record.csv`) that contains a record of how specific method text was tiered and how many row counts corresponded to each method. This file is also included as an interactive HTML table below, in order to illustrate how the specifics of each tiering decision in the table above are carried out.
 
 ```{r fig.alt="Table containing combinations of Water Color record summary information and corresponding tiers."}
 
@@ -919,7 +919,7 @@ The final step of Water Color harmonization is to aggregate simultaneous observa
 
 **The aggregation process**: Any group of samples determined to be simultaneous are simplified into a single record containing the mean and coefficient of variation (CV) of the group. These can be either true duplicate entries in the WQP or records with non-identical values recorded at the same time and place and by the same organization (field and/or lab replicates/duplicates). The CV can be used to filter the dataset based on the amount of variability that is tolerable to specific use cases. Note, however, that many entries will have a CV that is `NA` because there are no simultaneous records or 0 because the records are duplicates and all entries have the same `harmonized_value`.
 
-We identify simultaneous records to aggregate by creating identical subgroups (`subgroup_id`) from the following columns: `parameter`, `OrganizationIdentifier`, `MonitoringLocationIdentifier`, `MonitoringLocationTypeName`, `ResolvedMonitoringLocationTypeName`, `ActivityStartDate`, `ActivityStartTime.Time`, `ActivityStartTime.TimeZoneCode`, `harmonized_tz`, `harmonized_local_time`, `harmonized_utc`, `ActivityStartDateTime`, `harmonized_top_depth_value`, `harmonized_top_depth_unit`, `harmonized_bottom_depth_value`, `harmonized_bottom_depth_unit`, `harmonized_discrete_depth_value`, `harmonized_discrete_depth_unit`, `depth_flag`, `mdl_flag`, `approx_flag`, `greater_flag`, `tier`, `field_flag`, `misc_flag`, `harmonized_units`. This selection limits the columns included in the final dataset, but we also provide a copy of the AquaMatch dataset prior to its aggregation (pipeline target `p3_tc_preagg_grouped`; available as an RDS file in the data release: AquaMatch_harmonize_WQP/_targets/objects/p3_tc_preagg_grouped), and include the `subgroup_id` column, so that users can use the disaggregated data as well and match make joins between dataset versions.
+We identify simultaneous records to aggregate by creating identical subgroups (`subgroup_id`) from the following columns: `parameter`, `OrganizationIdentifier`, `MonitoringLocationIdentifier`, `MonitoringLocationTypeName`, `ResolvedMonitoringLocationTypeName`, `ActivityStartDate`, `ActivityStartTime.Time`, `ActivityStartTime.TimeZoneCode`, `harmonized_tz`, `harmonized_local_time`, `harmonized_utc`, `ActivityStartDateTime`, `harmonized_top_depth_value`, `harmonized_top_depth_unit`, `harmonized_bottom_depth_value`, `harmonized_bottom_depth_unit`, `harmonized_discrete_depth_value`, `harmonized_discrete_depth_unit`, `depth_flag`, `mdl_flag`, `approx_flag`, `greater_flag`, `tier`, `field_flag`, `misc_flag`, `harmonized_units`. This selection limits the columns included in the final dataset, but we also provide a copy of the AquaMatch dataset prior to its aggregation (pipeline target `p3_wc_preagg_grouped`; available as an RDS file in the data release: AquaMatch_harmonize_WQP/_targets/objects/p3_wc_preagg_grouped), and include the `subgroup_id` column, so that users can use the disaggregated data as well and match make joins between dataset versions.
 
 The final values are presented in the `harmonized_value` and `harmonized_value_cv` columns. The number of rows used per group is recorded in the `harmonized_row_count` column.
 
@@ -960,7 +960,7 @@ Below are several sets of figures illustrating different qualities of the datase
 
 <br>
 
-<img src="3_harmonize/out/tc_tier_dists_location_postagg.png" alt="Distribution of Water Color values by location type" width="650"/>
+<img src="3_harmonize/out/wc_tier_dists_location_postagg.png" alt="Distribution of Water Color values by location type" width="650"/>
 
 <br>
 
@@ -968,35 +968,35 @@ Below are several sets of figures illustrating different qualities of the datase
 
 <br>
 
-<img src="3_harmonize/out/tc_tier_dists_postagg.png" alt="Distribution of Water Color values by tier" width="650"/>
+<img src="3_harmonize/out/wc_tier_dists_postagg.png" alt="Distribution of Water Color values by tier" width="650"/>
 
 
-<img src="3_harmonize/out/tc_tier_cv_dists_postagg.png" alt="Distribution of Water Color CVs by tier" width="650"/>
+<img src="3_harmonize/out/wc_tier_cv_dists_postagg.png" alt="Distribution of Water Color CVs by tier" width="650"/>
 
 <br>
 
 3. Maps showing the geographic distribution of records by tier within the US:
 
-<img src="3_harmonize/out/tc_tier_hex_map.png" alt="Geographic distribution of Water Color records by tier in the conterminous US" width="650"/>
+<img src="3_harmonize/out/wc_tier_hex_map.png" alt="Geographic distribution of Water Color records by tier in the conterminous US" width="650"/>
 
 <br>
 
 4. Bar charts showing the distribution of values by tier across years, months, and days of the week:
 
-<img src="3_harmonize/out/tc_year_tier_chart.png" alt="Temporal distribution of Water Color records by tier across years" width="650"/>
+<img src="3_harmonize/out/wc_year_tier_chart.png" alt="Temporal distribution of Water Color records by tier across years" width="650"/>
 
-<img src="3_harmonize/out/tc_month_tier_chart.png" alt="Temporal distribution of Water Color records by tier across months" width="650"/>
+<img src="3_harmonize/out/wc_month_tier_chart.png" alt="Temporal distribution of Water Color records by tier across months" width="650"/>
 
-<img src="3_harmonize/out/tc_wday_tier_chart.png" alt="Temporal distribution of Water Color records by tier across days of the week" width="650"/>
+<img src="3_harmonize/out/wc_wday_tier_chart.png" alt="Temporal distribution of Water Color records by tier across days of the week" width="650"/>
 
 <br>
 
 5. Lastly, bar charts showing the distribution of depth values by parameter, location type, and tier:
 
-<img src="3_harmonize/out/tc_tier_top_depth_dist_postagg.png" alt="Distribution of harmonized_top_top_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
+<img src="3_harmonize/out/wc_tier_top_depth_dist_postagg.png" alt="Distribution of harmonized_top_top_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
 
-<img src="3_harmonize/out/tc_tier_bottom_depth_dist_postagg.png" alt="Distribution of harmonized_top_bottom_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
+<img src="3_harmonize/out/wc_tier_bottom_depth_dist_postagg.png" alt="Distribution of harmonized_top_bottom_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
 
-<img src="3_harmonize/out/tc_tier_discrete_depth_dist_postagg.png" alt="Distribution of harmonized_discrete_depth_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
+<img src="3_harmonize/out/wc_tier_discrete_depth_dist_postagg.png" alt="Distribution of harmonized_discrete_depth_value column values by parameter, tier, and ResolvedMonitoringLocationTypeName" width="650"/>
 
 <br>

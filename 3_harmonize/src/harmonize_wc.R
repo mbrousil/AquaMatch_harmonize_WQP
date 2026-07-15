@@ -1047,7 +1047,7 @@ harmonize_wc <- function(raw_wc, p_codes){
              MonitoringLocationTypeName, ResolvedMonitoringLocationTypeName,
              ActivityStartDate, ActivityStartTime.Time,
              ActivityStartTime.TimeZoneCode, harmonized_tz,
-             harmonized_local_time, harmonized_uwc, ActivityStartDateTime,
+             harmonized_local_time, harmonized_utc, ActivityStartDateTime,
              harmonized_top_depth_value, harmonized_top_depth_unit,
              harmonized_bottom_depth_value, harmonized_bottom_depth_unit,
              harmonized_discrete_depth_value, harmonized_discrete_depth_unit,

@@ -49,7 +49,7 @@ use_stable:
   tss_use_stable: TRUE
   tss_stable_date: "20241205" #YYYYMMDD format
   wc_use_stable: TRUE
-  wc_stable_date: "20240701" #YYYYMMDD format
+  wc_stable_date: "20260617" #YYYYMMDD format
   general_use_stable: TRUE
   general_stable_date: "20240701" #YYYYMMDD format
   drive_project_folder: "" # folder name must end with "/", if you use a nested
@@ -71,7 +71,7 @@ admin_update:
   tss_use_stable: TRUE
   tss_stable_date: "20250430" #YYYYMMDD format
   wc_use_stable: TRUE
-  wc_stable_date: "20250403" #YYYYMMDD format
+  wc_stable_date: "20260617" #YYYYMMDD format
   general_use_stable: TRUE
   general_stable_date: "20240701" #YYYYMMDD format
   drive_project_folder: "~/aquamatch_download_wqp/" # folder name must end with "/", 

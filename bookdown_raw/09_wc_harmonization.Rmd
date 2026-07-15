@@ -280,7 +280,7 @@ step_data %>%
 ```
 
 
-<br>
+<!-- <br> -->
 
 ### Document and remove fails
 

@@ -29,8 +29,8 @@ bookdown_targets_list <- list(
   # tar_file(cdom_harmonization_rmd,
   #          "bookdown_raw/08_cdom_harmonization.Rmd"),
   
-  tar_file(tc_harmonization_rmd,
-           "bookdown_raw/09_tc_harmonization.Rmd"),
+  tar_file(wc_harmonization_rmd,
+           "bookdown_raw/09_wc_harmonization.Rmd"),
   
   tar_file(notes_rmd,
            "bookdown_raw/notes.Rmd"),
@@ -64,7 +64,7 @@ bookdown_targets_list <- list(
           # p2_site_counts_sdd,
           # p2_site_counts_tss,
           # p2_site_counts_cdom,
-          p2_site_counts_tc
+          p2_site_counts_wc
         ),
         global_grid = p1_global_grid,
         yaml_contents = list(
@@ -73,7 +73,7 @@ bookdown_targets_list <- list(
           # sdd = p1_wqp_params_sdd$sdd,
           # tss = p1_wqp_params_tss$tss,
           # cdom = p1_wqp_params_cdom$cdom,
-          tc = p1_wqp_params_tc$true_color
+          wc = p1_wqp_params_wc$water_color
         )),
       output_file = "02_download",
       output_dir = "chapters") %>%
@@ -171,15 +171,15 @@ bookdown_targets_list <- list(
   # ),
   
   tar_target(
-    tc_harmonization_report,
+    wc_harmonization_report,
     render(
-      tc_harmonization_rmd,
+      wc_harmonization_rmd,
       params = list(
         documented_drops = p3_documented_drops,
-        tc_chars = p1_wqp_params_tc$true_color,
-        tiering_record = p3_tc_tiering_record,
-        param_change_table = p3_tc_param_change_table),
-      output_file = "09_tc_harmonization",
+        wc_chars = p1_wqp_params_wc$water_color,
+        tiering_record = p3_wc_tiering_record,
+        param_change_table = p3_wc_param_change_table),
+      output_file = "09_wc_harmonization",
       output_dir = "chapters") %>%
       change_ext(inext = "md", outext = "Rmd"),
     format = "file",
@@ -222,7 +222,7 @@ bookdown_targets_list <- list(
                               # sdd_harmonization_report,
                               # tss_harmonization_report,
                               # cdom_harmonization_report,
-                              tc_harmonization_report,
+                              wc_harmonization_report,
                               notes,
                               references)),
     cue = tar_cue("always")

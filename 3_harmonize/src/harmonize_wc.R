@@ -73,8 +73,8 @@ harmonize_wc <- function(raw_wc, p_codes){
     mutate(
       parameter = case_when(
         # USGS P Codes for Water Color
-        USGSPCode == "00080" ~ "True color",
-        USGSPCode == "00081" ~ "Apparent color",
+        USGSPCode == "80" ~ "True color",
+        USGSPCode == "81" ~ "Apparent color",
         .default = CharacteristicName
       )
     )

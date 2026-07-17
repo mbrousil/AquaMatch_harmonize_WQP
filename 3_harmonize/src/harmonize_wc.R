@@ -1207,13 +1207,13 @@ harmonize_wc <- function(raw_wc, p_codes){
   
   # 3. Maps
   # Similarly, create maps of records counts by tier
-  plot_tier_maps(dataset = no_simul_wc, custom_width = 8, custom_height = 6,
+  plot_tier_maps(dataset = no_simul_wc, custom_width = 9, custom_height = 7,
                  n_bins = 15, param_name = "wc", flip_facets = TRUE,
                  legend_position = "bottom")
   
   # 4. Time
   # Year, month, day of week
-  plot_time_charts(dataset = no_simul_wc, custom_width = 7, custom_height = 8,
+  plot_time_charts(dataset = no_simul_wc, custom_width = 8, custom_height = 8,
                    year_seq = 5, param_name = "wc", legend_position = "bottom",
                    scale_type = "free_y")
   

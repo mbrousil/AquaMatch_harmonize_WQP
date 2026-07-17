@@ -144,7 +144,9 @@ plot_tier_maps <- function(dataset, param_name, map_crs = 9311, flip_facets = FA
       scale_fill_viridis_c("Record count",
                            trans = "log",
                            breaks = breaks_log(n = 6),
-                           labels = label_number(big.mark = ",")) +
+                           # labels = label_number(big.mark = ",")
+                           labels = label_number(scale_cut = cut_short_scale())
+                           ) +
       xlab(NULL) +
       ylab(NULL) +
       # If TRUE swap rows and cols
@@ -166,7 +168,8 @@ plot_tier_maps <- function(dataset, param_name, map_crs = 9311, flip_facets = FA
           " records from outside the conterminous US"
         )) +
       theme_bw() +
-      theme(legend.position = legend_position)
+      theme(legend.position = legend_position) +
+      guides(fill = guide_colorbar(barwidth = 15))
     
   } else {
     
@@ -181,7 +184,9 @@ plot_tier_maps <- function(dataset, param_name, map_crs = 9311, flip_facets = FA
       scale_fill_viridis_c("Record count",
                            trans = "log",
                            breaks = breaks_log(n = 6),
-                           labels = label_number(big.mark = ",")) +
+                           # labels = label_number(big.mark = ",")
+                           labels = label_number(scale_cut = cut_short_scale())
+                           ) +
       xlab(NULL) +
       ylab(NULL) +
       facet_wrap(vars(tier_label), ncol = 1) +
@@ -196,7 +201,8 @@ plot_tier_maps <- function(dataset, param_name, map_crs = 9311, flip_facets = FA
           " records from outside the conterminous US"
         )) +
       theme_bw() +
-      theme(legend.position = legend_position)
+      theme(legend.position = legend_position) +
+      guides(fill = guide_colorbar(barwidth = 10))
     
   }
   

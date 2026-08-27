@@ -75,6 +75,7 @@ harmonize_wc <- function(raw_wc, p_codes){
         # USGS P Codes for Water Color
         USGSPCode == "80" ~ "True color",
         USGSPCode == "81" ~ "Apparent color",
+        # Handle leftovers
         .default = CharacteristicName
       )
     )
@@ -773,20 +774,23 @@ harmonize_wc <- function(raw_wc, p_codes){
   
   # Before creating tiers remove records that have clearly unrelated or unreliable
   # data based on their method.
-  unrelated_text <- paste0(c("2320", "alkalin"),
+  unrelated_text <- paste0(c("2320", "alkalin", "Bicinchoninate"),
                            collapse = "|")
   
   wc_relevant <- flagged_depth_wc %>%
     filter(
       !grepl(pattern = unrelated_text,
              x = ResultAnalyticalMethod.MethodName,
-             ignore.case = TRUE)
+             ignore.case = TRUE),
+      # 1 row
+      (ResultSampleFractionText != "Acid Soluble") |
+        is.na(ResultSampleFractionText)
     )
   
   # How many records removed due to irrelevant analytical methods?
   print(
     paste0(
-      "Rows removed due to unrelated analytical methods: ",
+      "Rows removed due to unrelated analytical methods or fraction: ",
       nrow(flagged_depth_wc) - nrow(wc_relevant)
     )
   )
@@ -817,7 +821,7 @@ harmonize_wc <- function(raw_wc, p_codes){
         
         # True Color : Same as Apparent, but "Dissolved" fraction
         parameter == "True color" & 
-          ResultSampleFractionText %in% c("Dissolved", "Acid Soluble", "Filterable",
+          ResultSampleFractionText %in% c("Dissolved", "Filterable",
                                           "Filtered, field", "Filtered, lab") &
           ResultMeasure.MeasureUnitCode != "None" &
           ( 
@@ -853,7 +857,7 @@ harmonize_wc <- function(raw_wc, p_codes){
         
         # True Color
         parameter == "True color" & 
-          ResultSampleFractionText %in% c("Dissolved", "Acid Soluble", "Filterable",
+          ResultSampleFractionText %in% c("Dissolved", "Filterable",
                                           "Filtered, field", "Filtered, lab") &
           ResultMeasure.MeasureUnitCode != "None" &
           ( 
@@ -869,10 +873,9 @@ harmonize_wc <- function(raw_wc, p_codes){
               ) 
           ) ~ 1,
         
+        # Tier 2:
         # Some additional True Color samples with a non-standard wavelength
         parameter == "True color" & 
-          ResultSampleFractionText =="Dissolved" &
-          ResultMeasure.MeasureUnitCode == "PCU" &
           ( 
             grepl(
               x = ResultAnalyticalMethod.MethodName,
@@ -882,9 +885,9 @@ harmonize_wc <- function(raw_wc, p_codes){
                 x = ResultAnalyticalMethod.MethodIdentifier,
                 pattern = "345|440"
               ) 
-          ) ~ 1,
+          ) ~ 2,
         
-        # Default to inclusive tier (2)
+        # Otherwise default to inclusive tier (2)
         .default = 2
       )
     )
@@ -983,18 +986,22 @@ harmonize_wc <- function(raw_wc, p_codes){
   
   # Miscellaneous flag ------------------------------------------------------
   
-  # Flag values over 1500 as potentially unrealistic (instead of removing them
-  # in the next section)
+  # Flag values over 200 PCU because they are 99.5 percentile values for 4 years
+  # of National Lakes Assessment data
   
   misc_flagged_wc <- field_flagged_wc %>%
     mutate(
-      misc_flag = if_else(
-        condition = harmonized_value >= 1500,
-        true = 1, 
-        false = 0
+      # 99.5 percentile from NLA 2007-2022 was 200 PCU
+      misc_flag = case_when(
+        (harmonized_value >= 200) &
+          harmonized_units == "PCU" ~ 1,
+        # ADMI not covered by this range
+        harmonized_units != "PCU" ~ 2,
+        # Otherwise, below 200 PCU
+        .default = 0
       )
     )
-  
+      
   # Export a record of flag counts
   misc_flag_table_out_path <- "3_harmonize/out/wc_misc_flag_table.csv"
   
@@ -1145,7 +1152,7 @@ harmonize_wc <- function(raw_wc, p_codes){
   # 1(b): Harmonized values by location, param, unit (not tier, but uses the 
   # dataset made for tiers)
   
-  location_tier_dists <- no_simul_wc_tier_label %>%
+  location_unit_dists <- no_simul_wc_tier_label %>%
     select(parameter, ResolvedMonitoringLocationTypeName, harmonized_value, harmonized_units) %>%
     mutate(plot_value = harmonized_value + 0.001) %>%
     ggplot() +
@@ -1155,7 +1162,7 @@ harmonize_wc <- function(raw_wc, p_codes){
     facet_wrap(harmonized_units ~ ResolvedMonitoringLocationTypeName, ncol = 3, scales = "free") +
     xlab(expression("Harmonized values")) +
     ylab("Record count") +
-    ggtitle(label = "Distribution of harmonized values by location type, tier, and unit",
+    ggtitle(label = "Distribution of harmonized values by location type, parameter, and unit",
             subtitle = "0.001 added to each value for the purposes of visualization only") +
     scale_x_log10(label = label_scientific()) +
     scale_y_continuous(label = label_number(scale_cut = cut_short_scale())) +
@@ -1166,8 +1173,8 @@ harmonize_wc <- function(raw_wc, p_codes){
       legend.position = "bottom") +
     guides(fill = guide_legend(nrow = 5))
   
-  ggsave(filename = "3_harmonize/out/wc_tier_dists_location_postagg.png",
-         plot = location_tier_dists,
+  ggsave(filename = "3_harmonize/out/wc_unit_dists_location_postagg.png",
+         plot = location_unit_dists,
          width = 8, height = 10, units = "in", device = "png")
   
   

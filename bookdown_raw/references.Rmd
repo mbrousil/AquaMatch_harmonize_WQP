@@ -38,6 +38,14 @@ Ross, M. R. V., S. N. Topp, A. P. Appling, X. Yang, C. Kuhn, D. Butman, M. Simar
 
 Teucher, A. 2023. lutz: Look Up Time Zones of Point Coordinates. R package version 0.3.2, <https://CRAN.R-project.org/package=lutz>.
 
+U.S. Environmental Protection Agency. 2010. National Aquatic Resource Surveys. National Lakes Assessment 2007 (data and metadata files). Available from U.S. EPA web page: https://www.epa.gov/national-aquatic-resource-surveys/data-national-aquatic-resource-surveys. Date accessed: 2026-08-26.
+
+U.S. Environmental Protection Agency. 2016. National Aquatic Resource Surveys. National Lakes Assessment 2012 (data and metadata files). Available from U.S. EPA web page: https://www.epa.gov/national-aquatic-resource-surveys/data-national-aquatic-resource-surveys. Date accessed: 2026-08-26.
+
+U.S. Environmental Protection Agency. 2022. National Aquatic Resource Surveys. National Lakes Assessment 2017 (data and metadata files). Available from U.S. EPA web page: https://www.epa.gov/national-aquatic-resource-surveys/data-national-aquatic-resource-surveys. Date accessed: 2026-08-26.
+
+U.S. Environmental Protection Agency. 2024. National Aquatic Resource Surveys. National Lakes Assessment 2022 (data and metadata files). Available from U.S. EPA web page: https://www.epa.gov/national-aquatic-resource-surveys/data-national-aquatic-resource-surveys. Date accessed: 2026-08-26.
+
 Wetzel, R. G. 2024. Wetzel's limnology: lake and river ecosystems, Fourth edition. I.D. Jones and J.P. Smol (eds.). Academic Press, an imprint of Elsevier.
 
 Yates, C. A. and others. 2023. Determining patterns in the composition of dissolved organic matter in fresh waters according to land use and management. Biogeochemistry 164: 143–162. [doi:10.1007/s10533-022-00964-2](https://doi.org/10.1007/s10533-022-00964-2)

@@ -75,6 +75,13 @@ harmonize_wc <- function(raw_wc, p_codes){
         # USGS P Codes for Water Color
         USGSPCode == "80" ~ "True color",
         USGSPCode == "81" ~ "Apparent color",
+        # Some Color records that are clearly Apparent Color
+        (
+          CharacteristicName == "Color" & 
+            ResultSampleFractionText %in% c("None", "Total") &
+            ResultAnalyticalMethod.MethodIdentifier == "2120-B" &
+            is.na(USGSPCode)
+        ) ~ "Apparent color",
         # Handle leftovers
         .default = CharacteristicName
       )
@@ -1001,7 +1008,7 @@ harmonize_wc <- function(raw_wc, p_codes){
         .default = 0
       )
     )
-      
+  
   # Export a record of flag counts
   misc_flag_table_out_path <- "3_harmonize/out/wc_misc_flag_table.csv"
   

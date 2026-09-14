@@ -727,7 +727,9 @@ Finally, we group the data into three tiers as described in *Tiering, flagging, 
 | 2 | Inclusive | Data that are assumed to be reliable and are harmonized to our best  ability given the information available from the data provider. This tier includes NA or non-resolvable descriptions for the  analytical method, which often make up the majority of methods  descriptions for any given parameter | Samples for True Color that use non-standard wavelengths (345, 440nm). All other records not already categorized into Tier 0 or Tier 1 above. |
 <br>
 
-At this point we create a file (`3_harmonize/out/wc_tiering_record.csv`) that contains a record of how specific method text was tiered and how many row counts corresponded to each method. This file is also included as an interactive HTML table below, in order to illustrate how the specifics of each tiering decision in the table above are carried out.
+At this point we create a file (`3_harmonize/out/wc_tiering_record.csv`) that contains a record of how specific method text was tiered and how many row counts corresponded to each method. This file is also included as an interactive HTML table below, in order to illustrate how the specifics of each tiering decision in the table above are carried out. 
+
+**Note**, for example, that this table contains a few instances where Tier 2 data contain mismatches between records' stated methods and their units: e.g., `ResultAnalyticalMethod.MethodName` = "Color by Calculating ADMI Values" but `ResultMeasure.MeasureUnitCode` = "PCU" and `ResultAnalyticalMethod.MethodName` = "Color Analysis Using Platinum/Cobalt" but `ResultMeasure.MeasureUnitCode` = "ADMI value". Records like this make up an exceedingly small component of the dataset.
 
 ```{r fig.alt="Table containing combinations of Water Color record summary information and corresponding tiers."}
 
@@ -844,6 +846,8 @@ The `misc_flag` column uses the following definition:
 + `misc_flag` = `0` when the color measurement has PCU for `harmonized_units` and the `harmonized_value` is less than 200
 + `misc_flag` = `1` when the color measurement has PCU for `harmonized_units` and the `harmonized_value` is 200 or greater
 + `misc_flag` = `2` when the color measurement is in non-PCU units and so can't be compared to the NLA measures
+
+**Note** that while the cutoff for this flag was chosen based on the NLA, results over 200 PCU (flag = 1) are not necessarily erroneous. They are just above a common threshold.
 
 Some parameters in published AquaMatch products will have different flagging requirements for this column that Water Color does not. Please keep this in mind and review the documentation for other harmonized WQP data products to ensure that the `misc_flag` column is used as intended for each product.
 

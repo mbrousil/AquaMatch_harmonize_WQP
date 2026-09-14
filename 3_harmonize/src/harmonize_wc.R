@@ -911,7 +911,6 @@ harmonize_wc <- function(raw_wc, p_codes){
     "ResultAnalyticalMethod.MethodIdentifierContext",
     # Units
     "ResultMeasure.MeasureUnitCode",
-    # Fraction: should generally be filtered 
     "ResultSampleFractionText",
     "tier"
   )

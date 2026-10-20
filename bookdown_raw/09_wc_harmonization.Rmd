@@ -898,7 +898,7 @@ step_15_dropped <- filter(step_data,
   pull(number_dropped)
 ```
 
-Before finalizing the dataset we check for and remove any depths > 592m, the deepest point in a lake in the U.S.
+Before finalizing the dataset we check for and remove any records with depths > 592m, the deepest point in a lake in the U.S. We also remove records for streams that are > 91m. This is the deepest point we are aware of in a US river, including impounded reaches (Water Resources Division 1981).
 
 `r step_15_dropped` rows are removed. The final row count after this is `r step_15_rows`.
 

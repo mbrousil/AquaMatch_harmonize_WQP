@@ -1029,13 +1029,25 @@ harmonize_wc <- function(raw_wc, p_codes){
   
   # We remove unrealistically high values prior to the final data export.
   
-  # We remove any depths > 592m, the deepest point in a lake in the U.S.
+  # We remove any lake depths > 592m, the deepest point in a lake in the U.S.
+  # Additionally, we remove records where ResolvedMonitoringLocationTypeName is
+  # "Stream" and depths are > 91m. This is the deepest point we are aware of 
+  # in a US river, including impounded reaches (Water Resources Division, 1981).
   
   realistic_wc <- misc_flagged_wc %>%
     filter(
+      # Deepest lake ref
       harmonized_top_depth_value <= 592 | is.na(harmonized_top_depth_value),
       harmonized_bottom_depth_value <= 592 | is.na(harmonized_bottom_depth_value),
-      harmonized_discrete_depth_value <= 592 | is.na(harmonized_discrete_depth_value)
+      harmonized_discrete_depth_value <= 592 | is.na(harmonized_discrete_depth_value),
+      # Nothing classified as a stream over 91m
+      ResolvedMonitoringLocationTypeName != "Stream" |
+        is.na(ResolvedMonitoringLocationTypeName) |
+        (
+          (harmonized_top_depth_value <= 91 | is.na(harmonized_top_depth_value)) &
+            (harmonized_bottom_depth_value <= 91 | is.na(harmonized_bottom_depth_value)) &
+            (harmonized_discrete_depth_value <= 91 | is.na(harmonized_discrete_depth_value))
+        )
     )
   
   dropped_unreal <- tibble(

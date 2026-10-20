@@ -46,6 +46,8 @@ U.S. Environmental Protection Agency. 2022. National Aquatic Resource Surveys. N
 
 U.S. Environmental Protection Agency. 2024. National Aquatic Resource Surveys. National Lakes Assessment 2022 (data and metadata files). Available from U.S. EPA web page: https://www.epa.gov/national-aquatic-resource-surveys/data-national-aquatic-resource-surveys. Date accessed: 2026-08-26.
 
+Water Resources Division, U.S. Geological Survey, 1981, River basins of the United States: the Columbia: General Information Product, 4 p., https://doi.org/10.3133/70039373.
+
 Wetzel, R. G. 2024. Wetzel's limnology: lake and river ecosystems, Fourth edition. I.D. Jones and J.P. Smol (eds.). Academic Press, an imprint of Elsevier.
 
 Yates, C. A. and others. 2023. Determining patterns in the composition of dissolved organic matter in fresh waters according to land use and management. Biogeochemistry 164: 143–162. [doi:10.1007/s10533-022-00964-2](https://doi.org/10.1007/s10533-022-00964-2)
